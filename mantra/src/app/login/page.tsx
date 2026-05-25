@@ -1,108 +1,118 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, BookOpen, Github, ArrowRight } from "lucide-react";
+import { Eye, EyeOff, BookOpen, ArrowRight, Users, GraduationCap } from "lucide-react";
+import Image from "next/image";
 
-export default function LoginPage() {
+function LoginForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard";
+
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
     setLoading(true);
-    setTimeout(() => {
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+      if (result?.error) {
+        setError("Invalid email or password. Please try again.");
+      } else {
+        router.push(callbackUrl);
+        router.refresh();
+      }
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
       setLoading(false);
-      window.location.href = "/dashboard";
-    }, 1200);
+    }
   };
 
   return (
     <div className="min-h-screen bg-background flex">
-      {/* Left panel — decorative */}
-      <div className="hidden lg:flex lg:w-1/2 bg-primary-container relative overflow-hidden flex-col justify-between p-12">
-        <div className="organic-blob w-[500px] h-[500px] bg-secondary top-[-100px] right-[-100px]" />
-        <div className="organic-blob w-[300px] h-[300px] bg-primary-fixed bottom-[-50px] left-[-50px]" />
-
-        {/* Logo */}
+      {/* Left panel */}
+      <div className="hidden lg:flex lg:w-[45%] bg-primary relative overflow-hidden flex-col justify-between p-12">
+        <div className="absolute inset-0">
+          <Image src="/home/library-grand.png" alt="Library" fill className="object-cover opacity-20" sizes="45vw" />
+          <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/95 to-primary/80" />
+        </div>
+        <svg className="absolute inset-0 w-full h-full opacity-[0.04] pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="login-dot-grid" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
+              <circle cx="1.5" cy="1.5" r="1.5" fill="#fef9f2" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#login-dot-grid)" />
+        </svg>
         <div className="flex items-center gap-2 relative z-10">
-          <div className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center">
+          <div className="w-9 h-9 bg-on-primary/10 border border-on-primary/20 rounded-xl flex items-center justify-center">
             <BookOpen className="w-5 h-5 text-on-primary" />
           </div>
-          <span className="font-manrope font-bold text-xl text-primary">Mantra</span>
+          <span className="font-manrope font-bold text-xl text-on-primary">Mentra</span>
         </div>
-
-        {/* Quote */}
         <div className="relative z-10 space-y-6">
-          <blockquote className="text-2xl font-manrope font-semibold text-primary leading-relaxed">
-            "Knowledge compounds when it's shared. Every commit is a gift to future students."
+          <blockquote className="text-2xl font-manrope font-semibold text-on-primary leading-relaxed">
+            &ldquo;Knowledge compounds when it&apos;s shared. Every contribution is a gift to future students.&rdquo;
           </blockquote>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-secondary-container rounded-full flex items-center justify-center font-bold font-manrope text-on-secondary-container text-sm">
-              MC
-            </div>
+            <div className="w-10 h-10 bg-secondary-container rounded-full flex items-center justify-center font-bold font-manrope text-on-secondary-container text-sm">MC</div>
             <div>
-              <p className="font-semibold text-sm text-primary">Marcus Chen</p>
-              <p className="text-xs text-on-surface-variant">Professor of Physics, MIT</p>
+              <p className="font-semibold text-sm text-on-primary">Marcus Chen</p>
+              <p className="text-xs text-on-primary/50">Professor of Physics, MIT</p>
             </div>
           </div>
         </div>
-
-        <div className="relative z-10 grid grid-cols-3 gap-4 text-center">
+        <div className="relative z-10 grid grid-cols-3 gap-3 text-center">
           {[
-            { value: "48k+", label: "Repositories" },
-            { value: "312k+", label: "Contributors" },
-            { value: "1,200+", label: "Universities" },
+            { icon: BookOpen, label: "Stacks" },
+            { icon: Users, label: "Learners" },
+            { icon: GraduationCap, label: "Universities" },
           ].map(s => (
-            <div key={s.label} className="card p-3">
-              <p className="font-manrope font-bold text-xl text-primary">{s.value}</p>
-              <p className="text-xs text-on-surface-variant">{s.label}</p>
+            <div key={s.label} className="bg-on-primary/5 border border-on-primary/10 rounded-2xl p-3">
+              <p className="text-xs text-on-primary/50 mt-0.5">{s.label}</p>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Right panel — form */}
-      <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
+      {/* Right panel */}
+      <div className="flex-1 flex items-center justify-center p-6 lg:p-12 bg-background">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           className="w-full max-w-md"
         >
-          {/* Mobile logo */}
           <Link href="/" className="lg:hidden flex items-center gap-2 mb-8">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <BookOpen className="w-4 h-4 text-on-primary" />
             </div>
-            <span className="font-manrope font-bold text-lg text-primary">Mantra</span>
+            <span className="font-manrope font-bold text-lg text-primary">Mentra</span>
           </Link>
 
-          <h1 className="font-manrope font-bold text-2xl md:text-3xl text-primary mb-2">
-            Welcome back
-          </h1>
-          <p className="text-on-surface-variant mb-8">
-            Sign in to your account to continue learning.
-          </p>
+          <h1 className="font-manrope font-bold text-2xl md:text-3xl text-primary mb-2">Welcome back</h1>
+          <p className="text-on-surface-variant mb-8">Sign in to your account to continue learning.</p>
 
-          {/* Social login */}
-          <button className="w-full flex items-center justify-center gap-3 border border-outline-variant/40 bg-surface-container-lowest py-3 rounded-xl text-sm font-medium text-primary hover:bg-surface-container transition-all mb-6 shadow-card">
-            <Github className="w-5 h-5" />
-            Continue with GitHub
-          </button>
-
-          <div className="relative mb-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-outline-variant/20" />
+          {error && (
+            <div className="mb-4 p-3 bg-error-container/20 border border-error/20 rounded-xl text-sm text-error">
+              {error}
             </div>
-            <div className="relative flex justify-center">
-              <span className="bg-background px-4 text-xs text-on-surface-variant">or continue with email</span>
-            </div>
-          </div>
+          )}
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-primary mb-1.5">Email address</label>
@@ -110,12 +120,12 @@ export default function LoginPage() {
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                placeholder="amara@university.edu"
+                placeholder="you@university.edu"
                 className="input-field"
                 required
+                autoComplete="email"
               />
             </div>
-
             <div>
               <div className="flex justify-between mb-1.5">
                 <label className="text-sm font-medium text-primary">Password</label>
@@ -129,6 +139,7 @@ export default function LoginPage() {
                   placeholder="Enter your password"
                   className="input-field pr-12"
                   required
+                  autoComplete="current-password"
                 />
                 <button
                   type="button"
@@ -139,7 +150,6 @@ export default function LoginPage() {
                 </button>
               </div>
             </div>
-
             <button
               type="submit"
               disabled={loading}
@@ -155,12 +165,18 @@ export default function LoginPage() {
 
           <p className="text-center text-sm text-on-surface-variant mt-6">
             Don&apos;t have an account?{" "}
-            <Link href="/register" className="text-secondary font-medium hover:underline">
-              Sign up free
-            </Link>
+            <Link href="/register" className="text-secondary font-medium hover:underline">Sign up free</Link>
           </p>
         </motion.div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center"><div className="w-8 h-8 border-2 border-secondary/30 border-t-secondary rounded-full animate-spin" /></div>}>
+      <LoginForm />
+    </Suspense>
   );
 }

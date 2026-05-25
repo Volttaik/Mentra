@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { BookOpen, Github, Twitter } from "lucide-react";
+import { BookOpen, Twitter, Mail } from "lucide-react";
 
 const LINKS = {
   Platform: [
     { label: "Explore Stacks", href: "/explore" },
     { label: "Search", href: "/search" },
     { label: "Dashboard", href: "/dashboard" },
-    { label: "Upload Stack", href: "/upload" },
+    { label: "New Stack", href: "/upload" },
   ],
   Resources: [
     { label: "Documentation", href: "#" },
@@ -42,14 +42,14 @@ export default function Footer() {
               <span className="font-manrope font-bold text-lg text-on-primary">Mentra</span>
             </div>
             <p className="text-sm text-on-primary/60 leading-relaxed">
-              The collaborative academic operating system. Knowledge evolves.
+              The collaborative academic OS. Knowledge compounds when it&apos;s shared.
             </p>
             <div className="flex items-center gap-3 pt-2">
               <a href="#" className="w-8 h-8 bg-on-primary/10 rounded-lg flex items-center justify-center hover:bg-on-primary/20 transition-colors">
-                <Github className="w-4 h-4 text-on-primary" />
-              </a>
-              <a href="#" className="w-8 h-8 bg-on-primary/10 rounded-lg flex items-center justify-center hover:bg-on-primary/20 transition-colors">
                 <Twitter className="w-4 h-4 text-on-primary" />
+              </a>
+              <a href="mailto:hello@mentra.app" className="w-8 h-8 bg-on-primary/10 rounded-lg flex items-center justify-center hover:bg-on-primary/20 transition-colors">
+                <Mail className="w-4 h-4 text-on-primary" />
               </a>
             </div>
           </div>
