@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Mastering Minimalist UI Design - MENTRA</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Be+Vietnam+Pro:wght@400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed-dim": "#d4c4b5",
+                    "secondary-fixed-dim": "#e3c282",
+                    "error-container": "#ffdad6",
+                    "background": "#fef9f2",
+                    "on-primary-container": "#97877b",
+                    "primary-fixed-dim": "#d5c3b5",
+                    "on-error-container": "#93000a",
+                    "surface-container-low": "#f8f3ec",
+                    "on-secondary-container": "#785f29",
+                    "surface-tint": "#695c51",
+                    "primary-container": "#2b2118",
+                    "inverse-surface": "#32302c",
+                    "tertiary-container": "#2a2118",
+                    "on-tertiary-fixed": "#221a11",
+                    "tertiary": "#120b04",
+                    "on-primary-fixed": "#231a11",
+                    "on-secondary-fixed-variant": "#5a430f",
+                    "inverse-on-surface": "#f5f0e9",
+                    "on-secondary-fixed": "#261a00",
+                    "on-primary-fixed-variant": "#51443a",
+                    "on-background": "#1d1b17",
+                    "on-tertiary-fixed-variant": "#50453a",
+                    "secondary-fixed": "#ffdea0",
+                    "secondary-container": "#fedb99",
+                    "on-tertiary-container": "#95887b",
+                    "inverse-primary": "#d5c3b5",
+                    "outline-variant": "#d0c4bc",
+                    "surface": "#fef9f2",
+                    "primary-fixed": "#f2dfd1",
+                    "surface-container-high": "#ece7e1",
+                    "on-error": "#ffffff",
+                    "on-tertiary": "#ffffff",
+                    "outline": "#7f756e",
+                    "on-secondary": "#ffffff",
+                    "secondary": "#735b25",
+                    "on-primary": "#ffffff",
+                    "surface-container": "#f2ede6",
+                    "surface-bright": "#fef9f2",
+                    "primary": "#140b05",
+                    "surface-variant": "#e7e2db",
+                    "error": "#ba1a1a",
+                    "tertiary-fixed": "#f0e0d1",
+                    "surface-container-highest": "#e7e2db",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-dim": "#ded9d3",
+                    "on-surface": "#1d1b17",
+                    "on-surface-variant": "#4d453f"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "sm": "8px",
+                    "lg": "24px",
+                    "gutter": "24px",
+                    "unit": "4px",
+                    "xl": "40px",
+                    "xs": "4px",
+                    "xxl": "64px",
+                    "container-max": "1200px",
+                    "md": "16px",
+                    "margin-mobile": "16px"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Manrope"],
+                    "display-lg": ["Manrope"],
+                    "label-md": ["Be Vietnam Pro"],
+                    "label-sm": ["Be Vietnam Pro"],
+                    "display-md": ["Manrope"],
+                    "headline-md": ["Manrope"],
+                    "body-lg": ["Be Vietnam Pro"],
+                    "body-md": ["Be Vietnam Pro"],
+                    "headline-lg-mobile": ["Manrope"]
+            },
+            "fontSize": {
+                    "headline-lg": ["28px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                    "label-sm": ["12px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "display-md": ["36px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "headline-md": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .parchment-blur {
+            backdrop-filter: blur(8px);
+            background-color: rgba(255, 249, 242, 0.8);
+        }
+        .organic-blob {
+            position: absolute;
+            z-index: -1;
+            filter: blur(80px);
+            opacity: 0.05;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body-md antialiased">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center px-margin-mobile w-full z-50 sticky top-0 bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-lg h-16">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary cursor-pointer" data-icon="menu">menu</span>
+<h1 class="font-headline-lg text-headline-lg font-bold text-primary dark:text-primary-fixed">MENTRA</h1>
+</div>
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary cursor-pointer" data-icon="notifications">notifications</span>
+</div>
+</header>
+<main class="max-w-[1200px] mx-auto pb-xxl px-margin-mobile md:px-gutter relative">
+<!-- Organic background shape -->
+<div class="organic-blob bg-secondary w-[400px] h-[400px] top-20 -right-20 rounded-full"></div>
+<!-- Video Player Section -->
+<section class="mt-lg">
+<div class="relative w-full aspect-video rounded-xl overflow-hidden bg-surface-container-highest shadow-lg group">
+<img class="w-full h-full object-cover" data-alt="A professional video player interface displaying a high-resolution screencast of a minimalist UI design project. The interface features a clean parchment-colored background with elegant typography and subtle drop shadows. A large, translucent play icon is centered over the video, which shows a workspace with a high-end monitor and design software. The lighting is soft and natural, emphasizing a serene and professional creative atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBv3_wqi-US5FmGHX83doFKtIQMED_5CvleFbyPnSy10TWYTT6ruReyGTpNOKHyDl23Tv-CeyVG9eKlTz9t2IbZdzpA8XtQc5aAZ2DWBcidEZSIWr-vMNPqsuguPTKxuKRsMiWjul6Ir23ZgiKFZM1E6JyNNFhs1bqG3cy3gI_o9TalopswiX_cSKKeGrEiL8aqZylUy0RaB9pIxyGGAl8Yu4gAIaLejdtCClKHI_tPj7hnULrSl0FyP2_JnzxGuppiak5DvLmjaSA"/>
+<div class="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-black/20 transition-all">
+<div class="w-20 h-20 bg-accent bg-secondary text-on-secondary rounded-full flex items-center justify-center shadow-2xl scale-100 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[48px]" data-icon="play_arrow" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</div>
+</div>
+<div class="absolute bottom-lg right-lg flex gap-md">
+<button class="bg-surface/90 backdrop-blur-md p-md rounded-full shadow-sm flex items-center gap-sm hover:bg-surface transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="bookmark">bookmark</span>
+</button>
+<button class="bg-surface/90 backdrop-blur-md p-md rounded-full shadow-sm flex items-center gap-sm hover:bg-surface transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="share">share</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Header Info -->
+<section class="mt-lg flex flex-col md:flex-row md:items-end justify-between gap-lg">
+<div class="flex-1">
+<div class="flex gap-sm mb-sm">
+<span class="bg-secondary-container text-on-secondary-container text-label-sm font-label-sm px-md py-1 rounded-full uppercase tracking-wider">Design Essentials</span>
+<span class="bg-surface-container text-on-surface-variant text-label-sm font-label-sm px-md py-1 rounded-full">45 Minutes</span>
+</div>
+<h2 class="font-display-md text-display-md md:text-display-lg font-bold text-primary mb-md">Mastering Minimalist UI Design</h2>
+<div class="flex items-center gap-md">
+<img class="w-12 h-12 rounded-full object-cover ring-2 ring-surface-container" data-alt="A professional headshot of a creative director in a bright, modern studio. The subject is a male with a friendly expression, wearing a clean white linen shirt. The background is softly out of focus, showing architectural elements and warm wooden tones. The lighting is soft and flattering, creating a high-end professional brand persona for an expert mentor." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8jSUjXQn3aQp1Q6nOtiOIwUbjLR8bp0WcafzEB2LlYLPlT4EpEfa4cPJ7zsgi5wWqAo1iSs8G8E_SgQLEnLaWTkzJkBPlppfczVcztqkMruk-iUDwcP3nJtEa_Ezi9AaRxkX8zHm2dpBqEoqcPPGi4Jn_arucJGYkT38iNqmuJbwiDu_q7rFu2aIkY4arZ9_qmWt0Rizk_cdVxHCSaYOyNw810ghkhSrpFXvswfYyPrFKNBQpsh4JhAaJd0xkPvksSfrywHnOCsE"/>
+<div>
+<p class="font-headline-md text-headline-md text-primary">Julian Sterling</p>
+<p class="text-on-surface-variant text-label-md font-label-md">Senior Product Designer</p>
+</div>
+<button class="ml-lg border border-secondary text-secondary px-lg py-sm rounded-full font-label-md hover:bg-secondary/5 transition-all">Follow</button>
+</div>
+</div>
+</section>
+<!-- Tabs & Content -->
+<section class="mt-xxl">
+<div class="flex gap-xl border-b border-outline/10 mb-lg overflow-x-auto whitespace-nowrap">
+<button class="pb-md border-b-2 border-secondary text-primary font-bold">Overview</button>
+<button class="pb-md text-on-surface-variant hover:text-primary transition-colors">Materials (3)</button>
+<button class="pb-md text-on-surface-variant hover:text-primary transition-colors">Reviews (128)</button>
+<button class="pb-md text-on-surface-variant hover:text-primary transition-colors">Discussion</button>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-xl">
+<div class="lg:col-span-2 space-y-lg">
+<div class="bg-surface-container-lowest p-lg rounded-xl shadow-sm border border-outline/5">
+<h3 class="font-headline-md text-headline-md text-primary mb-md">About this lesson</h3>
+<p class="text-body-md text-on-surface-variant leading-relaxed">
+                            In this deep dive, we explore the principles of "Warm Minimalism." We'll go beyond the clinical aesthetic to understand how tactile softness, organic shapes, and a parchment-inspired palette can create a more human-centric digital experience. 
+                            <br/><br/>
+                            You will learn how to build visual hierarchy without aggressive borders, the science of diffusion in depth perception, and how to select typography that breathes.
+                        </p>
+</div>
+<div class="bg-surface-container-lowest p-lg rounded-xl shadow-sm border border-outline/5">
+<h3 class="font-headline-md text-headline-md text-primary mb-md">What you'll learn</h3>
+<ul class="space-y-md">
+<li class="flex items-start gap-md">
+<span class="material-symbols-outlined text-secondary" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="text-body-md text-on-surface-variant">The 4 Pillars of Tactile Minimalism.</span>
+</li>
+<li class="flex items-start gap-md">
+<span class="material-symbols-outlined text-secondary" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="text-body-md text-on-surface-variant">Advanced spacing rhythms for premium layouts.</span>
+</li>
+<li class="flex items-start gap-md">
+<span class="material-symbols-outlined text-secondary" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="text-body-md text-on-surface-variant">Designing with diffusion: Beyond the Drop Shadow.</span>
+</li>
+</ul>
+</div>
+</div>
+<!-- Sidebar Content -->
+<aside class="space-y-lg">
+<div class="bg-primary-container p-lg rounded-xl text-on-primary-fixed shadow-xl">
+<h4 class="font-headline-md text-headline-md mb-sm text-surface">Course Content</h4>
+<div class="space-y-sm">
+<div class="flex items-center gap-md p-md bg-white/5 rounded-lg border border-white/10">
+<span class="text-label-sm font-label-sm opacity-60">01</span>
+<p class="text-body-md font-medium text-surface">Introduction to Softness</p>
+<span class="material-symbols-outlined ml-auto text-secondary-fixed" data-icon="lock">lock</span>
+</div>
+<div class="flex items-center gap-md p-md bg-white/5 rounded-lg border border-white/10">
+<span class="text-label-sm font-label-sm opacity-60">02</span>
+<p class="text-body-md font-medium text-surface">The Parchment Palette</p>
+<span class="material-symbols-outlined ml-auto text-secondary-fixed" data-icon="lock">lock</span>
+</div>
+<div class="flex items-center gap-md p-md bg-white/5 rounded-lg border border-white/10">
+<span class="text-label-sm font-label-sm opacity-60">03</span>
+<p class="text-body-md font-medium text-surface">Typography That Breathes</p>
+<span class="material-symbols-outlined ml-auto text-secondary-fixed" data-icon="lock">lock</span>
+</div>
+</div>
+</div>
+</aside>
+</div>
+</section>
+<!-- Related Lessons Section -->
+<section class="mt-xxl">
+<h3 class="font-headline-lg text-headline-lg text-primary mb-lg">Related Lessons</h3>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-lg">
+<!-- Related Card 1 -->
+<div class="bg-surface-container-low rounded-xl overflow-hidden group shadow-sm hover:shadow-lg transition-all duration-300">
+<div class="h-48 overflow-hidden relative">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A close-up aesthetic shot of a designer's desk featuring a premium sketchbook, a fountain pen, and a sleek modern tablet. The lighting is warm and late-afternoon, casting soft long shadows over a textured parchment paper. The color palette is composed of creams, ochres, and deep browns, following the luminous mentorship brand style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7A5qE-dCn7a7eXtq5ekkjSkKUUpB_vqsaFfRbTl8UDwkt82XRXqDnCOO1eRUKrIBUw279lTbi73g3nHRusu62Vd-sZRDo-0jS19zUJfkCENVJmy2NtMy4DSOO0RrJRHKuakB09OpRvRJm6fzQx8jqJ4-N3GhrEDTYTz89DzzLu_F3ASQB_NFtKGbimmhH4RY_WyXiYxOyhaxTbFshIEQi3X-gA0CRTEdp6s97NWrtauWYaRRHs90KI59vc2HdkZzJ-NMfrXBGHKc"/>
+<span class="absolute top-md right-md bg-surface/90 backdrop-blur-sm px-sm py-xs rounded-lg text-label-sm font-label-sm">12:30</span>
+</div>
+<div class="p-lg">
+<h4 class="font-headline-md text-headline-md text-primary mb-sm">Visual Hierarchy Deep Dive</h4>
+<p class="text-on-surface-variant text-body-md line-clamp-2">Learn how to guide the user's eye using scale, color, and whitespace.</p>
+<div class="mt-lg flex items-center justify-between">
+<span class="text-secondary font-bold">₦4,200</span>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</div>
+</div>
+<!-- Related Card 2 -->
+<div class="bg-surface-container-low rounded-xl overflow-hidden group shadow-sm hover:shadow-lg transition-all duration-300">
+<div class="h-48 overflow-hidden relative">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="An abstract, high-key digital rendering of soft fabric-like waves in a creamy white color. The textures are incredibly detailed, suggesting a tactile softness. The lighting creates gentle gradients and deep, soft shadows. This image represents the concept of tactile digital design and organic forms in a modern UI context." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3CRIH75gMjHKeI0ekkETB_Xg8oytYLrKceec_rgpwZ-WcwrKU2eYFUSgeNlH15yU5ZecHsz4kBP8SB4SJbwcsNulWU4XxwkLjl6GUimo0m7rjRAB52RCHWmag5vu1x0SH4AYNNdtKtQzNlJ50FVknZmrCKOJnCZ2gqZwnC9yxAGvQLjYvMardPi67HJ5kUvB-4tK7oP1u0iJ3cOQpsThytNXeAB71OTjK4VIiJGDNyZVKDw280ucMWUuBwi2tLrDIk_1w9NoHMMQ"/>
+<span class="absolute top-md right-md bg-surface/90 backdrop-blur-sm px-sm py-xs rounded-lg text-label-sm font-label-sm">08:15</span>
+</div>
+<div class="p-lg">
+<h4 class="font-headline-md text-headline-md text-primary mb-sm">The Psychology of White Space</h4>
+<p class="text-on-surface-variant text-body-md line-clamp-2">Why giving your elements room to breathe increases perceived value.</p>
+<div class="mt-lg flex items-center justify-between">
+<span class="text-secondary font-bold">₦3,500</span>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</div>
+</div>
+<!-- Related Card 3 -->
+<div class="bg-surface-container-low rounded-xl overflow-hidden group shadow-sm hover:shadow-lg transition-all duration-300">
+<div class="h-48 overflow-hidden relative">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A macro shot of elegant serif typography printed on thick, textured cotton paper. The ink is a deep charcoal, and the paper has a soft, cream-colored grain. The lighting is directional, highlighting the physical texture of the paper and the sharp edges of the letterforms. This evokes a sense of high-end, classic craftsmanship in a modern design world." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDP48k5Ey2Rp4DUzBZ5thTPJwwd4l3ir6rsjzgw_DjvGluXH4m7syIObAWiPx36BjZ-HIbTfuVWBDn_oYkt0IiWxnUWaf0SNfrVXk4_Yow0fFh1t5BJfmpGe4Kg-8JqO9TeT9-InIivpoU_uWBnq3wzgwOMHjgnGnyXr7YLaxX1GXaM0dl-KpH3IsEomoUapc_UGvnL-eUSGEl6ERqtkBQH_8-64rItiuuPrRdaJcH3b2-PIvOPLc2BuwV5G-0RsLoPa59T73rSI8s"/>
+<span class="absolute top-md right-md bg-surface/90 backdrop-blur-sm px-sm py-xs rounded-lg text-label-sm font-label-sm">22:45</span>
+</div>
+<div class="p-lg">
+<h4 class="font-headline-md text-headline-md text-primary mb-sm">Typography for Sophisticated UIs</h4>
+<p class="text-on-surface-variant text-body-md line-clamp-2">Selecting and pairing typefaces for an intellectual and professional feel.</p>
+<div class="mt-lg flex items-center justify-between">
+<span class="text-secondary font-bold">₦5,800</span>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Purchase Panel (Sticky above nav) -->
+<div class="fixed bottom-[80px] left-0 w-full z-40 px-gutter mb-sm md:flex md:justify-center">
+<div class="max-w-[1200px] w-full mx-auto bg-surface/95 backdrop-blur-xl border border-outline/10 shadow-2xl rounded-2xl p-md flex items-center justify-between">
+<div class="hidden md:block">
+<p class="text-label-sm font-label-sm text-on-surface-variant">Currently viewing preview</p>
+<p class="font-headline-md text-headline-md text-primary">Mastering Minimalist UI Design</p>
+</div>
+<button class="w-full md:w-auto bg-secondary text-on-secondary px-xxl py-md rounded-xl font-headline-md text-headline-md flex items-center justify-center gap-md hover:opacity-90 active:scale-95 transition-all shadow-lg">
+                Unlock Full Lesson - ₦7,500
+            </button>
+</div>
+</div>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-gutter py-md bg-surface-container-low/90 dark:bg-surface-container-highest/90 backdrop-blur-xl shadow-lg rounded-t-xl">
+<div class="flex flex-col items-center justify-center text-on-surface-variant p-2 hover:scale-110 transition-transform cursor-pointer">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+</div>
+<div class="flex flex-col items-center justify-center text-secondary-fixed-variant dark:text-secondary-fixed bg-secondary-container/50 rounded-full p-2 hover:scale-110 transition-transform cursor-pointer">
+<span class="material-symbols-outlined" data-icon="search" style="font-variation-settings: 'FILL' 1;">search</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant p-2 hover:scale-110 transition-transform cursor-pointer">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant p-2 hover:scale-110 transition-transform cursor-pointer">
+<span class="material-symbols-outlined" data-icon="inbox">inbox</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant p-2 hover:scale-110 transition-transform cursor-pointer">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+</div>
+</nav>
+</body></html>

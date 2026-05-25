@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MENTRA | Explore</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Be+Vietnam+Pro:wght@400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed-dim": "#d4c4b5",
+                        "secondary-fixed-dim": "#e3c282",
+                        "error-container": "#ffdad6",
+                        "background": "#fef9f2",
+                        "on-primary-container": "#97877b",
+                        "primary-fixed-dim": "#d5c3b5",
+                        "on-error-container": "#93000a",
+                        "surface-container-low": "#f8f3ec",
+                        "on-secondary-container": "#785f29",
+                        "surface-tint": "#695c51",
+                        "primary-container": "#2b2118",
+                        "inverse-surface": "#32302c",
+                        "tertiary-container": "#2a2118",
+                        "on-tertiary-fixed": "#221a11",
+                        "tertiary": "#120b04",
+                        "on-primary-fixed": "#231a11",
+                        "on-secondary-fixed-variant": "#5a430f",
+                        "inverse-on-surface": "#f5f0e9",
+                        "on-secondary-fixed": "#261a00",
+                        "on-primary-fixed-variant": "#51443a",
+                        "on-background": "#1d1b17",
+                        "on-tertiary-fixed-variant": "#50453a",
+                        "secondary-fixed": "#ffdea0",
+                        "secondary-container": "#fedb99",
+                        "on-tertiary-container": "#95887b",
+                        "inverse-primary": "#d5c3b5",
+                        "outline-variant": "#d0c4bc",
+                        "surface": "#fef9f2",
+                        "primary-fixed": "#f2dfd1",
+                        "surface-container-high": "#ece7e1",
+                        "on-error": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "outline": "#7f756e",
+                        "on-secondary": "#ffffff",
+                        "secondary": "#735b25",
+                        "on-primary": "#ffffff",
+                        "surface-container": "#f2ede6",
+                        "surface-bright": "#fef9f2",
+                        "primary": "#140b05",
+                        "surface-variant": "#e7e2db",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed": "#f0e0d1",
+                        "surface-container-highest": "#e7e2db",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-dim": "#ded9d3",
+                        "on-surface": "#1d1b17",
+                        "on-surface-variant": "#4d453f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "sm": "8px",
+                        "lg": "24px",
+                        "gutter": "24px",
+                        "unit": "4px",
+                        "xl": "40px",
+                        "xs": "4px",
+                        "xxl": "64px",
+                        "container-max": "1200px",
+                        "md": "16px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Manrope"],
+                        "display-lg": ["Manrope"],
+                        "label-md": ["Be Vietnam Pro"],
+                        "label-sm": ["Be Vietnam Pro"],
+                        "display-md": ["Manrope"],
+                        "headline-md": ["Manrope"],
+                        "body-lg": ["Be Vietnam Pro"],
+                        "body-md": ["Be Vietnam Pro"],
+                        "headline-lg-mobile": ["Manrope"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["28px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                        "label-sm": ["12px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "display-md": ["36px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "headline-md": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .blob-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            background-color: #fef9f2;
+        }
+        .organic-shape {
+            position: absolute;
+            fill: #735b25;
+            opacity: 0.04;
+            filter: blur(40px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body-md min-h-screen">
+<!-- Organic Background Shapes -->
+<div class="blob-bg">
+<svg class="organic-shape w-1/2 h-1/2" style="top: -10%; left: -10%;" viewbox="0 0 200 200">
+<path d="M44.7,-76.4C58.2,-69.2,70.1,-58.5,78.2,-45.5C86.3,-32.5,90.6,-16.2,89.5,-0.6C88.4,15,82,30,73.1,43.2C64.2,56.4,52.8,67.8,39.6,74.9C26.4,82,13.2,84.8,-0.5,85.6C-14.2,86.5,-28.4,85.3,-41.8,79.5C-55.2,73.8,-67.7,63.4,-76.2,50.4C-84.7,37.3,-89.2,21.7,-88.9,6.3C-88.6,-9,-83.5,-24.1,-75.4,-37.7C-67.4,-51.3,-56.3,-63.3,-43.3,-71C-30.2,-78.7,-15.1,-82.1,0.2,-82.5C15.5,-82.9,31.1,-83.5,44.7,-76.4Z" transform="translate(100 100)"></path>
+</svg>
+<svg class="organic-shape w-1/3 h-1/3" style="bottom: 10%; right: -5%;" viewbox="0 0 200 200">
+<path d="M38.1,-65.1C51.1,-58.2,64.4,-49.6,73.8,-37.6C83.2,-25.6,88.7,-10.1,87.6,4.8C86.5,19.7,78.8,34.1,68.4,46.1C58,58.1,44.9,67.7,30.5,73.1C16.1,78.5,0.4,79.8,-15.6,77.5C-31.5,75.2,-47.6,69.4,-59.5,58.8C-71.4,48.2,-79.1,32.7,-82.7,16.5C-86.3,0.3,-85.8,-16.5,-79.7,-31.2C-73.6,-45.9,-61.8,-58.4,-48,-65.1C-34.1,-71.8,-18.2,-72.6,-2.1,-69.1C13.9,-65.5,25.1,-71.9,38.1,-65.1Z" transform="translate(100 100)"></path>
+</svg>
+</div>
+<!-- Top Navigation Drawer (Hidden by default, used for logic) -->
+<!-- SideNav logic for Desktop is embedded in the TopAppBar structure as per responsive pivot -->
+<!-- Top App Bar -->
+<header class="bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-lg flex justify-between items-center px-margin-mobile w-full z-50 sticky top-0 h-16">
+<div class="flex items-center gap-md">
+<button class="p-2 text-primary dark:text-primary-fixed">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="font-headline-lg text-headline-lg font-bold text-primary dark:text-primary-fixed">MENTRA</h1>
+</div>
+<!-- Desktop Nav -->
+<nav class="hidden md:flex items-center gap-lg">
+<a class="text-primary font-bold font-label-md text-label-md transition-colors hover:text-primary" href="#">Explore</a>
+<a class="text-on-surface-variant font-label-md text-label-md transition-colors hover:text-primary" href="#">My Courses</a>
+<a class="text-on-surface-variant font-label-md text-label-md transition-colors hover:text-primary" href="#">Mentors</a>
+<a class="text-on-surface-variant font-label-md text-label-md transition-colors hover:text-primary" href="#">Inbox</a>
+</nav>
+<div class="flex items-center gap-sm">
+<button class="p-2 text-primary dark:text-primary-fixed">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-secondary-container overflow-hidden hidden md:block border border-outline-variant">
+<img alt="Profile" class="w-full h-full object-cover" data-alt="A professional close-up portrait of a young male mentor with a warm, encouraging smile. He has short styled dark hair and is wearing a minimalist tan linen shirt. The lighting is soft and natural, coming from a large window in a high-end, bright library setting. The aesthetic is clean, sophisticated, and trustworthy, fitting a premium mentorship brand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDHkvr6npM-BfghgvtQ2W4b_MyovC1iFYl1sEx5uyjncoqHNLBQ6p4_jqHlnv0r1dKs-rBB611bdi_3fUIV72_7OZ9iBLe0gmSNsGuGx-3tXNmk1gJqT0ljnArXL3hd5OqyqG9193IJ7CRz4dMnyjJlQ8_nFyt6eTBdN5v3FYwjz5SEZHJN3BE-qHnB8MyeN8AanM_TsufSyyd6Rvnx3nay4UpdConwYL_LP-7IXbHDNlAiC8syfBbyy3p33OxIyk1o1gyyyxi2jYM"/>
+</div>
+</div>
+</header>
+<main class="max-w-container-max mx-auto px-margin-mobile md:px-gutter pb-32">
+<!-- Search Header -->
+<section class="mt-xl mb-xxl text-center max-w-2xl mx-auto">
+<div class="relative group">
+<div class="absolute inset-y-0 left-lg flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline" data-icon="search">search</span>
+</div>
+<input class="w-full pl-[56px] pr-lg py-xl bg-surface-container-lowest border-none rounded-xl shadow-[0px_10px_30px_rgba(43,33,24,0.04)] focus:ring-2 focus:ring-secondary/20 font-body-lg text-body-lg text-on-surface placeholder-on-surface-variant transition-all hover:shadow-[0px_15px_40px_rgba(43,33,24,0.08)]" placeholder="What do you want to learn today?" type="text"/>
+</div>
+</section>
+<!-- Category Horizontal Scroll -->
+<section class="mb-xxl -mx-margin-mobile px-margin-mobile md:mx-0 md:px-0">
+<div class="flex overflow-x-auto gap-sm pb-sm no-scrollbar">
+<button class="flex-shrink-0 px-lg py-sm bg-secondary-container text-on-secondary-container rounded-full font-label-md text-label-md shadow-sm">All</button>
+<button class="flex-shrink-0 px-lg py-sm bg-surface-container text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-full font-label-md text-label-md">AI</button>
+<button class="flex-shrink-0 px-lg py-sm bg-surface-container text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-full font-label-md text-label-md">Coding</button>
+<button class="flex-shrink-0 px-lg py-sm bg-surface-container text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-full font-label-md text-label-md">Design</button>
+<button class="flex-shrink-0 px-lg py-sm bg-surface-container text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-full font-label-md text-label-md">Business</button>
+<button class="flex-shrink-0 px-lg py-sm bg-surface-container text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-full font-label-md text-label-md">Finance</button>
+<button class="flex-shrink-0 px-lg py-sm bg-surface-container text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-full font-label-md text-label-md">Editing</button>
+<button class="flex-shrink-0 px-lg py-sm bg-surface-container text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-full font-label-md text-label-md">Fitness</button>
+<button class="flex-shrink-0 px-lg py-sm bg-surface-container text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-full font-label-md text-label-md">Academics</button>
+</div>
+</section>
+<!-- Trending Creators Section -->
+<section class="mb-xxl">
+<div class="flex justify-between items-end mb-lg">
+<h2 class="font-headline-lg text-headline-lg text-primary">Trending Creators</h2>
+<a class="text-secondary font-label-md text-label-md flex items-center gap-xs" href="#">View All <span class="material-symbols-outlined text-[18px]" data-icon="arrow_forward">arrow_forward</span></a>
+</div>
+<div class="flex overflow-x-auto gap-lg pb-lg -mx-margin-mobile px-margin-mobile md:mx-0 md:px-0 no-scrollbar">
+<!-- Creator 1 -->
+<div class="flex-shrink-0 w-40 flex flex-col items-center">
+<div class="w-24 h-24 rounded-full p-1 bg-gradient-to-tr from-secondary to-primary-fixed mb-md">
+<div class="w-full h-full rounded-full bg-surface border-2 border-surface overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A portrait of a minimalist architect and design mentor, wearing round glasses and a black turtleneck. She is sitting in a sun-drenched studio with large windows and architect models in the background. The mood is calm and focused, with warm sunlight illuminating the space. High-end, professional photography with a shallow depth of field." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWnwpTDJyu2ALFy96zHK9kn72ffFlvr4j15fpL8kC1CwV9akEhqrrs-2BH47OPMwBh59fdbBk2VI9cO7VOtCBMEEG6Xf4VxcHimJplUEv98pohDFpaOlgrhC69c4ZSQT5kdeYEka0V64toqBmGZdGutNo1kleBEzhT64OZYhZoszzM73lc4QGPwpKJTcmFUYXUoORUqH2Es9hF9gK0ci1hdZPFyD8eJT84iK6EhdO-UD2ITy4zTX_gGYFyvsJ5RO00-j6O5Qw0pwg"/>
+</div>
+</div>
+<span class="font-headline-md text-headline-md text-primary text-center">Jane Doe</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">42.5k Followers</span>
+</div>
+<!-- Creator 2 -->
+<div class="flex-shrink-0 w-40 flex flex-col items-center">
+<div class="w-24 h-24 rounded-full p-1 bg-surface-container-high mb-md">
+<div class="w-full h-full rounded-full bg-surface border-2 border-surface overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A charismatic tech entrepreneur with a warm smile, wearing a casual navy blue polo. He is posed against a backdrop of a clean, modern workspace with tech gadgets and books. Soft, diffused indoor lighting creates a friendly and professional atmosphere. The image style is bright, minimalist, and inspiring." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA91W-odzZABLeNgQyg2tZ9T6Je8xbPq7n3mq9e-e9k-GqUiHxIbj9dUaeQkBBF6GCYTZT4E7CsP1hHUOSL8gMHX4tGrFez8kKtjT61QBqTWQmvTpDGY3RSY4jkhTyVfL0I2XdvnwoBL0PgMxPJ1lyQK-1sOxfX43Y-VsPdpPqq72yDRPPTxjyqglgHc-SVkCEXdFf5Ap0VyF1YgTTbp4Ih24zIRgzuo1fJUBL3AnUPI-O6o4U_t-dZWNAPUkK2qP6uMk2-V_Iiuj4"/>
+</div>
+</div>
+<span class="font-headline-md text-headline-md text-primary text-center">Marcus K.</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">12.8k Followers</span>
+</div>
+<!-- Creator 3 -->
+<div class="flex-shrink-0 w-40 flex flex-col items-center">
+<div class="w-24 h-24 rounded-full p-1 bg-surface-container-high mb-md">
+<div class="w-full h-full rounded-full bg-surface border-2 border-surface overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="An elegant female educator in her late 30s with long flowing hair, wearing a cream-colored silk blouse. She is standing in front of a soft-focus background of a botanical garden. The lighting is bright and warm, emphasizing her friendly and approachable nature. The overall aesthetic is natural, organic, and sophisticated." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAHkzYqR8leilsnR-nDVejACIzqlLltgJ41TjYn7ID0AAB_0XEYNyg5t-xUglFo6CLDeM4AQ36qs8Ik-Wdw7spOkNsI7ub-MLmTXjjFNpzXtgoKro3QQfyoYfizzHyAKXs2jeM9nWv9kTr08dEXwfuCkYYzRfio3zaVvUL38o2wX808vZYbVPz1OLogB-2L_VDaZA6Zl4W7L5iYfiVX6Gyri1FrgPC9W2JKPm16TY-XDtHDo5p1AeG-Y8j37TD7lwAl4ya0oAbcSIs"/>
+</div>
+</div>
+<span class="font-headline-md text-headline-md text-primary text-center">Sara L.</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">8.9k Followers</span>
+</div>
+<!-- Creator 4 -->
+<div class="flex-shrink-0 w-40 flex flex-col items-center">
+<div class="w-24 h-24 rounded-full p-1 bg-surface-container-high mb-md">
+<div class="w-full h-full rounded-full bg-surface border-2 border-surface overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A creative arts mentor with artistic flair, wearing a mustard yellow linen shirt and wooden jewelry. He is standing in a brightly lit studio filled with vibrant paintings and creative tools. The mood is energetic and expressive, with warm parchment-inspired tones in the lighting. Professional portrait style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCwdrfahEF5UylhDTiUfIskmK90Gw7tyGnyO61MV3OAvKskWBIH_gyl45l_EmnoWnv3xV5O1ua2sEcms_n4GXSuKbCbPQefZE_YvbXbKrZq398gSU0pbVm8bJCtgucaWAdCq_kdswRi2NU-iZ9djyLbV3vZ6ureVzh82q5Q6Uvtx-5HdIeUTwv0fXi6Wpi8zmk0QfvQYmb97MsbLu2NPU7o_Gkz_45K8jKWJmPFCNFWpSlFW75JMx230OEFUEXMSv8TV-5dbDUi3Kw"/>
+</div>
+</div>
+<span class="font-headline-md text-headline-md text-primary text-center">Amir M.</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">25.1k Followers</span>
+</div>
+<!-- Creator 5 -->
+<div class="flex-shrink-0 w-40 flex flex-col items-center">
+<div class="w-24 h-24 rounded-full p-1 bg-surface-container-high mb-md">
+<div class="w-full h-full rounded-full bg-surface border-2 border-surface overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A young female financial analyst with a sharp and professional appearance, wearing a tailored light grey blazer. She is sitting in a sleek, glass-walled office with a blurred cityscape in the distance. The lighting is cool but bright, creating a high-end corporate yet accessible feel. Clean, modern photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuChAVJHkChg8e1kw0TBE-UhT5Cx77AA3YFiAO7oz-4fdj2dhrsUdQMpTPVtTXkH8xLSGi2Igzgkv6hnMbTZDcmpx-N1NhdeVMNg2Npd1Ch8UMh2Wc0R5VTBP6yq1B9GpsqpFyATSDZAOy16G8v4aJt2ZFEKsOeX8t2-VTJBKWLGsgDZY6sPrYhl_ewZpbVDwH-E__XHqSqvAXNm_1vWu_vZMTO_8QSwrXw_PLqSZkbFobR9yYIZQmCtvm7dUa6HUpszSmjOSmrFBCc"/>
+</div>
+</div>
+<span class="font-headline-md text-headline-md text-primary text-center">Elena K.</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">15.4k Followers</span>
+</div>
+</div>
+</section>
+<!-- Main Feed (Lesson Cards) -->
+<section>
+<div class="flex justify-between items-end mb-lg">
+<h2 class="font-headline-lg text-headline-lg text-primary">Discover Lessons</h2>
+<div class="flex gap-sm">
+<button class="p-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="filter_list">filter_list</span>
+</button>
+<button class="p-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-xl">
+<!-- Lesson Card 1 -->
+<article class="bg-surface-container-lowest rounded-[24px] overflow-hidden shadow-[0px_10px_30px_rgba(43,33,24,0.04)] group hover:shadow-[0px_15px_40px_rgba(43,33,24,0.08)] transition-all flex flex-col h-full">
+<div class="relative h-48 overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="A futuristic and minimalist visualization of neural networks and glowing data streams floating in a serene, parchment-colored digital space. The colors are dominated by warm golds, creams, and deep browns, creating a sophisticated and educational atmosphere. The lighting is soft and ethereal, suggesting clarity and intellectual growth." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJiUMTJtitUZkRMHfXo8SjOYHHn_K9D7JsiA5ooOTFlhI3U9LP8V-0ucHCylP2TLRw4hPaRE_9oVWyyuthg0FOaonPxreKMgNcPQYSC7UjdUJXmCrAYObXQ0MirW4bj5h645_Wvt6K2iO7LDBdh67Qgor-vMcURyHJAnvnk9QajnBV59ZtijxY1BhpLBdsteIlF03fUhxSM3TsHo8RTk53bZh69G9IIq8ZrHLELdl5lZsAEwwdtKS1JWeI7cETEACzKVvoXFgTK50"/>
+<div class="absolute top-md right-md bg-white/90 backdrop-blur-md px-md py-xs rounded-full shadow-sm">
+<span class="font-label-sm text-label-sm text-primary">₦5,000</span>
+</div>
+</div>
+<div class="p-lg flex flex-col flex-grow">
+<div class="flex items-center gap-sm mb-md">
+<div class="w-6 h-6 rounded-full bg-tertiary-container overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A portrait of a male data scientist, looking thoughtful and intelligent, with a clean-cut beard and wearing a beige cotton shirt. Soft focus office background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBMBKxlpnALqJzOArcDTzHTs50UYiKzKFcvXKac12U1-3SUSY5sA-OgdaFzTo8KzzUQ2PXv0xWSHvgCa7JP2Qf0dWYkC-ZUWMabQT9WRD1MAI8c1xA3ivt1yW5PHMunSzID-b4TbrrlqzX0AlzxZF_Id_lc1aRF-UI21Z2kPN31QcEsdM9GYhTPu6yB_dIuh994dqdq1rQYiELWtGqpiL88rG1YrjLXDL3PLq6GQ57X7b_eU1CmOg9WdAfU7CHTWkOYfWaF1Sml6Z8"/>
+</div>
+<span class="font-label-md text-label-md text-on-surface-variant">David Chen</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-sm leading-tight">Modern AI Foundations for Creative Professionals</h3>
+<div class="mt-auto pt-md flex items-center justify-between border-t border-outline/10">
+<div class="flex items-center gap-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]" data-icon="schedule">schedule</span>
+<span class="font-label-sm text-label-sm">12 min</span>
+</div>
+<div class="flex items-center gap-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]" data-icon="visibility">visibility</span>
+<span class="font-label-sm text-label-sm">1.2k views</span>
+</div>
+</div>
+</div>
+</article>
+<!-- Lesson Card 2 -->
+<article class="bg-surface-container-lowest rounded-[24px] overflow-hidden shadow-[0px_10px_30px_rgba(43,33,24,0.04)] group hover:shadow-[0px_15px_40px_rgba(43,33,24,0.08)] transition-all flex flex-col h-full">
+<div class="relative h-48 overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="A clean and artistic top-down view of a designer's workspace. It features a high-end fountain pen, a textured beige notebook, and a single sprig of dried eucalyptus in a ceramic vase. The palette is muted with earthy tones and soft morning light casting long, gentle shadows. This image evokes a sense of calm and intentional design." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_Aqnn5DfKZTvrCsX7vxRf1vSF6WqHKFMqrsbmGYjQ3pBFP1qDdWaWSC9EBHy3NJ3zyddHgyyrtfWX4DIeCQpHuk43Stp4x0tyEtiNDxc9GzmG91bZwlcT5jtu8e7DwC9Tfqq1BeztqO8hbfyU08feORYu9mo4JiEeoT0BhfzI2G6MnMDDOzdougNwEpwI_ikvmo8PJb8Gp-yeC39YQguX6etSD1cNaewthtWfMFrqgQO4Edm6RV0nyNDHk0HG2Z4xvawCn10I5uA"/>
+<div class="absolute top-md right-md bg-secondary-container px-md py-xs rounded-full shadow-sm">
+<span class="font-label-sm text-label-sm text-on-secondary-container">FREE</span>
+</div>
+</div>
+<div class="p-lg flex flex-col flex-grow">
+<div class="flex items-center gap-sm mb-md">
+<div class="w-6 h-6 rounded-full bg-tertiary-container overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a female graphic designer with short auburn hair and an elegant minimalist style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCjpvMsns5F1JY2e2NoodMfL-cqleX7Qckbc4TXki6KF9hF3NxeGZftg3GQKBCN2xGbzvvuv6H8uJGLpZ-bqa-96XaEuv6jr2kh3J-rO1gXJUxVuSn-hwNy1q2_G56v6Q9NEeSG2V_M77OShDFXPmLn6ecECfgkN_lfLsntALOMvuG41DflF5g39A3yNG6z188KTHO3FvY8f_uEcfAMbZanV5xQKih7lEjszzffZoBKkcPWM5kD4vfWBBF6IPZUEQxQ7Q2ILl33zww"/>
+</div>
+<span class="font-label-md text-label-md text-on-surface-variant">Jane Doe</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-sm leading-tight">Mastering Warm Minimalism in Digital Interfaces</h3>
+<div class="mt-auto pt-md flex items-center justify-between border-t border-outline/10">
+<div class="flex items-center gap-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]" data-icon="schedule">schedule</span>
+<span class="font-label-sm text-label-sm">24 min</span>
+</div>
+<div class="flex items-center gap-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]" data-icon="visibility">visibility</span>
+<span class="font-label-sm text-label-sm">3.5k views</span>
+</div>
+</div>
+</div>
+</article>
+<!-- Lesson Card 3 -->
+<article class="bg-surface-container-lowest rounded-[24px] overflow-hidden shadow-[0px_10px_30px_rgba(43,33,24,0.04)] group hover:shadow-[0px_15px_40px_rgba(43,33,24,0.08)] transition-all flex flex-col h-full">
+<div class="relative h-48 overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="A high-concept image of golden dust particles swirling around a stack of beautifully bound parchment books. The background is a soft, out-of-focus high-end atelier with warm, glowing lamps. The atmosphere is quiet, intellectual, and premium, symbolizing the value of well-crafted content strategy." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCifZB5IWAMK57epTno6CljyTlUp5g65NZbaWuxrnFskG3z5X1bYDMu9Zf9ilIk6T6POn1wGL6bsd7WJnaTstK1S4K6pKQrHQlNFi3Yj_nO_oOhV_n4-a38ZKAgzPPDIFFXG337tnpGjKp1iCs1NmJJyz5KYTqaSjk4WTlPPUBVAnKeY4xcn7ajDsB4oJFTSrWLmxo3kC4oxRU8rjPitwVnK7j0uuW7RI5h5cnl6NxN0H30PeT4lKUsFbsfHz69lJYxUcXwYrTxtcI"/>
+<div class="absolute top-md right-md bg-white/90 backdrop-blur-md px-md py-xs rounded-full shadow-sm">
+<span class="font-label-sm text-label-sm text-primary">₦2,500</span>
+</div>
+</div>
+<div class="p-lg flex flex-col flex-grow">
+<div class="flex items-center gap-sm mb-md">
+<div class="w-6 h-6 rounded-full bg-tertiary-container overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A charismatic male content creator with glasses, smiling and leaning against a wooden wall." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAiZG-zrT_c7blmL0W1-a0nJyC1hjjpjc-Ow-E3vEsh4X5i-Y3GH3yuiuyYt7-5Hs_vdb8I8vDWFWBjblQeCdi0dphfVpMGTG1dpM_i80qC_1j8ddp64jIpWEAWuP4Uu4YL37bk7r7kkZWzVPMP6YVQmf71qH7RMrLY3hyqPG8x_yctpRtWdKiyqfElZKdfZ2eDb7605GPQO5iy8bp6AQy6k_y_coTnWLUP35V_vOWbPPjVA5C2XHQ69A-uUrbKCPY8e1qjdlXbowY"/>
+</div>
+<span class="font-label-md text-label-md text-on-surface-variant">Marcus K.</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-sm leading-tight">Storytelling: Building a Brand that Resonates</h3>
+<div class="mt-auto pt-md flex items-center justify-between border-t border-outline/10">
+<div class="flex items-center gap-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]" data-icon="schedule">schedule</span>
+<span class="font-label-sm text-label-sm">18 min</span>
+</div>
+<div class="flex items-center gap-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]" data-icon="visibility">visibility</span>
+<span class="font-label-sm text-label-sm">2.1k views</span>
+</div>
+</div>
+</div>
+</article>
+<!-- Lesson Card 4 -->
+<article class="bg-surface-container-lowest rounded-[24px] overflow-hidden shadow-[0px_10px_30px_rgba(43,33,24,0.04)] group hover:shadow-[0px_15px_40px_rgba(43,33,24,0.08)] transition-all flex flex-col h-full">
+<div class="relative h-48 overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="A serene yoga studio with natural wood floors and sunlight streaming in. A single, high-quality linen yoga mat is unrolled in the center of the room. Large indoor plants add a touch of nature. The lighting is ethereal and tranquil, promoting a feeling of mental and physical well-being. Soft, warm color palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBUjXSWNcwFK4hoLSQG607KOCGNdwRV7ij6EoMQErkrJfvMApZlPXzxmnwQ0yixDhNcJ_z7hLpIrWDd3ebyygOIOAJEEVCiJCkcxIR9QJe0JVMqPJyXeCwBglc2SnWVzt8btmHduSxBTpn_vAemzUkqC6nFU1RMg-ePNhBKznJYGVycOQb2wp3prAvucPhyFmPtdhVYu4Kgvdm27vGLhfvPV9svdQWXEpU-Kki7mP5sH2WF8pQjJyk1bdpoUm1x5E9SLt7hAKjZ0V4"/>
+<div class="absolute top-md right-md bg-secondary-container px-md py-xs rounded-full shadow-sm">
+<span class="font-label-sm text-label-sm text-on-secondary-container">FREE</span>
+</div>
+</div>
+<div class="p-lg flex flex-col flex-grow">
+<div class="flex items-center gap-sm mb-md">
+<div class="w-6 h-6 rounded-full bg-tertiary-container overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A portrait of a fit and healthy female yoga instructor with a serene expression." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDyYnVWfCQuTLTb1REt9Ojf2IBnK8fx8Dh8qp3wfubTZG05OAQ_u35qwWI5W_kgdpLWo-AVF0AWs8Q_FZzYyzVJPcjFy770-SbAg1aAw0XLWVA3RB9p1qBirnUqGNucL2dDWBX0ktkPFyIny2x_hQFQ_Qp1MfP1L97-F_atOUFrugMeWirVlk35q7ShUCl-6KmdnQaTOUrEl5XRdfJH-SK6dys2UdQJryACOmGJzaUzepOcYPylCZED4fPzJKOwmq3ULBdeXn2WUzk"/>
+</div>
+<span class="font-label-md text-label-md text-on-surface-variant">Sara L.</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-sm leading-tight">Mindful Movement: Daily 15-min Yoga Flow</h3>
+<div class="mt-auto pt-md flex items-center justify-between border-t border-outline/10">
+<div class="flex items-center gap-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]" data-icon="schedule">schedule</span>
+<span class="font-label-sm text-label-sm">15 min</span>
+</div>
+<div class="flex items-center gap-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]" data-icon="visibility">visibility</span>
+<span class="font-label-sm text-label-sm">850 views</span>
+</div>
+</div>
+</div>
+</article>
+<!-- Lesson Card 5 -->
+<article class="bg-surface-container-lowest rounded-[24px] overflow-hidden shadow-[0px_10px_30px_rgba(43,33,24,0.04)] group hover:shadow-[0px_15px_40px_rgba(43,33,24,0.08)] transition-all flex flex-col h-full">
+<div class="relative h-48 overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="An elegant arrangement of stylized gold coins and translucent financial charts floating over a dark walnut wood surface. The lighting is moody and dramatic, with a single warm spotlight highlighting the gold details. The aesthetic is sophisticated and professional, suggesting wealth management and financial intelligence." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBlSRSm3LvAie7w9JgQL2XOyxISuGQr3vG4ZvYAlxG6LUql1BMjnxYhCLihuwW5ME-WR3HYKM1N6wnYGTIKcGvGxcIfCDpZ6zBJugOCooiMZua9DVIHPZaMLkr5FAHO7k1gM1gBunaYN0bRCPYilcAMktuKjFh5ATZBKRq4QoIcjlzitX5hjQf57BbPOyvKx_05CO6XyLQJjiHV03bolzsqXEA8NSti5OO79rX_ExfL8WSkSxVJuqZZFApIgJnEJlOtCX4wtN0cAbA"/>
+<div class="absolute top-md right-md bg-white/90 backdrop-blur-md px-md py-xs rounded-full shadow-sm">
+<span class="font-label-sm text-label-sm text-primary">₦8,000</span>
+</div>
+</div>
+<div class="p-lg flex flex-col flex-grow">
+<div class="flex items-center gap-sm mb-md">
+<div class="w-6 h-6 rounded-full bg-tertiary-container overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional portrait of a confident female financial expert in a white silk top." src="https://lh3.googleusercontent.com/aida-public/AB6AXuADGDDS-SajihHArkornWmJoM3JDta3K8RKFTqB2qr-te56B5V6FQxEOxnICRyQbehT-qKrUcaayYqK6yFczfs4U01Lg2dSMkPwExpIAdJe2DXN4-R-THJKxcLcZOCgRxfoK4OUZMnjJIcy8mfccilsahg5kBNF6XmOliem-I5KNPikT55lA8Rw5tldd-b2Gc3jvVJ5tChFYO9acj-c3mTUh0eGomBMyq2ZhaEaA7Zp5QQe1eF94dbMEZUREIlJDtdnHj8ws7YDf8k"/>
+</div>
+<span class="font-label-md text-label-md text-on-surface-variant">Elena K.</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-sm leading-tight">Investment Strategies for the Creative Economy</h3>
+<div class="mt-auto pt-md flex items-center justify-between border-t border-outline/10">
+<div class="flex items-center gap-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]" data-icon="schedule">schedule</span>
+<span class="font-label-sm text-label-sm">32 min</span>
+</div>
+<div class="flex items-center gap-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]" data-icon="visibility">visibility</span>
+<span class="font-label-sm text-label-sm">1.5k views</span>
+</div>
+</div>
+</div>
+</article>
+<!-- Lesson Card 6 -->
+<article class="bg-surface-container-lowest rounded-[24px] overflow-hidden shadow-[0px_10px_30px_rgba(43,33,24,0.04)] group hover:shadow-[0px_15px_40px_rgba(43,33,24,0.08)] transition-all flex flex-col h-full">
+<div class="relative h-48 overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="An abstract visualization of glowing code snippets merging with soft, organic paint splatters on a canvas. The background is a clean white studio. The lighting is bright and high-key, blending the clinical nature of coding with the tactile warmth of traditional art. Sophisticated palette of primary brand colors." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDY_sRMsA7VDnjNJk_d-tXqAttP7WT7eRxvma0DFlBQ_J_A5QdPZfVoKrkMTDyWK9Iv58s3Fb0gT4GJmwKQRGcT6mOSd4fEKNq4PsKdvbnBpoO91BnCPs9St-ykP1i2fDt2tf6Br3YHunh8uJhekj7xEcmgN86qrjfdEiMsPznJGPZ3Q8b55ILwa697ZUB9umBPAgpzur1GVxV8HkYhLe05TFKfS7cJFnnsMePhrhUxxDvlE8WlGSxtAygSaM3qJL2rOzVcN2o66D8"/>
+<div class="absolute top-md right-md bg-white/90 backdrop-blur-md px-md py-xs rounded-full shadow-sm">
+<span class="font-label-sm text-label-sm text-primary">₦4,500</span>
+</div>
+</div>
+<div class="p-lg flex flex-col flex-grow">
+<div class="flex items-center gap-sm mb-md">
+<div class="w-6 h-6 rounded-full bg-tertiary-container overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A portrait of a young male creative coder wearing a linen shirt and working on a minimalist laptop." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD1DHTVvzgqjh0FwZFHyBbYIGvAmskRA38_VyHCX41jKhqaUK-5V_r7s17ZAU4grqAFB2i8tzHCSEaFnf7tH4wkmyUvgnufalrh5vFSWKoulanaG8V_wkoipOgtyc3N-beIITYlrK8M1gwEOs0yO5ATsTuoMVY3eYRO4-Kc8CONYMzELVB5Xi-vxqs5wuL7PLPpCBhrYScGypLj_I1Qq2MDlqGe1bQvya3Btv1fMtEQqQTF4yDr8QP8Ec_G2BHYT8cBEKN54p1AXiM"/>
+</div>
+<span class="font-label-md text-label-md text-on-surface-variant">Amir M.</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-sm leading-tight">Creative Coding: Bringing Your Designs to Life</h3>
+<div class="mt-auto pt-md flex items-center justify-between border-t border-outline/10">
+<div class="flex items-center gap-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]" data-icon="schedule">schedule</span>
+<span class="font-label-sm text-label-sm">45 min</span>
+</div>
+<div class="flex items-center gap-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]" data-icon="visibility">visibility</span>
+<span class="font-label-sm text-label-sm">4.2k views</span>
+</div>
+</div>
+</div>
+</article>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-gutter py-md bg-surface-container-low/90 dark:bg-surface-container-highest/90 backdrop-blur-xl shadow-lg rounded-t-xl md:hidden">
+<a class="flex flex-col items-center justify-center text-secondary-fixed-variant dark:text-secondary-fixed bg-secondary-container/50 rounded-full p-2 transition-transform hover:scale-110" href="#">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant p-2 transition-transform hover:scale-110" href="#">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+</a>
+<!-- Center Action Button -->
+<button class="flex items-center justify-center -mt-10 bg-primary text-on-primary w-14 h-14 rounded-full shadow-xl transition-all active:scale-95">
+<span class="material-symbols-outlined text-[32px]" data-icon="add">add</span>
+</button>
+<a class="flex flex-col items-center justify-center text-on-surface-variant p-2 transition-transform hover:scale-110" href="#">
+<span class="material-symbols-outlined" data-icon="inbox">inbox</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant p-2 transition-transform hover:scale-110" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+</a>
+</nav>
+<!-- FAB for Desktop (Contextual) -->
+<button class="hidden md:flex fixed bottom-lg right-lg items-center gap-md px-lg py-md bg-primary text-on-primary rounded-full shadow-2xl hover:scale-105 transition-all z-40">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+<span class="font-label-md text-label-md">Create Lesson</span>
+</button>
+</body></html>

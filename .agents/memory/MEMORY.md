@@ -1,0 +1,1 @@
+- [Mantra Next.js setup](mantra-setup.md) — Next.js 15 app in /mantra subdir; workflow runs `cd mantra && npm run dev -- --port 5000`; Tailwind v3 with custom design tokens from DESIGN.md

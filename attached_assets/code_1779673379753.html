@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Creator Profile - MENTRA</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Be+Vietnam+Pro:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "tertiary-fixed-dim": "#d4c4b5",
+                      "secondary-fixed-dim": "#e3c282",
+                      "error-container": "#ffdad6",
+                      "background": "#fef9f2",
+                      "on-primary-container": "#97877b",
+                      "primary-fixed-dim": "#d5c3b5",
+                      "on-error-container": "#93000a",
+                      "surface-container-low": "#f8f3ec",
+                      "on-secondary-container": "#785f29",
+                      "surface-tint": "#695c51",
+                      "primary-container": "#2b2118",
+                      "inverse-surface": "#32302c",
+                      "tertiary-container": "#2a2118",
+                      "on-tertiary-fixed": "#221a11",
+                      "tertiary": "#120b04",
+                      "on-primary-fixed": "#231a11",
+                      "on-secondary-fixed-variant": "#5a430f",
+                      "inverse-on-surface": "#f5f0e9",
+                      "on-secondary-fixed": "#261a00",
+                      "on-primary-fixed-variant": "#51443a",
+                      "on-background": "#1d1b17",
+                      "on-tertiary-fixed-variant": "#50453a",
+                      "secondary-fixed": "#ffdea0",
+                      "secondary-container": "#fedb99",
+                      "on-tertiary-container": "#95887b",
+                      "inverse-primary": "#d5c3b5",
+                      "outline-variant": "#d0c4bc",
+                      "surface": "#fef9f2",
+                      "primary-fixed": "#f2dfd1",
+                      "surface-container-high": "#ece7e1",
+                      "on-error": "#ffffff",
+                      "on-tertiary": "#ffffff",
+                      "outline": "#7f756e",
+                      "on-secondary": "#ffffff",
+                      "secondary": "#735b25",
+                      "on-primary": "#ffffff",
+                      "surface-container": "#f2ede6",
+                      "surface-bright": "#fef9f2",
+                      "primary": "#140b05",
+                      "surface-variant": "#e7e2db",
+                      "error": "#ba1a1a",
+                      "tertiary-fixed": "#f0e0d1",
+                      "surface-container-highest": "#e7e2db",
+                      "surface-container-lowest": "#ffffff",
+                      "surface-dim": "#ded9d3",
+                      "on-surface": "#1d1b17",
+                      "on-surface-variant": "#4d453f"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "sm": "8px",
+                      "lg": "24px",
+                      "gutter": "24px",
+                      "unit": "4px",
+                      "xl": "40px",
+                      "xs": "4px",
+                      "xxl": "64px",
+                      "container-max": "1200px",
+                      "md": "16px",
+                      "margin-mobile": "16px"
+              },
+              "fontFamily": {
+                      "headline-lg": ["Manrope"],
+                      "display-lg": ["Manrope"],
+                      "label-md": ["Be Vietnam Pro"],
+                      "label-sm": ["Be Vietnam Pro"],
+                      "display-md": ["Manrope"],
+                      "headline-md": ["Manrope"],
+                      "body-lg": ["Be Vietnam Pro"],
+                      "body-md": ["Be Vietnam Pro"],
+                      "headline-lg-mobile": ["Manrope"]
+              },
+              "fontSize": {
+                      "headline-lg": ["28px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                      "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                      "label-sm": ["12px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                      "display-md": ["36px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                      "headline-md": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                      "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "headline-lg-mobile": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .parchment-blur {
+            backdrop-filter: blur(8px);
+            background: rgba(255, 249, 242, 0.8);
+        }
+        .organic-blob {
+            position: absolute;
+            z-index: -1;
+            filter: blur(40px);
+            opacity: 0.05;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md min-h-screen">
+<!-- Top Navigation Bar -->
+<header class="flex justify-between items-center px-margin-mobile w-full z-50 sticky top-0 bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-lg h-16">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary cursor-pointer">menu</span>
+<span class="font-headline-lg text-headline-lg font-bold text-primary">MENTRA</span>
+</div>
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary cursor-pointer">notifications</span>
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A close-up portrait of a professional mentor with a warm smile, set against a soft-focus studio background with warm parchment lighting. The person is dressed in modern, sophisticated casual wear. The overall mood is nurturing, professional, and intellectually engaging, consistent with the Luminous Mentorship brand identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4jRHwuS1vzM7NIL5t1D74Ry1g-bhdbeZH55AZiBzCpZ6tuPS_129AYaTkj8lQIdldQ9gqBmNCcwVEbw06YJROvJIeBN70SfQxsVLGuQcYjeplNCViMLsmkCBibjnQCT2_xrbuJXMiGcBbIQTrDESVhQcU3U1ODb18QkOFBF-y02bdJknZXvovVEIm5BE5jJYDKMkVqerLc3I98bRK6KuiAolpyHOQVD92z-PNjvPXrOesq5OkhfjMWZiLvMEtT8elXDvXtlT5Lm4"/>
+</div>
+</div>
+</header>
+<main class="max-w-container-max mx-auto pb-xxl relative overflow-hidden">
+<!-- Organic Background Elements -->
+<div class="organic-blob bg-secondary top-0 right-0 w-96 h-96 rounded-full -mr-48 -mt-48"></div>
+<div class="organic-blob bg-primary-fixed bottom-0 left-0 w-[500px] h-[500px] rounded-full -ml-64 -mb-64"></div>
+<!-- Hero Section: Banner & Profile Image -->
+<section class="relative w-full h-[240px] md:h-[320px] rounded-b-[40px] overflow-visible">
+<div class="absolute inset-0 w-full h-full overflow-hidden rounded-b-[40px]">
+<img class="w-full h-full object-cover" data-alt="An abstract, high-resolution digital art banner featuring flowing organic shapes and soft light gradients in shades of warm amber, soft parchment, and deep earth tones. The texture appears tactile and soft, like fine paper or silk caught in a breeze. The atmosphere is serene and minimalist, perfect for a high-end creator's atelier." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBr8vCFvLnbivkryd7D9l0dY8fNJ6uXNTCvrzMkMvjPye4Cae5D-HhUP0oKZav9cLbhihFIw_meZa8N-ngMiy64J240sLj3u7h2gp53MEf0Wy8k_k_i3_lBM6o0oqnqoht4lPGrkyE5ASUcvwsBJldMJV4M7OE9Kp6Pa5qxKSEkir12rhveGoYdon_OSD0OIUwadKmUosqjw-FvXQ4ylwYY9bIaBi6yPrD7hG0MKcYtaJ5H40zavp-oMpMpnrOBBdegM8-1VErQ-Vw"/>
+<div class="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent"></div>
+</div>
+<!-- Floating Profile Avatar -->
+<div class="absolute -bottom-16 left-margin-mobile md:left-xl">
+<div class="relative">
+<div class="w-32 h-32 md:w-40 md:h-40 rounded-3xl border-4 border-background overflow-hidden shadow-lg bg-surface-container-lowest">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a creative digital artist with a friendly and thoughtful expression. The individual is in a sun-drenched library or studio environment. The lighting is soft and natural, emphasizing a warm minimalism style. The composition is clean and focused, reflecting a sophisticated yet approachable professional persona." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD5zFxu9pGLbVG9dbsPhPx_B1pZ581uYh7BC9NHH9RPVzfATiddynX_sWVRHqyEN3o8w7lgBU43fOjezE_n6lOynP-ddDjJsROSQSWAJCyxMEbHT-Lb82ZOQZNPVaQXVr14MaV0WMluUicnFb3liPxNpT_fGsTObmeXUW04DVCjhsjxQc8MXmTaAGV52y0Uxmh0HxzCkbC69Mr_oBofRxeYWmT8BSnvyuvkqESucGSnZaixA9zhl-9Sd8owgTuQesxNeKAa12nFVv0"/>
+</div>
+</div>
+</div>
+</section>
+<!-- Profile Bio & Actions -->
+<section class="mt-20 px-margin-mobile md:px-xl">
+<div class="flex flex-col md:flex-row md:justify-between md:items-end gap-lg">
+<div class="space-y-sm max-w-2xl">
+<h1 class="font-display-md text-display-md text-primary tracking-tight">Elena Valerious</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
+                        Teaching the next generation of digital artists. Focusing on light, shadow, and emotional storytelling in high-end UI/UX and digital painting.
+                    </p>
+<div class="flex items-center gap-lg pt-sm">
+<div class="flex items-center gap-xs">
+<span class="font-bold text-primary">15k</span>
+<span class="text-on-surface-variant font-label-md text-label-md">Followers</span>
+</div>
+<div class="flex items-center gap-xs">
+<span class="font-bold text-primary">24</span>
+<span class="text-on-surface-variant font-label-md text-label-md">Lessons</span>
+</div>
+</div>
+</div>
+<!-- Action Buttons Cluster -->
+<div class="flex flex-wrap gap-md items-center">
+<button class="bg-primary text-on-primary px-xl py-md rounded-xl font-bold font-label-md hover:opacity-90 transition-opacity">Follow</button>
+<button class="bg-transparent border border-primary text-primary px-xl py-md rounded-xl font-bold font-label-md hover:bg-surface-container-low transition-colors">Subscribe</button>
+<button class="bg-secondary-container text-on-secondary-container px-xl py-md rounded-xl font-bold font-label-md flex items-center gap-sm shadow-sm hover:scale-[1.02] transition-transform">
+<span class="material-symbols-outlined text-[20px]">chat_bubble</span>
+                        Paid DM
+                    </button>
+</div>
+</div>
+</section>
+<!-- Content Grid Section -->
+<section class="mt-xxl px-margin-mobile md:px-xl">
+<div class="flex items-center justify-between mb-lg border-b border-outline-variant/10 pb-md">
+<div class="flex gap-lg">
+<button class="text-primary font-bold border-b-2 border-primary pb-md font-label-md">Lessons</button>
+<button class="text-on-surface-variant hover:text-primary pb-md transition-colors font-label-md">Portfolio</button>
+<button class="text-on-surface-variant hover:text-primary pb-md transition-colors font-label-md">Community</button>
+</div>
+<div class="hidden md:flex items-center text-on-surface-variant gap-sm cursor-pointer hover:text-primary transition-colors">
+<span class="font-label-md">Latest First</span>
+<span class="material-symbols-outlined">expand_more</span>
+</div>
+</div>
+<!-- Bento/Grid Layout for Lessons -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<!-- Lesson Card 1 -->
+<article class="bg-surface-container-lowest rounded-3xl p-lg flex flex-col gap-md shadow-[0px_10px_30px_rgba(43,33,24,0.04)] hover:shadow-[0px_15px_40px_rgba(43,33,24,0.08)] transition-all group">
+<div class="relative w-full aspect-video rounded-2xl overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A stunning digital art composition showcasing high-level lighting techniques on a minimalist architectural subject. The artwork uses a warm color palette with long shadows and soft, luminous highlights that evoke a sun-drenched library mood. The style is clean and professional, emphasizing the educator's expertise in emotional storytelling through digital tools." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAD802QYBP7s1iJL_ga878wC5AoKqSMOcmu-2kuodktmLZ5UdIMBqVAZrdB7LOFMvU5eOweL34XkqcL7FtfW8wdlg3wUMPkveuPJ5vK6HMUpLXSlsyFoKAngqsCL22H3k4s_dRVQBONag7m26aCPJGhNSLEkyoouT6s89RXj1Av_99PeqwWo0AwkDAzk05G_mZ7tNtmM5nYKcehvxthQydae7tYvkDJtrX6-gzxx9IHtahyZE7CozrlrYWW6rq7O4t9xmSc9okgl0U"/>
+<div class="absolute top-md right-md bg-background/90 px-sm py-xs rounded-lg backdrop-blur-md">
+<span class="font-label-sm text-label-sm text-primary">02:45:00</span>
+</div>
+</div>
+<div class="space-y-xs">
+<div class="flex items-center gap-xs">
+<span class="px-md py-1 bg-surface-container-high text-on-surface-variant rounded-full text-label-sm font-label-sm">Lighting</span>
+<span class="px-md py-1 bg-surface-container-high text-on-surface-variant rounded-full text-label-sm font-label-sm">Digital Art</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary">Mastering the Golden Hour in Digital Painting</h3>
+<p class="text-on-surface-variant text-body-md line-clamp-2">Learn the secrets of capturing the warmth of natural light and how it affects different surface textures in your artwork.</p>
+</div>
+<div class="mt-auto flex items-center justify-between pt-md">
+<div class="flex items-center gap-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+<span class="text-label-sm">1.2k views</span>
+</div>
+<button class="text-primary font-bold flex items-center gap-xs group">
+                            Watch Lesson
+                            <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</div>
+</article>
+<!-- Lesson Card 2 -->
+<article class="bg-surface-container-lowest rounded-3xl p-lg flex flex-col gap-md shadow-[0px_10px_30px_rgba(43,33,24,0.04)] hover:shadow-[0px_15px_40px_rgba(43,33,24,0.08)] transition-all group">
+<div class="relative w-full aspect-video rounded-2xl overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A clean, modern workspace for a digital artist featuring a tablet and professional equipment. The scene is bathed in high-key, soft natural light with a minimal parchment-colored aesthetic. The composition highlights precision and creativity, following the tactile softness and warm minimalism style of the Mentra brand. The vibe is focused and intellectually stimulating." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDCDxiAfro3AmIv17dfAqOkhV-ncuNCRZ9_42M2ESkX9OoYXAD1ugvxlEsXTF4FHJuJsKNaRA1zG_4sSlPBhUGZc6nhG_ulOis9ug_kcI0slinZA5FmsMvpLbIcith5jCyWOJgwl8k1gXxs_koEoYkD17gPILKcBSwPCs1Qa-fgXHbRJ1ifs1N4LZK5ILIrVfaBlgJOjzNic5pODOHYpPGkpQsCsHzd3cHNoJQ00mwtun8WHbpgNS_ZHXER1Cgd-ayVqfVQuCFwW4"/>
+<div class="absolute top-md right-md bg-background/90 px-sm py-xs rounded-lg backdrop-blur-md">
+<span class="font-label-sm text-label-sm text-primary">01:12:30</span>
+</div>
+</div>
+<div class="space-y-xs">
+<div class="flex items-center gap-xs">
+<span class="px-md py-1 bg-surface-container-high text-on-surface-variant rounded-full text-label-sm font-label-sm">UI Design</span>
+<span class="px-md py-1 bg-surface-container-high text-on-surface-variant rounded-full text-label-sm font-label-sm">Aesthetics</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary">Atmospheric UI: Designing with Emotion</h3>
+<p class="text-on-surface-variant text-body-md line-clamp-2">Moving beyond functional grids to create immersive, emotional user experiences through color theory and white space.</p>
+</div>
+<div class="mt-auto flex items-center justify-between pt-md">
+<div class="flex items-center gap-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+<span class="text-label-sm">840 views</span>
+</div>
+<button class="text-primary font-bold flex items-center gap-xs group">
+                            Watch Lesson
+                            <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</div>
+</article>
+<!-- Lesson Card 3 -->
+<article class="bg-surface-container-lowest rounded-3xl p-lg flex flex-col gap-md shadow-[0px_10px_30px_rgba(43,33,24,0.04)] hover:shadow-[0px_15px_40px_rgba(43,33,24,0.08)] transition-all group">
+<div class="relative w-full aspect-video rounded-2xl overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Macro photography of organic paint textures blending softly on a canvas, utilizing a palette of earth tones and subtle metallic accents. The lighting is diffused and professional, creating a sense of tactile softness. This image serves as a metaphor for creative mentorship and the blending of traditional artistry with digital precision in a calm, distraction-free environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAuokocsYjdEjETy_DwEgQ2fMFeEZiCN_ppGKIMWfB9gVp4xC72nHJ3eyNiLG8LX-oIm1aK-dp3Bnyq6c07rlCF4UZBIImbU300n2seAlm0NjMn8vNohPKviReboK57x06k3MbOnrXhMQ_3Rj-SHmlywwK1m9rnNL2KBsnxSGk3zi-uaram8rtz-QMgI9NCFet4aXsKnSIu_zbj5IoIljEIty0WCZlzb7AgMmfcrpYqTsBgpvTJuEhxP34L1QHEwfKSFhDwg4s6odg"/>
+<div class="absolute top-md right-md bg-background/90 px-sm py-xs rounded-lg backdrop-blur-md">
+<span class="font-label-sm text-label-sm text-primary">45:15</span>
+</div>
+</div>
+<div class="space-y-xs">
+<div class="flex items-center gap-xs">
+<span class="px-md py-1 bg-surface-container-high text-on-surface-variant rounded-full text-label-sm font-label-sm">Composition</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary">The Art of Organic Grids</h3>
+<p class="text-on-surface-variant text-body-md line-clamp-2">How to break free from rigid design systems and use asymmetric layouts to create more human-centric digital interfaces.</p>
+</div>
+<div class="mt-auto flex items-center justify-between pt-md">
+<div class="flex items-center gap-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+<span class="text-label-sm">2.4k views</span>
+</div>
+<button class="text-primary font-bold flex items-center gap-xs group">
+                            Watch Lesson
+                            <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</div>
+</article>
+<!-- Lesson Card 4 -->
+<article class="bg-surface-container-lowest rounded-3xl p-lg flex flex-col gap-md shadow-[0px_10px_30px_rgba(43,33,24,0.04)] hover:shadow-[0px_15px_40px_rgba(43,33,24,0.08)] transition-all group">
+<div class="relative w-full aspect-video rounded-2xl overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A sophisticated digital rendering of a luminous glass prism refracting soft rainbow light onto a parchment-textured surface. The mood is one of intellectual discovery and quiet study. The visual language is refined, modern, and expensive-looking, utilizing the brand's core palette of warm tones and sharp, clean forms. It represents the clarity of thought provided by premium mentorship." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA5rgbqmwbFOjCNnB8TgXW5iwuxvWRP95CA23MNSqkP0kLr8-U22CcSqxfLvsFE1pZc6KCYxTKSGQl5--XnToi3Azf3nNQqpaP0mOoFyx7RQCVGEqD7coJK2zRigG0Gilykol31mnp3STYd1KWOWvRG10ByWEwnBEaXHH3yezq8ByrayBt_J8zl8DnyaiPLti_kywadIY313nptAtFJAMlOdpXxoY3b8S-5Y26wkipnVWg6Q4fVACyBHDSnNWTqAlmAO1a-MPkTBZ8"/>
+<div class="absolute top-md right-md bg-background/90 px-sm py-xs rounded-lg backdrop-blur-md">
+<span class="font-label-sm text-label-sm text-primary">03:20:00</span>
+</div>
+</div>
+<div class="space-y-xs">
+<div class="flex items-center gap-xs">
+<span class="px-md py-1 bg-surface-container-high text-on-surface-variant rounded-full text-label-sm font-label-sm">Branding</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary">Luxury Minimalism in Visual Identity</h3>
+<p class="text-on-surface-variant text-body-md line-clamp-2">Creating premium brand identities through subtle visual tokens, typography weight, and sophisticated color palettes.</p>
+</div>
+<div class="mt-auto flex items-center justify-between pt-md">
+<div class="flex items-center gap-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+<span class="text-label-sm">3.1k views</span>
+</div>
+<button class="text-primary font-bold flex items-center gap-xs group">
+                            Watch Lesson
+                            <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</div>
+</article>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar (Mobile only) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-gutter py-md bg-surface-container-low/90 backdrop-blur-xl md:hidden shadow-lg rounded-t-xl">
+<div class="flex flex-col items-center justify-center text-on-surface-variant p-2">
+<span class="material-symbols-outlined">explore</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant p-2">
+<span class="material-symbols-outlined">search</span>
+</div>
+<div class="flex flex-col items-center justify-center text-secondary-fixed-variant bg-secondary-container/50 rounded-full p-2">
+<span class="material-symbols-outlined">add_circle</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant p-2">
+<span class="material-symbols-outlined">inbox</span>
+</div>
+<div class="flex flex-col items-center justify-center text-secondary-fixed-variant bg-secondary-container/50 rounded-full p-2">
+<span class="material-symbols-outlined">person</span>
+</div>
+</nav>
+<!-- Sidebar (Desktop Navigation) - Simplified representation within TopAppBar layout rules -->
+<!-- The prompt implies a dashboard-like context but the specific request is for a Creator Profile Page. -->
+</body></html>
