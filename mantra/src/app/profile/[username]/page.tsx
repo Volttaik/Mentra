@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
@@ -33,8 +33,8 @@ interface Stack {
   isStarred: boolean; isBookmarked: boolean;
 }
 
-export default function ProfilePage({ params }: { params: Promise<{ username: string }> }) {
-  const { username } = use(params);
+export default function ProfilePage({ params }: { params: { username: string } }) {
+  const { username } = params;
   const { data: session } = useSession();
   const [activeTab, setActiveTab] = useState("Stacks");
   const [loading, setLoading] = useState(true);

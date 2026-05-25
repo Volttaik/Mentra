@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import SessionProvider from "@/components/providers/SessionProvider";
+import MobileNav from "@/components/layout/MobileNav";
 
 export const metadata: Metadata = {
   title: "Mentra — The Collaborative Academic OS",
@@ -40,7 +41,10 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full antialiased bg-background text-on-background">
-        <SessionProvider>{children}</SessionProvider>
+        <SessionProvider>
+          {children}
+          <MobileNav />
+        </SessionProvider>
       </body>
     </html>
   );

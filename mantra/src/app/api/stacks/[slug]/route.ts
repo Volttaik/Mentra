@@ -5,9 +5,9 @@ import { daysAgo } from "@/lib/utils";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ slug: string }> }
+  { params }: { params: { slug: string } }
 ) {
-  const { slug } = await params;
+  const { slug } = params;
   const session = await auth();
   const userId = session?.user?.id ?? "__none__";
 

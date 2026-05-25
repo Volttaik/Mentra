@@ -14,6 +14,7 @@ model User {
   email         String   @unique
   emailVerified DateTime?
   image         String?
+  banner        String?
   password      String?
   bio           String?
   university    String?
@@ -38,6 +39,8 @@ model User {
   followers     Follow[]        @relation("Following")
   following     Follow[]        @relation("Follower")
   notifications Notification[]
+  apiKeys       ApiKey[]
+  progress      LearningProgress[]
 
   @@map("users")
 }
@@ -89,16 +92,52 @@ model Stack {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  owner         User           @relation("StackOwner", fields: [ownerId], references: [id])
+  owner         User             @relation("StackOwner", fields: [ownerId], references: [id])
   tags          StackTag[]
   modules       Module[]
+  editions      Edition[]
   stars         StackStar[]
   forks         StackFork[]
   bookmarks     Bookmark[]
   discussions   Discussion[]
   contributions Contribution[]
+  progress      LearningProgress[]
 
   @@map("stacks")
+}
+
+model Edition {
+  id          String   @id @default(cuid())
+  stackId     String
+  version     String
+  changelog   String?
+  snapshot    Json
+  editorId    String
+  createdAt   DateTime @default(now())
+
+  stack       Stack    @relation(fields: [stackId], references: [id], onDelete: Cascade)
+  mtContent   MtContent[]
+
+  @@map("editions")
+}
+
+model MtContent {
+  id            String   @id @default(cuid())
+  editionId     String
+  stackId       String
+  rawContent    String
+  sections      Json
+  concepts      Json
+  summary       String?
+  references    Json
+  searchIndex   String
+  fileName      String?
+  fileType      String?
+  createdAt     DateTime @default(now())
+
+  edition       Edition  @relation(fields: [editionId], references: [id], onDelete: Cascade)
+
+  @@map("mt_content")
 }
 
 model Module {
@@ -185,6 +224,8 @@ model Discussion {
   userId    String
   stackId   String
   resolved  Boolean   @default(false)
+  isPinned  Boolean   @default(false)
+  type      String    @default("discussion")
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   user      User      @relation(fields: [userId], references: [id])
@@ -199,6 +240,7 @@ model Comment {
   body         String
   userId       String
   discussionId String
+  isAccepted   Boolean    @default(false)
   createdAt    DateTime   @default(now())
   user         User       @relation(fields: [userId], references: [id])
   discussion   Discussion @relation(fields: [discussionId], references: [id], onDelete: Cascade)
@@ -229,6 +271,35 @@ model Notification {
   user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("notifications")
+}
+
+model ApiKey {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  key       String   @unique
+  lastUsed  DateTime?
+  requests  Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("api_keys")
+}
+
+model LearningProgress {
+  id         String   @id @default(cuid())
+  userId     String
+  stackId    String
+  moduleId   String?
+  position   Int      @default(0)
+  completed  Boolean  @default(false)
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stack      Stack    @relation(fields: [stackId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, stackId])
+  @@map("learning_progress")
 }
 
 enum Role {

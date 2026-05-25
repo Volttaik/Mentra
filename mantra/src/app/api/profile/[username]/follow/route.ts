@@ -4,13 +4,13 @@ import { prisma } from "@/lib/prisma";
 
 export async function POST(
   _req: NextRequest,
-  { params }: { params: Promise<{ username: string }> }
+  { params }: { params: { username: string } }
 ) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const { username } = await params;
+  const { username } = params;
   const followerId = session.user.id;
 
   const target = await prisma.user.findUnique({ where: { username }, select: { id: true, name: true } });

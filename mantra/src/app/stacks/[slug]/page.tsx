@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
@@ -38,8 +38,8 @@ interface StackData {
   isStarred: boolean; isBookmarked: boolean;
 }
 
-export default function StackPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = use(params);
+export default function StackPage({ params }: { params: { slug: string } }) {
+  const { slug } = params;
   const { data: session } = useSession();
   const [activeTab, setActiveTab] = useState("Overview");
   const [stack, setStack] = useState<StackData | null>(null);

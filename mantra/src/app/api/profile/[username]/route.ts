@@ -31,9 +31,9 @@ function formatStack(s: any, userId: string) {
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: Promise<{ username: string }> }
+  { params }: { params: { username: string } }
 ) {
-  const { username } = await params;
+  const { username } = params;
   const session = await auth();
   const viewerId = session?.user?.id ?? "__none__";
 
