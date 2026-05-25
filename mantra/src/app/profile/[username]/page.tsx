@@ -192,7 +192,7 @@ export default function ProfilePage({ params }: { params: Promise<{ username: st
                   <h3 className="font-manrope font-semibold text-base text-primary mb-4">Recent contributions</h3>
                   <div className="space-y-3">
                     {MOCK_REPOSITORIES.slice(0, 4).map((repo, i) => (
-                      <Link key={i} href={`/repository/${repo.slug}`}>
+                      <Link key={i} href={`/stacks/${repo.slug}`}>
                         <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-surface-container transition-colors cursor-pointer group">
                           <div className="w-8 h-8 bg-secondary-container rounded-xl flex items-center justify-center shrink-0">
                             <GitFork className="w-4 h-4 text-on-secondary-container" />

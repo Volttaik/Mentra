@@ -1,0 +1,252 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  username      String   @unique
+  email         String   @unique
+  emailVerified DateTime?
+  image         String?
+  bio           String?
+  university    String?
+  department    String?
+  level         String?
+  website       String?
+  location      String?
+  isVerified    Boolean  @default(false)
+  role          Role     @default(STUDENT)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  stacks        Stack[]         @relation("StackOwner")
+  contributions Contribution[]
+  stars         StackStar[]
+  forks         StackFork[]
+  bookmarks     Bookmark[]
+  sessions      Session[]
+  accounts      Account[]
+  discussions   Discussion[]
+  comments      Comment[]
+  followers     Follow[]        @relation("Following")
+  following     Follow[]        @relation("Follower")
+  notifications Notification[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Stack {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  description String
+  courseCode  String?
+  university  String?
+  department  String?
+  semester    String?
+  language    String   @default("PDF")
+  isPublic    Boolean  @default(true)
+  isVerified  Boolean  @default(false)
+  readme      String?
+  views       Int      @default(0)
+  ownerId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner         User           @relation("StackOwner", fields: [ownerId], references: [id])
+  tags          StackTag[]
+  modules       Module[]
+  stars         StackStar[]
+  forks         StackFork[]
+  bookmarks     Bookmark[]
+  discussions   Discussion[]
+  contributions Contribution[]
+
+  @@map("stacks")
+}
+
+model Module {
+  id       String  @id @default(cuid())
+  title    String
+  type     String  @default("lecture")
+  files    Int     @default(0)
+  duration String?
+  order    Int     @default(0)
+  stackId  String
+  stack    Stack   @relation(fields: [stackId], references: [id], onDelete: Cascade)
+
+  @@map("modules")
+}
+
+model Tag {
+  id     String     @id @default(cuid())
+  name   String     @unique
+  stacks StackTag[]
+
+  @@map("tags")
+}
+
+model StackTag {
+  stackId String
+  tagId   String
+  stack   Stack  @relation(fields: [stackId], references: [id], onDelete: Cascade)
+  tag     Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([stackId, tagId])
+  @@map("stack_tags")
+}
+
+model StackStar {
+  userId    String
+  stackId   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stack     Stack    @relation(fields: [stackId], references: [id], onDelete: Cascade)
+
+  @@id([userId, stackId])
+  @@map("stack_stars")
+}
+
+model StackFork {
+  id        String   @id @default(cuid())
+  userId    String
+  stackId   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stack     Stack    @relation(fields: [stackId], references: [id], onDelete: Cascade)
+
+  @@map("stack_forks")
+}
+
+model Bookmark {
+  userId    String
+  stackId   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stack     Stack    @relation(fields: [stackId], references: [id], onDelete: Cascade)
+
+  @@id([userId, stackId])
+  @@map("bookmarks")
+}
+
+model Contribution {
+  id        String             @id @default(cuid())
+  userId    String
+  stackId   String
+  message   String
+  status    ContributionStatus @default(PENDING)
+  createdAt DateTime           @default(now())
+  user      User               @relation(fields: [userId], references: [id])
+  stack     Stack              @relation(fields: [stackId], references: [id])
+
+  @@map("contributions")
+}
+
+model Discussion {
+  id        String    @id @default(cuid())
+  title     String
+  body      String
+  userId    String
+  stackId   String
+  resolved  Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  user      User      @relation(fields: [userId], references: [id])
+  stack     Stack     @relation(fields: [stackId], references: [id])
+  comments  Comment[]
+
+  @@map("discussions")
+}
+
+model Comment {
+  id           String     @id @default(cuid())
+  body         String
+  userId       String
+  discussionId String
+  createdAt    DateTime   @default(now())
+  user         User       @relation(fields: [userId], references: [id])
+  discussion   Discussion @relation(fields: [discussionId], references: [id], onDelete: Cascade)
+
+  @@map("comments")
+}
+
+model Follow {
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+  follower    User     @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@id([followerId, followingId])
+  @@map("follows")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  body      String
+  read      Boolean          @default(false)
+  link      String?
+  createdAt DateTime         @default(now())
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+enum Role {
+  STUDENT
+  PROFESSOR
+  ADMIN
+}
+
+enum ContributionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum NotificationType {
+  STAR
+  FORK
+  CONTRIBUTION
+  COMMENT
+  FOLLOW
+  SYSTEM
+}

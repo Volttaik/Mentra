@@ -1,0 +1,38 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "fJK4cknf1auxfsGfWI2om"
+uri = "file://mantra/public/home/study-desk.png"
+type = "image"
+title = "study desk warm"
+
+[[generated]]
+id = "9Qzv-T7XEfw4z-sqnusHN"
+uri = "file://mantra/public/home/books-stack.png"
+type = "image"
+title = "books flat lay"
+
+[[generated]]
+id = "X8Oie3SlTG2M0xspnCP1F"
+uri = "file://mantra/public/home/online-study.png"
+type = "image"
+title = "online study laptop"
+
+[[generated]]
+id = "9YupaAdHRA5gc4xRlsBYW"
+uri = "file://mantra/public/home/open-book-notes.png"
+type = "image"
+title = "open book notes"
+
+[[generated]]
+id = "_IrKdBZ5dIWpkVbMTyiC5"
+uri = "file://mantra/public/home/students-collaborating.png"
+type = "image"
+title = "students collaborating"
+
+[[generated]]
+id = "jiNkwBHdkw_NsKUyC6fp4"
+uri = "file://mantra/public/home/library-grand.png"
+type = "image"
+title = "grand library"

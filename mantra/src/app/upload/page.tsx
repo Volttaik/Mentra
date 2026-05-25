@@ -29,7 +29,7 @@ const CONTENT_TYPES = [
     id: "bundle",
     icon: Package,
     title: "Course Bundle",
-    description: "Combined multi-format course repository",
+    description: "Combined multi-format course stack",
     color: "bg-tertiary-fixed text-tertiary",
   },
   {
@@ -95,7 +95,7 @@ export default function UploadPage() {
             Back to dashboard
           </Link>
           <h1 className="font-manrope font-bold text-2xl md:text-3xl text-primary mb-2">
-            Create a new repository
+            Create a new stack
           </h1>
           <p className="text-on-surface-variant">Share your academic knowledge with the world.</p>
         </div>
@@ -393,7 +393,7 @@ export default function UploadPage() {
                 {publishing ? (
                   <div className="w-5 h-5 border-2 border-on-primary/30 border-t-on-primary rounded-full animate-spin" />
                 ) : (
-                  "Publish repository"
+                  "Publish stack"
                 )}
               </button>
             </div>

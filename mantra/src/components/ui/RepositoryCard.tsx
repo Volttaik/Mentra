@@ -45,7 +45,7 @@ export default function RepositoryCard({ repo, className, compact }: RepositoryC
     : `Updated ${repo.updatedDaysAgo} days ago`;
 
   return (
-    <Link href={`/repository/${repo.slug}`}>
+    <Link href={`/stacks/${repo.slug}`}>
       <article
         className={cn(
           "card p-6 cursor-pointer group flex flex-col gap-4 h-full",

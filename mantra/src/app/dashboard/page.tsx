@@ -15,10 +15,10 @@ import { MOCK_REPOSITORIES, MOCK_USERS, formatNumber } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
 const NOTIFICATIONS = [
-  { id: "n1", type: "star", text: "Marcus Chen starred your repository", repo: "Data Structures & Algorithms", time: "2h ago", read: false },
+  { id: "n1", type: "star", text: "Marcus Chen starred your stack", repo: "Data Structures & Algorithms", time: "2h ago", read: false },
   { id: "n2", type: "fork", text: "Sofia Reyes forked Advanced Quantum Mechanics", repo: "Advanced Quantum Mechanics", time: "5h ago", read: false },
   { id: "n3", type: "comment", text: "New discussion: 'Chapter 3 needs clarification'", repo: "Data Structures & Algorithms", time: "1d ago", read: true },
-  { id: "n4", type: "contribution", text: "James Okafor contributed to your repository", repo: "Organic Chemistry I & II", time: "2d ago", read: true },
+  { id: "n4", type: "contribution", text: "James Okafor contributed to your stack", repo: "Organic Chemistry I & II", time: "2d ago", read: true },
 ];
 
 const RECENT_ACTIVITY = [
@@ -32,7 +32,7 @@ const SAVED_REPOS = MOCK_REPOSITORIES.slice(2, 4);
 const IN_PROGRESS = MOCK_REPOSITORIES.slice(4, 6);
 
 const QUICK_STATS = [
-  { label: "Repositories", value: "18", icon: BookOpen, change: "+2 this month" },
+  { label: "Stacks", value: "18", icon: BookOpen, change: "+2 this month" },
   { label: "Stars earned", value: "891", icon: Star, change: "+124 this week" },
   { label: "Contributions", value: "4,723", icon: Activity, change: "+89 this week" },
   { label: "Followers", value: "2.8k", icon: Users, change: "+203 this month" },
@@ -65,7 +65,7 @@ export default function DashboardPage() {
             className="hidden md:flex items-center gap-2 bg-primary text-on-primary px-5 py-3 rounded-xl font-semibold font-manrope text-sm hover:opacity-90 transition-all shadow-card"
           >
             <Plus className="w-4 h-4" />
-            New Repository
+            New Stack
           </Link>
         </motion.div>
 
@@ -100,7 +100,7 @@ export default function DashboardPage() {
             {/* Recent Repositories */}
             <div>
               <div className="flex items-center justify-between mb-5">
-                <h2 className="font-manrope font-semibold text-lg text-primary">Your repositories</h2>
+                <h2 className="font-manrope font-semibold text-lg text-primary">Your stacks</h2>
                 <Link href="/explore" className="text-sm text-secondary font-medium flex items-center gap-1">
                   View all <ChevronRight className="w-4 h-4" />
                 </Link>
@@ -113,7 +113,7 @@ export default function DashboardPage() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 + i * 0.08 }}
                   >
-                    <Link href={`/repository/${repo.slug}`}>
+                    <Link href={`/stacks/${repo.slug}`}>
                       <div className="card-sm p-4 flex items-center gap-4 cursor-pointer group hover:-translate-y-0.5 transition-all">
                         <div className="w-10 h-10 bg-secondary-container rounded-xl flex items-center justify-center shrink-0">
                           <BookOpen className="w-5 h-5 text-on-secondary-container" />
@@ -142,7 +142,7 @@ export default function DashboardPage() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {IN_PROGRESS.map((repo, i) => (
-                  <Link key={repo.id} href={`/repository/${repo.slug}`}>
+                  <Link key={repo.id} href={`/stacks/${repo.slug}`}>
                     <div className="card-sm p-5 cursor-pointer group hover:-translate-y-1 transition-all">
                       <div className="flex items-start gap-3 mb-4">
                         <div className="w-9 h-9 bg-primary-fixed rounded-xl flex items-center justify-center shrink-0">
@@ -222,7 +222,7 @@ export default function DashboardPage() {
               </div>
               <div className="space-y-3">
                 {SAVED_REPOS.map((repo) => (
-                  <Link key={repo.id} href={`/repository/${repo.slug}`}>
+                  <Link key={repo.id} href={`/stacks/${repo.slug}`}>
                     <div className="flex items-center gap-3 p-2 rounded-xl hover:bg-surface-container transition-colors cursor-pointer group">
                       <div className="w-8 h-8 bg-surface-container-high rounded-lg flex items-center justify-center shrink-0">
                         <BookOpen className="w-4 h-4 text-on-surface-variant" />

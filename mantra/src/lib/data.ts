@@ -1,4 +1,4 @@
-// Mock data for Mantra platform
+// Mock data for Mentra platform
 
 export const MOCK_USERS = [
   {
@@ -274,14 +274,14 @@ export const STATS = [
 export const TESTIMONIALS = [
   {
     id: "t1",
-    quote: "Mantra completely changed how our department shares materials. Lecture notes evolved by 40 students each semester — it's incredible to watch knowledge compound.",
+    quote: "Mentra completely changed how our department shares materials. Lecture notes evolved by 40 students each semester — it's incredible to watch knowledge compound.",
     author: "Prof. Adebayo Williams",
     role: "Head of Computer Science, University of Ibadan",
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=adebayo",
   },
   {
     id: "t2",
-    quote: "I struggled with abstract algebra for months. Found a Mantra repository with 3 years of improvements by past students. Passed my exams with distinction.",
+    quote: "I struggled with abstract algebra for months. Found a Mentra stack with 3 years of improvements by past students. Passed my exams with distinction.",
     author: "Priya Nair",
     role: "Mathematics Student, IIT Bombay",
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=priya",

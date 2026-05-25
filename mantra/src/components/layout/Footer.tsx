@@ -3,10 +3,10 @@ import { BookOpen, Github, Twitter } from "lucide-react";
 
 const LINKS = {
   Platform: [
-    { label: "Explore", href: "/explore" },
+    { label: "Explore Stacks", href: "/explore" },
     { label: "Search", href: "/search" },
     { label: "Dashboard", href: "/dashboard" },
-    { label: "Upload", href: "/upload" },
+    { label: "Upload Stack", href: "/upload" },
   ],
   Resources: [
     { label: "Documentation", href: "#" },
@@ -39,7 +39,7 @@ export default function Footer() {
               <div className="w-8 h-8 bg-on-primary/10 rounded-lg flex items-center justify-center">
                 <BookOpen className="w-4 h-4 text-on-primary" />
               </div>
-              <span className="font-manrope font-bold text-lg text-on-primary">Mantra</span>
+              <span className="font-manrope font-bold text-lg text-on-primary">Mentra</span>
             </div>
             <p className="text-sm text-on-primary/60 leading-relaxed">
               The collaborative academic operating system. Knowledge evolves.
@@ -76,7 +76,7 @@ export default function Footer() {
 
         <div className="border-t border-on-primary/10 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-on-primary/40">
-            © 2025 Mantra. Built for the global academic community.
+            © 2025 Mentra. Built for the global academic community.
           </p>
           <p className="text-sm text-on-primary/40">
             Open source · Knowledge for everyone

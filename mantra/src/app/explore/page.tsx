@@ -16,13 +16,13 @@ const SORT_OPTIONS = [
   { label: "Most Stars", icon: Star },
   { label: "Recently Updated", icon: Clock },
 ];
-const VIEW_TABS = ["Repositories", "Contributors", "Universities"];
+const VIEW_TABS = ["Stacks", "Contributors", "Universities"];
 
 export default function ExplorePage() {
   const [query, setQuery] = useState("");
   const [selectedDept, setSelectedDept] = useState("All");
   const [sortBy, setSortBy] = useState("Trending");
-  const [viewTab, setViewTab] = useState("Repositories");
+  const [viewTab, setViewTab] = useState("Stacks");
 
   const filtered = useMemo(() => {
     let repos = [...MOCK_REPOSITORIES];
@@ -58,10 +58,10 @@ export default function ExplorePage() {
             className="max-w-3xl mx-auto"
           >
             <h1 className="font-manrope font-bold text-3xl md:text-4xl text-primary mb-3 text-center">
-              Explore Academic Knowledge
+              Explore Academic Stacks
             </h1>
             <p className="text-on-surface-variant text-center mb-8">
-              Discover repositories from universities worldwide. All subjects, all levels.
+              Discover stacks from universities worldwide. All subjects, all levels.
             </p>
 
             {/* Search bar */}
@@ -111,7 +111,7 @@ export default function ExplorePage() {
           ))}
         </div>
 
-        {viewTab === "Repositories" && (
+        {viewTab === "Stacks" && (
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Filters sidebar */}
             <aside className="w-full lg:w-56 shrink-0 space-y-6">
@@ -176,14 +176,14 @@ export default function ExplorePage() {
             <div className="flex-1">
               <div className="flex items-center justify-between mb-6">
                 <p className="text-sm text-on-surface-variant">
-                  <span className="font-semibold text-primary">{filtered.length}</span> repositories found
+                  <span className="font-semibold text-primary">{filtered.length}</span> stacks found
                 </p>
               </div>
 
               {filtered.length === 0 ? (
                 <div className="card p-16 text-center">
                   <BookOpen className="w-12 h-12 text-outline-variant mx-auto mb-4" />
-                  <h3 className="font-manrope font-semibold text-primary mb-2">No repositories found</h3>
+                  <h3 className="font-manrope font-semibold text-primary mb-2">No stacks found</h3>
                   <p className="text-sm text-on-surface-variant">Try a different search term or filter.</p>
                 </div>
               ) : (

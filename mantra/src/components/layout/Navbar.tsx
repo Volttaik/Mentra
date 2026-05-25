@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   BookOpen, Bell, Search, Menu, X, ChevronDown,
-  GitFork, Star, Upload, Settings, LogOut, User, LayoutDashboard
+  Star, Upload, Settings, LogOut, User, LayoutDashboard, Layers
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -17,7 +17,7 @@ const NAV_LINKS = [
 const USER_MENU = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/profile/amara.osei", label: "Profile", icon: User },
-  { href: "/upload", label: "Upload Content", icon: Upload },
+  { href: "/upload", label: "New Stack", icon: Upload },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
@@ -35,7 +35,7 @@ export default function Navbar() {
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
             <BookOpen className="w-4 h-4 text-on-primary" />
           </div>
-          <span className="font-manrope font-bold text-lg text-primary tracking-tight">Mantra</span>
+          <span className="font-manrope font-bold text-lg text-primary tracking-tight">Mentra</span>
         </Link>
 
         {/* Desktop Nav */}
@@ -63,7 +63,7 @@ export default function Navbar() {
             className="flex items-center gap-2 bg-surface-container border border-outline-variant/30 rounded-xl px-4 py-2 text-sm text-on-surface-variant hover:border-outline/50 transition-all w-52"
           >
             <Search className="w-4 h-4" />
-            <span>Search repositories...</span>
+            <span>Search stacks...</span>
             <span className="ml-auto text-xs bg-surface-container-high px-1.5 py-0.5 rounded text-on-surface-variant/60">⌘K</span>
           </Link>
 

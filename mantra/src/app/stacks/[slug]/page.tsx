@@ -234,7 +234,7 @@ export default function RepositoryPage({ params }: { params: Promise<{ slug: str
                   <div className="prose prose-sm max-w-none space-y-4">
                     <h2 className="font-manrope font-bold text-xl text-primary">{repo.title}</h2>
                     <p className="text-on-surface-variant leading-relaxed">
-                      Welcome to the {repo.title} knowledge repository. This is a community-maintained resource for {repo.courseCode} at {repo.university}.
+                      Welcome to the {repo.title} knowledge stack. This is a community-maintained resource for {repo.courseCode} at {repo.university}.
                     </p>
                     <h3 className="font-manrope font-semibold text-base text-primary mt-4">What's included</h3>
                     <ul className="space-y-2">
@@ -248,11 +248,11 @@ export default function RepositoryPage({ params }: { params: Promise<{ slug: str
                     </ul>
                     <h3 className="font-manrope font-semibold text-base text-primary mt-4">How to contribute</h3>
                     <p className="text-on-surface-variant leading-relaxed text-sm">
-                      Fork this repository, make your improvements, and submit a contribution request. All improvements are reviewed before merging. We especially welcome solved problems, additional examples, and error corrections.
+                      Fork this stack, make your improvements, and submit a contribution request. All improvements are reviewed before merging. We especially welcome solved problems, additional examples, and error corrections.
                     </p>
                     <div className="bg-secondary-container/30 border border-secondary/10 rounded-xl p-4 mt-4">
                       <p className="text-sm text-on-secondary-container font-medium">
-                        ⚠️ This repository follows the Mantra Academic Integrity Guidelines. Do not upload copyrighted materials without permission.
+                        ⚠️ This stack follows the Mentra Academic Integrity Guidelines. Do not upload copyrighted materials without permission.
                       </p>
                     </div>
                   </div>

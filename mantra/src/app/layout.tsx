@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Mantra — The Collaborative Academic OS",
-  description: "GitHub for academic knowledge. Host, collaborate, and evolve educational content with your university community.",
-  keywords: ["education", "academic", "collaboration", "courses", "knowledge", "university"],
+  title: "Mentra — The Collaborative Academic OS",
+  description: "Where academic knowledge lives and grows. Host, collaborate, and evolve educational content with your university community.",
+  keywords: ["education", "academic", "collaboration", "courses", "knowledge", "university", "stacks"],
   openGraph: {
-    title: "Mantra — The Collaborative Academic OS",
-    description: "GitHub for academic knowledge.",
+    title: "Mentra — The Collaborative Academic OS",
+    description: "Where academic knowledge lives and grows.",
     type: "website",
   },
 };

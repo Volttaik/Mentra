@@ -20,8 +20,8 @@ const NAV_ITEMS = [
 ];
 
 const NOTIFICATION_SETTINGS = [
-  { id: "stars", label: "Stars on repositories", description: "When someone stars your repository", defaultOn: true },
-  { id: "forks", label: "Repository forks", description: "When someone forks your repository", defaultOn: true },
+  { id: "stars", label: "Stars on stacks", description: "When someone stars your stack", defaultOn: true },
+  { id: "forks", label: "Stack forks", description: "When someone forks your stack", defaultOn: true },
   { id: "comments", label: "Discussion replies", description: "When someone replies to a discussion", defaultOn: true },
   { id: "contributions", label: "Contribution requests", description: "When someone contributes to your repo", defaultOn: true },
   { id: "follows", label: "New followers", description: "When someone starts following you", defaultOn: false },
