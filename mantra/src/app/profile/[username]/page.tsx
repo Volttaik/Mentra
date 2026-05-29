@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import {
   MapPin, GraduationCap, Calendar, Star, Users, BookOpen,
-  GitFork, UserPlus, Share2, Activity, ChevronRight, Loader2,
+  GitFork, UserPlus, Share2, Activity, ChevronRight, Loader2, Award,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -196,7 +196,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
               )}
               {user.level && (
                 <span className="flex items-center gap-1.5">
-                  <MapPin className="w-4 h-4" />{user.level}
+                  <Award className="w-4 h-4" />{user.level}
                 </span>
               )}
               <span className="flex items-center gap-1.5">

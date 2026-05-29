@@ -17,10 +17,6 @@ const SORT_OPTIONS = [
 ];
 const VIEW_TABS = ["Stacks", "Contributors", "Universities"];
 
-interface Contributor {
-  id: string; name: string; username: string; university: string; department: string;
-  bio?: string; followers: number; repositories: number; contributions: number; achievements?: string[];
-}
 interface University {
   name: string; stacks: number; learners: number;
 }
@@ -36,6 +32,7 @@ interface Stack {
 interface Contributor {
   id: string; name: string; username: string; image: string | null;
   university: string | null; department: string | null;
+  bio?: string; followers: number; repositories: number; contributions: number; achievements?: string[];
 }
 
 export default function ExplorePage() {

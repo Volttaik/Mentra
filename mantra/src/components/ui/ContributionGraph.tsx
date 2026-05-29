@@ -16,7 +16,7 @@ const DAYS = ["Mon", "", "Wed", "", "Fri", "", ""];
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 export default function ContributionGraph({ totalContributions }: { totalContributions: number }) {
-  const grid = useMemo(() => generateContributionGrid(), []);
+  const grid = useMemo(() => generateContributionGrid(totalContributions || 42), [totalContributions]);
   const weeks = [];
   for (let i = 0; i < 52; i++) {
     weeks.push(grid.slice(i * 7, i * 7 + 7));

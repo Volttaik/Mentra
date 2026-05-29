@@ -1,8 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { writeFile, mkdir } from "fs/promises";
+import { writeFile, mkdir, unlink } from "fs/promises";
 import path from "path";
+
+const ALLOWED_MIME_TYPES = new Set([
+  "application/pdf",
+  "application/zip",
+  "application/x-zip-compressed",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.ms-powerpoint",
+  "application/msword",
+  "application/vnd.ms-excel",
+  "application/octet-stream",
+  "text/plain",
+  "text/markdown",
+  "text/csv",
+  "image/png",
+  "image/jpeg",
+  "image/gif",
+  "image/webp",
+  "audio/mpeg",
+  "audio/wav",
+  "audio/ogg",
+  "video/mp4",
+  "video/webm",
+]);
+
+const BLOCKED_EXTENSIONS = /\.(html?|svg|php|sh|exe|bat|cmd|js|mjs|ts|jsx|tsx|py|rb|go|java|c|cpp)$/i;
 
 export async function GET(
   req: NextRequest,
@@ -66,6 +93,15 @@ export async function POST(
     return NextResponse.json({ error: "File exceeds 25 MB limit" }, { status: 413 });
   }
 
+  if (BLOCKED_EXTENSIONS.test(file.name)) {
+    return NextResponse.json({ error: "File type not allowed" }, { status: 415 });
+  }
+
+  const mimeType = file.type || "application/octet-stream";
+  if (!ALLOWED_MIME_TYPES.has(mimeType) && !mimeType.startsWith("text/")) {
+    return NextResponse.json({ error: "File type not allowed" }, { status: 415 });
+  }
+
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
 
@@ -119,6 +155,13 @@ export async function DELETE(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  await prisma.stackFile.delete({ where: { id: fileId, stackId: stack.id } }).catch(() => {});
+  const fileRecord = await prisma.stackFile.findFirst({ where: { id: fileId, stackId: stack.id } });
+  if (fileRecord) {
+    await prisma.stackFile.delete({ where: { id: fileId } }).catch(() => {});
+    if (fileRecord.url.startsWith("/uploads/")) {
+      const diskPath = path.join(process.cwd(), "public", fileRecord.url);
+      await unlink(diskPath).catch(() => {});
+    }
+  }
   return NextResponse.json({ success: true });
 }

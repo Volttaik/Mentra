@@ -64,7 +64,7 @@ export async function POST(
         type: "COMMENT",
         title: "New reply on your discussion",
         body: `${session.user.name} replied to "${discussion.title}"`,
-        link: `/stacks/${params.slug}`,
+        link: `/stacks/${params.slug}#discussion-${params.discussionId}`,
       },
     }).catch(() => {});
   }

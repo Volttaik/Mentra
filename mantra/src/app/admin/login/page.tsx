@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { signIn, signOut } from "next-auth/react";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Shield, Loader2, AlertTriangle } from "lucide-react";
 
@@ -31,7 +31,7 @@ export default function AdminLoginPage() {
         router.refresh();
       } else {
         setError("This account does not have admin privileges.");
-        await fetch("/api/auth/signout", { method: "POST" });
+        await signOut({ redirect: false });
       }
     } catch {
       setError("Something went wrong. Please try again.");

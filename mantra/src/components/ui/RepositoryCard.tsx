@@ -56,9 +56,11 @@ export default function RepositoryCard({ repo, className, compact }: RepositoryC
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
-              <span className="text-xs font-medium text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-full">
-                {repo.courseCode}
-              </span>
+              {repo.courseCode && (
+                <span className="text-xs font-medium text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-full">
+                  {repo.courseCode}
+                </span>
+              )}
               {repo.isVerified && (
                 <span className="flex items-center gap-1 text-xs font-medium text-secondary bg-secondary-container px-2 py-0.5 rounded-full">
                   <Shield className="w-3 h-3" />

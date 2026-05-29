@@ -18,8 +18,8 @@ export default function MobileNav() {
     { href: "/dashboard", icon: Home, label: "Home" },
     { href: "/explore", icon: Compass, label: "Explore" },
     { href: "/upload", icon: Plus, label: "Create", special: true },
-    { href: "/dashboard#notifications", icon: Bell, label: "Alerts" },
-    { href: `/profile/${username}`, icon: User, label: "Profile" },
+    { href: "/dashboard", icon: Bell, label: "Alerts" },
+    { href: username ? `/profile/${username}` : "/dashboard", icon: User, label: "Profile" },
   ];
 
   return (

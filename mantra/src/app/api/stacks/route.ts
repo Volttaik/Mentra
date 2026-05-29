@@ -59,13 +59,13 @@ export async function GET(req: NextRequest) {
   };
 
   const orderBy: any =
-    sort === "stars"
+    sort === "stars" || sort === "trending"
       ? { stars: { _count: "desc" } }
       : sort === "recent"
       ? { updatedAt: "desc" }
       : sort === "views"
       ? { views: "desc" }
-      : { createdAt: "desc" };
+      : { stars: { _count: "desc" } };
 
   const [stacks, total] = await Promise.all([
     prisma.stack.findMany({

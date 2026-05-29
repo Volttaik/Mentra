@@ -110,7 +110,7 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (!session?.user) return;
-    fetch("/api/dashboard").then(r => r.json()).then(d => {
+    fetch("/api/profile/settings").then(r => r.json()).then(d => {
       if (d.user) {
         setForm({
           name: d.user.name ?? "",

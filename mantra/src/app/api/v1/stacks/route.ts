@@ -97,8 +97,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Title and description required" }, { status: 400 });
   }
 
-  const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
+  const baseSlug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
     + "-" + Math.random().toString(36).slice(2, 7);
+  let slug = baseSlug;
+  let collision = await prisma.stack.findFirst({ where: { slug } });
+  let attempt = 0;
+  while (collision && attempt < 5) {
+    slug = baseSlug + "-" + Math.random().toString(36).slice(2, 5);
+    collision = await prisma.stack.findFirst({ where: { slug } });
+    attempt++;
+  }
 
   const stack = await prisma.stack.create({
     data: {

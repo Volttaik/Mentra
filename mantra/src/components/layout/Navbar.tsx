@@ -81,7 +81,7 @@ export default function Navbar() {
         {/* Desktop Right */}
         <div className="hidden md:flex items-center gap-3">
           <Link
-            href="/explore"
+            href="/search"
             className="flex items-center gap-2 bg-surface-container border border-outline-variant/30 rounded-xl px-4 py-2 text-sm text-on-surface-variant hover:border-outline/50 transition-all w-52"
           >
             <Search className="w-4 h-4" />
@@ -126,7 +126,7 @@ export default function Navbar() {
                     </div>
                     {[
                       { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-                      { href: `/profile/${session?.user?.username}`, label: "Profile", icon: User },
+                      { href: session?.user?.username ? `/profile/${session.user.username}` : "/dashboard", label: "Profile", icon: User },
                       { href: "/upload", label: "New Stack", icon: Upload },
                       { href: "/settings", label: "Settings", icon: Settings },
                     ].map(item => (

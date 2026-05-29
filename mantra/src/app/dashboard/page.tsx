@@ -275,25 +275,42 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {notifications.slice(0, 6).map(notif => (
-                    <div
-                      key={notif.id}
-                      onClick={() => !notif.read && markRead([notif.id])}
-                      className={cn(
-                        "flex items-start gap-3 p-3 rounded-xl transition-all cursor-pointer",
-                        !notif.read ? "bg-secondary-container/30 hover:bg-secondary-container/50" : "hover:bg-surface-container"
-                      )}
-                    >
-                      <div className={cn("w-7 h-7 rounded-full flex items-center justify-center shrink-0", NOTIF_COLORS[notif.type] ?? NOTIF_COLORS.SYSTEM)}>
-                        {NOTIF_ICONS[notif.type] ?? NOTIF_ICONS.SYSTEM}
+                  {notifications.slice(0, 6).map(notif => {
+                    const inner = (
+                      <>
+                        <div className={cn("w-7 h-7 rounded-full flex items-center justify-center shrink-0", NOTIF_COLORS[notif.type] ?? NOTIF_COLORS.SYSTEM)}>
+                          {NOTIF_ICONS[notif.type] ?? NOTIF_ICONS.SYSTEM}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-on-surface leading-relaxed line-clamp-2">{notif.body}</p>
+                          <p className="text-[10px] text-on-surface-variant mt-0.5">{timeAgo(notif.createdAt)}</p>
+                        </div>
+                        {!notif.read && <div className="w-2 h-2 bg-secondary rounded-full mt-1 shrink-0" />}
+                      </>
+                    );
+                    const cls = cn(
+                      "flex items-start gap-3 p-3 rounded-xl transition-all cursor-pointer",
+                      !notif.read ? "bg-secondary-container/30 hover:bg-secondary-container/50" : "hover:bg-surface-container"
+                    );
+                    return notif.link ? (
+                      <Link
+                        key={notif.id}
+                        href={notif.link}
+                        onClick={() => !notif.read && markRead([notif.id])}
+                        className={cls}
+                      >
+                        {inner}
+                      </Link>
+                    ) : (
+                      <div
+                        key={notif.id}
+                        onClick={() => !notif.read && markRead([notif.id])}
+                        className={cls}
+                      >
+                        {inner}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs text-on-surface leading-relaxed line-clamp-2">{notif.body}</p>
-                        <p className="text-[10px] text-on-surface-variant mt-0.5">{timeAgo(notif.createdAt)}</p>
-                      </div>
-                      {!notif.read && <div className="w-2 h-2 bg-secondary rounded-full mt-1 shrink-0" />}
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -320,7 +337,7 @@ export default function DashboardPage() {
                     <p className="text-xs text-on-surface-variant">Discover community content</p>
                   </div>
                 </Link>
-                <Link href={`/profile/${session?.user?.username}`} className="flex items-center gap-3 p-3 rounded-xl hover:bg-surface-container transition-colors group cursor-pointer">
+                <Link href={session?.user?.username ? `/profile/${session.user.username}` : "/dashboard"} className="flex items-center gap-3 p-3 rounded-xl hover:bg-surface-container transition-colors group cursor-pointer">
                   <div className="w-8 h-8 bg-surface-container-high rounded-lg flex items-center justify-center shrink-0">
                     <Bookmark className="w-4 h-4 text-on-surface-variant" />
                   </div>
