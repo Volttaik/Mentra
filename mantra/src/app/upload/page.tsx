@@ -97,7 +97,7 @@ export default function UploadPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background pb-20 md:pb-0">
       <Navbar />
       <main className="flex-1 max-w-[800px] mx-auto px-4 md:px-6 py-10 w-full">
         <div className="mb-10">

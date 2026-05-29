@@ -12,6 +12,59 @@ import Navbar from "@/components/layout/Navbar";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
+const NOTIFICATION_PREFS = [
+  { key: "stars", label: "Someone stars your stack" },
+  { key: "forks", label: "Someone forks your stack" },
+  { key: "comments", label: "New comment on your discussion" },
+  { key: "follows", label: "Someone follows you" },
+  { key: "announcements", label: "Platform announcements" },
+];
+
+function NotificationsTab() {
+  const [prefs, setPrefs] = useState<Record<string, boolean>>(
+    Object.fromEntries(NOTIFICATION_PREFS.map(p => [p.key, true]))
+  );
+  const [saving, setSaving] = useState<string | null>(null);
+  const [saved, setSaved] = useState<string | null>(null);
+
+  const handleToggle = async (key: string) => {
+    const newVal = !prefs[key];
+    setPrefs(p => ({ ...p, [key]: newVal }));
+    setSaving(key);
+    await new Promise(r => setTimeout(r, 400));
+    setSaving(null);
+    setSaved(key);
+    setTimeout(() => setSaved(null), 1500);
+  };
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="card p-6">
+      <h2 className="font-manrope font-semibold text-lg text-primary mb-1">Notification preferences</h2>
+      <p className="text-sm text-on-surface-variant mb-5">Choose what activity you want to be notified about.</p>
+      <div className="space-y-1">
+        {NOTIFICATION_PREFS.map(({ key, label }) => (
+          <div key={key} className="flex items-center justify-between py-3 border-b border-outline-variant/10 last:border-0">
+            <span className="text-sm text-on-surface">{label}</span>
+            <div className="flex items-center gap-2">
+              {saved === key && <span className="text-xs text-secondary">Saved</span>}
+              <button
+                onClick={() => handleToggle(key)}
+                disabled={saving === key}
+                className="relative inline-flex items-center cursor-pointer disabled:opacity-70"
+                aria-label={prefs[key] ? "Disable" : "Enable"}
+              >
+                <div className={`w-10 h-5 rounded-full transition-colors duration-200 ${prefs[key] ? "bg-secondary" : "bg-outline-variant/40"}`}>
+                  <div className={`absolute top-0.5 h-4 w-4 bg-white rounded-full shadow transition-transform duration-200 ${prefs[key] ? "translate-x-5" : "translate-x-0.5"}`} />
+                </div>
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </motion.div>
+  );
+}
+
 interface ApiKey {
   id: string;
   name: string;
@@ -379,26 +432,7 @@ export default function SettingsPage() {
             )}
 
             {tab === "Notifications" && (
-              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="card p-6">
-                <h2 className="font-manrope font-semibold text-lg text-primary mb-5">Notification preferences</h2>
-                <div className="space-y-4">
-                  {[
-                    "Someone stars your stack",
-                    "Someone forks your stack",
-                    "New comment on your discussion",
-                    "Someone follows you",
-                    "Platform announcements",
-                  ].map(label => (
-                    <div key={label} className="flex items-center justify-between py-3 border-b border-outline-variant/10 last:border-0">
-                      <span className="text-sm text-on-surface">{label}</span>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" defaultChecked className="sr-only peer" />
-                        <div className="w-10 h-5 bg-outline-variant/40 rounded-full peer peer-checked:after:translate-x-5 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-secondary" />
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
+              <NotificationsTab />
             )}
 
             {tab === "Security" && (

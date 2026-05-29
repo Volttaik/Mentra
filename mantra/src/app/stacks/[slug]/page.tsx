@@ -71,6 +71,7 @@ export default function StackPage({ params }: { params: { slug: string } }) {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [actionMessage, setActionMessage] = useState<{ type: "info" | "error"; text: string } | null>(null);
 
   // Discussions
   const [showDiscModal, setShowDiscModal] = useState(false);
@@ -142,6 +143,11 @@ export default function StackPage({ params }: { params: { slug: string } }) {
     } finally { setActionLoading(null); }
   };
 
+  const showMessage = (text: string, type: "info" | "error" = "info") => {
+    setActionMessage({ type, text });
+    setTimeout(() => setActionMessage(null), 3000);
+  };
+
   const handleFork = async () => {
     if (!session?.user) return;
     setActionLoading("fork");
@@ -152,7 +158,9 @@ export default function StackPage({ params }: { params: { slug: string } }) {
         setForkCount(data.count);
         if (data.forkSlug) router.push(`/stacks/${data.forkSlug}`);
       } else if (res.status === 409) {
-        alert("You have already forked this stack.");
+        showMessage("You have already forked this stack.", "info");
+      } else {
+        showMessage(data.error ?? "Fork failed. Try again.", "error");
       }
     } finally { setActionLoading(null); }
   };
@@ -262,8 +270,9 @@ export default function StackPage({ params }: { params: { slug: string } }) {
           const refreshed = await fetch(`/api/stacks/${slug}`).then(r => r.json());
           if (!refreshed.error) setStack(refreshed);
         }
+        showMessage("Stack updated successfully.");
       } else {
-        alert(data.error ?? "Failed to save changes.");
+        showMessage(data.error ?? "Failed to save changes.", "error");
       }
     } finally { setSavingEdit(false); }
   };
@@ -277,8 +286,8 @@ export default function StackPage({ params }: { params: { slug: string } }) {
         router.push("/dashboard");
       } else {
         const data = await res.json();
-        alert(data.error ?? "Failed to delete stack.");
         setShowDeleteConfirm(false);
+        showMessage(data.error ?? "Failed to delete stack.", "error");
       }
     } finally { setDeletingStack(false); }
   };
@@ -326,7 +335,7 @@ export default function StackPage({ params }: { params: { slug: string } }) {
           ),
         } : prev);
       } else {
-        alert(data.error ?? "Upload failed.");
+        showMessage(data.error ?? "Upload failed.", "error");
       }
     } finally {
       setUploadingFor(null);
@@ -361,11 +370,22 @@ export default function StackPage({ params }: { params: { slug: string } }) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background pb-20 md:pb-0">
       <Navbar />
 
       {/* Hidden file input */}
       <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileChange} />
+
+      {/* Inline action feedback banner */}
+      {actionMessage && (
+        <div className={`fixed top-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-5 py-3 rounded-2xl shadow-modal text-sm font-medium transition-all ${
+          actionMessage.type === "error"
+            ? "bg-error text-on-error"
+            : "bg-secondary-container text-on-secondary-container border border-secondary/20"
+        }`}>
+          {actionMessage.text}
+        </div>
+      )}
 
       <main className="flex-1 max-w-[1200px] mx-auto px-4 md:px-6 py-8 w-full">
         {/* Breadcrumb */}

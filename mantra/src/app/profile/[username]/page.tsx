@@ -115,7 +115,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background pb-20 md:pb-0">
       <Navbar />
 
       {/* Banner */}

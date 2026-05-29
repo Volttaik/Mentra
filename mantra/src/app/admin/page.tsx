@@ -47,6 +47,8 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [toast, setToast] = useState("");
+  const [deleteConfirm, setDeleteConfirm] = useState<{ type: "stack" | "user"; id: string } | null>(null);
+  const [banTarget, setBanTarget] = useState<{ userId: string; reason: string } | null>(null);
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -342,7 +344,7 @@ export default function AdminPage() {
                               )}
                             </button>
                             <button
-                              onClick={() => { if (confirm("Delete this stack permanently?")) stackAction(stack.id, "delete"); }}
+                              onClick={() => setDeleteConfirm({ type: "stack", id: stack.id })}
                               disabled={actionLoading === `delete-${stack.id}`}
                               className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg hover:bg-error-container/20 transition-colors text-error"
                             >
@@ -455,10 +457,7 @@ export default function AdminPage() {
                               </button>
                             ) : (
                               <button
-                                onClick={() => {
-                                  const reason = prompt("Reason for ban (optional):");
-                                  if (reason !== null) userAction(user.id, "ban", reason || "Violation of terms");
-                                }}
+                                onClick={() => setBanTarget({ userId: user.id, reason: "" })}
                                 disabled={actionLoading === `ban-${user.id}` || user.role === "ADMIN"}
                                 className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg hover:bg-error-container/20 transition-colors text-error disabled:opacity-40"
                               >
@@ -476,6 +475,69 @@ export default function AdminPage() {
           </motion.div>
         )}
       </main>
+
+      {/* Delete confirmation modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-surface-container-lowest rounded-2xl shadow-modal p-6 w-full max-w-sm">
+            <h3 className="font-manrope font-bold text-base text-primary mb-2">Confirm deletion</h3>
+            <p className="text-sm text-on-surface-variant mb-6">
+              This will permanently delete the {deleteConfirm.type}. This action cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className="px-4 py-2 rounded-xl text-sm text-on-surface-variant hover:bg-surface-container transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (deleteConfirm.type === "stack") stackAction(deleteConfirm.id, "delete");
+                  setDeleteConfirm(null);
+                }}
+                className="px-4 py-2 rounded-xl text-sm bg-error text-on-error font-medium hover:opacity-90 transition-opacity"
+              >
+                Delete permanently
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Ban reason modal */}
+      {banTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-surface-container-lowest rounded-2xl shadow-modal p-6 w-full max-w-sm">
+            <h3 className="font-manrope font-bold text-base text-primary mb-2">Ban user</h3>
+            <p className="text-sm text-on-surface-variant mb-4">Provide a reason for the ban (optional).</p>
+            <input
+              value={banTarget.reason}
+              onChange={e => setBanTarget(prev => prev ? { ...prev, reason: e.target.value } : null)}
+              placeholder="Violation of terms"
+              className="input-field w-full mb-4"
+              autoFocus
+            />
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setBanTarget(null)}
+                className="px-4 py-2 rounded-xl text-sm text-on-surface-variant hover:bg-surface-container transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  userAction(banTarget.userId, "ban", banTarget.reason || "Violation of terms");
+                  setBanTarget(null);
+                }}
+                className="px-4 py-2 rounded-xl text-sm bg-error text-on-error font-medium hover:opacity-90 transition-opacity"
+              >
+                Ban user
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

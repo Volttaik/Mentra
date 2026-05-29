@@ -265,7 +265,7 @@ export default function HomePage() {
               transition={{ duration: 0.9, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
               className="row-span-2 relative rounded-2xl overflow-hidden shadow-card"
             >
-              <Image src="/home/study-desk.png" alt="Student studying" fill sizes="280px" className="object-cover hover:scale-[1.03] transition-transform duration-700" />
+              <Image src="/home/study-desk.png" alt="Student studying" fill sizes="280px" priority className="object-cover hover:scale-[1.03] transition-transform duration-700" />
               <div className="absolute inset-0 bg-gradient-to-t from-primary/30 via-transparent to-transparent" />
             </motion.div>
 

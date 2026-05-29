@@ -49,9 +49,9 @@ export default function ExplorePage() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
 
-  const fetchStacks = useCallback(async (resetPage = true) => {
+  const fetchStacks = useCallback(async (resetPage = true, pageOverride?: number) => {
     setLoading(true);
-    const currentPage = resetPage ? 1 : page;
+    const currentPage = resetPage ? 1 : (pageOverride ?? page);
     const params = new URLSearchParams({
       ...(query && { q: query }),
       ...(selectedDept !== "All" && { department: selectedDept }),
@@ -66,12 +66,14 @@ export default function ExplorePage() {
         setPage(1);
       } else {
         setStacks(prev => [...prev, ...(data.stacks ?? [])]);
+        setPage(currentPage);
       }
       setTotal(data.total ?? 0);
       setHasMore((data.page ?? 1) < (data.pages ?? 1));
     } catch {}
     setLoading(false);
-  }, [query, selectedDept, sortBy, page]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query, selectedDept, sortBy]);
 
   useEffect(() => {
     const t = setTimeout(() => fetchStacks(true), query ? 400 : 0);
@@ -81,12 +83,11 @@ export default function ExplorePage() {
 
   const loadMore = () => {
     const next = page + 1;
-    setPage(next);
-    fetchStacks(false);
+    fetchStacks(false, next);
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background pb-20 md:pb-0">
       <Navbar />
 
       {/* Hero search */}
