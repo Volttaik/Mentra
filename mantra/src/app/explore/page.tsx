@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Search, TrendingUp, Star, Clock, BookOpen, Loader2 } from "lucide-react";
+import { Search, TrendingUp, Star, Clock, BookOpen, Loader2, Users, GraduationCap } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import RepositoryCard from "@/components/ui/RepositoryCard";
-import { cn } from "@/lib/utils";
+import UserCard from "@/components/ui/UserCard";
+import { cn, formatNumber } from "@/lib/utils";
 
 const DEPARTMENTS = ["All", "Computer Science", "Mathematics", "Physics", "Biology", "Chemistry", "Economics", "Engineering"];
 const SORT_OPTIONS = [
@@ -15,6 +16,14 @@ const SORT_OPTIONS = [
   { label: "Most Views", value: "views", icon: TrendingUp },
 ];
 const VIEW_TABS = ["Stacks", "Contributors", "Universities"];
+
+interface Contributor {
+  id: string; name: string; username: string; university: string; department: string;
+  bio?: string; followers: number; repositories: number; contributions: number; achievements?: string[];
+}
+interface University {
+  name: string; stacks: number; learners: number;
+}
 
 interface Stack {
   id: string; title: string; slug: string; description: string; courseCode: string;

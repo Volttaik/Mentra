@@ -32,7 +32,17 @@ function LoginForm() {
       if (result?.error) {
         setError("Invalid email or password. Please try again.");
       } else {
-        router.push(callbackUrl);
+        try {
+          const sessionRes = await fetch("/api/auth/session");
+          const sessionData = await sessionRes.json();
+          if (sessionData?.user?.role === "ADMIN") {
+            router.push("/admin");
+          } else {
+            router.push(callbackUrl);
+          }
+        } catch {
+          router.push(callbackUrl);
+        }
         router.refresh();
       }
     } catch {

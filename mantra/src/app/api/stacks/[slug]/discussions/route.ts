@@ -65,20 +65,21 @@ export async function POST(
   }
 
   const { slug } = params;
-  const body = await req.json();
-  const { title, content, type = "discussion" } = body;
+  const payload = await req.json();
+  const { title, body: bodyText, content, type = "discussion" } = payload;
+  const discussionBody = bodyText ?? content ?? "";
 
-  if (!title?.trim() || !content?.trim()) {
-    return NextResponse.json({ error: "Title and content are required" }, { status: 400 });
+  if (!title?.trim()) {
+    return NextResponse.json({ error: "Title is required" }, { status: 400 });
   }
 
-  const stack = await prisma.stack.findUnique({ where: { slug }, select: { id: true } });
+  const stack = await prisma.stack.findUnique({ where: { slug }, select: { id: true, ownerId: true, title: true } });
   if (!stack) return NextResponse.json({ error: "Stack not found" }, { status: 404 });
 
   const discussion = await prisma.discussion.create({
     data: {
       title: title.trim(),
-      body: content.trim(),
+      body: discussionBody.trim(),
       type: type === "question" ? "question" : "discussion",
       userId: session.user.id,
       stackId: stack.id,

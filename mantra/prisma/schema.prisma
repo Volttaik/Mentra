@@ -8,10 +8,10 @@ datasource db {
 }
 
 model User {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   name          String
-  username      String   @unique
-  email         String   @unique
+  username      String    @unique
+  email         String    @unique
   emailVerified DateTime?
   image         String?
   banner        String?
@@ -22,10 +22,12 @@ model User {
   level         String?
   website       String?
   location      String?
-  isVerified    Boolean  @default(false)
-  role          Role     @default(STUDENT)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  isVerified    Boolean   @default(false)
+  role          Role      @default(STUDENT)
+  bannedAt      DateTime?
+  banReason     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   stacks        Stack[]         @relation("StackOwner")
   contributions Contribution[]
@@ -86,6 +88,7 @@ model Stack {
   language    String   @default("PDF")
   isPublic    Boolean  @default(true)
   isVerified  Boolean  @default(false)
+  isArchived  Boolean  @default(false)
   readme      String?
   views       Int      @default(0)
   ownerId     String
@@ -102,8 +105,23 @@ model Stack {
   discussions   Discussion[]
   contributions Contribution[]
   progress      LearningProgress[]
+  files         StackFile[]
 
   @@map("stacks")
+}
+
+model StackFile {
+  id        String   @id @default(cuid())
+  stackId   String
+  moduleId  String?
+  name      String
+  url       String
+  size      Int      @default(0)
+  mimeType  String   @default("application/octet-stream")
+  createdAt DateTime @default(now())
+  stack     Stack    @relation(fields: [stackId], references: [id], onDelete: Cascade)
+
+  @@map("stack_files")
 }
 
 model Edition {

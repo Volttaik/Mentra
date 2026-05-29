@@ -31,7 +31,7 @@ export async function POST(
         type: "FOLLOW",
         title: "New follower",
         body: `${session.user.name} started following you`,
-        link: `/profile/${session.user.username}`,
+        link: `/profile/${(session.user as any).username}`,
       },
     }).catch(() => {});
   }

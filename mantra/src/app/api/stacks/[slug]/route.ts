@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { daysAgo } from "@/lib/utils";
+import { daysAgo, slugify } from "@/lib/utils";
 
 export async function GET(
   req: NextRequest,
@@ -28,18 +28,14 @@ export async function GET(
       contributions: {
         orderBy: { createdAt: "desc" },
         take: 20,
-        include: {
-          user: { select: { name: true, username: true, image: true } },
-        },
+        include: { user: { select: { name: true, username: true, image: true } } },
       },
       _count: { select: { stars: true, forks: true, discussions: true } },
       stars: { where: { userId }, select: { userId: true } },
       bookmarks: { where: { userId }, select: { userId: true } },
       forks: {
         take: 10,
-        include: {
-          user: { select: { name: true, username: true, image: true } },
-        },
+        include: { user: { select: { name: true, username: true, image: true } } },
         orderBy: { createdAt: "desc" },
       },
     },
@@ -49,7 +45,15 @@ export async function GET(
     return NextResponse.json({ error: "Stack not found" }, { status: 404 });
   }
 
-  // Increment view count (fire and forget)
+  const isOwner = userId === stack.ownerId;
+  if (!stack.isPublic && !isOwner) {
+    return NextResponse.json({ error: "This stack is private" }, { status: 403 });
+  }
+
+  if (stack.isArchived && !isOwner) {
+    return NextResponse.json({ error: "Stack not found" }, { status: 404 });
+  }
+
   prisma.stack.update({ where: { id: stack.id }, data: { views: { increment: 1 } } }).catch(() => {});
 
   return NextResponse.json({
@@ -77,7 +81,7 @@ export async function GET(
       title: d.title,
       body: d.body,
       resolved: d.resolved,
-      createdAt: d.createdAt,
+      createdAt: d.createdAt.toISOString(),
       author: d.user,
       replies: d._count.comments,
     })),
@@ -88,4 +92,87 @@ export async function GET(
     isStarred: stack.stars.some(s => s.userId === userId),
     isBookmarked: stack.bookmarks.some(b => b.userId === userId),
   });
+}
+
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: { slug: string } }
+) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const stack = await prisma.stack.findUnique({ where: { slug: params.slug } });
+  if (!stack) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  const isAdmin = (session.user as any).role === "ADMIN";
+  if (stack.ownerId !== session.user.id && !isAdmin) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const body = await req.json();
+  const { title, description, courseCode, university, department, semester, language, isPublic, readme, tags } = body;
+
+  let newSlug = stack.slug;
+  if (title && title !== stack.title) {
+    const base = slugify(title);
+    newSlug = base;
+    let collision = await prisma.stack.findFirst({ where: { slug: newSlug, id: { not: stack.id } } });
+    let i = 2;
+    while (collision) {
+      newSlug = `${base}-${i++}`;
+      collision = await prisma.stack.findFirst({ where: { slug: newSlug, id: { not: stack.id } } });
+    }
+  }
+
+  const updated = await prisma.stack.update({
+    where: { id: stack.id },
+    data: {
+      ...(title && { title, slug: newSlug }),
+      ...(description !== undefined && { description }),
+      ...(courseCode !== undefined && { courseCode }),
+      ...(university !== undefined && { university }),
+      ...(department !== undefined && { department }),
+      ...(semester !== undefined && { semester }),
+      ...(language !== undefined && { language }),
+      ...(isPublic !== undefined && { isPublic }),
+      ...(readme !== undefined && { readme }),
+    },
+  });
+
+  if (tags !== undefined) {
+    await prisma.stackTag.deleteMany({ where: { stackId: stack.id } });
+    for (const tagName of tags) {
+      const tag = await prisma.tag.upsert({
+        where: { name: tagName.toLowerCase().trim() },
+        create: { name: tagName.toLowerCase().trim() },
+        update: {},
+      });
+      await prisma.stackTag.create({ data: { stackId: stack.id, tagId: tag.id } }).catch(() => {});
+    }
+  }
+
+  return NextResponse.json({ slug: updated.slug, success: true });
+}
+
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: { slug: string } }
+) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const stack = await prisma.stack.findUnique({ where: { slug: params.slug } });
+  if (!stack) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  const isAdmin = (session.user as any).role === "ADMIN";
+  if (stack.ownerId !== session.user.id && !isAdmin) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  await prisma.stack.delete({ where: { id: stack.id } });
+  return NextResponse.json({ success: true });
 }

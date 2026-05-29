@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   User, Key, Bell, Shield, Save, Plus, Trash2,
-  Copy, Check, Loader2, ArrowLeft,
+  Copy, Check, Loader2, ArrowLeft, AlertTriangle, Eye, EyeOff,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Link from "next/link";
@@ -24,6 +24,7 @@ interface ApiKey {
 
 export default function SettingsPage() {
   const { data: session, update: updateSession } = useSession();
+  const router = useRouter();
   const [tab, setTab] = useState("Profile");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -37,6 +38,22 @@ export default function SettingsPage() {
   const [creatingKey, setCreatingKey] = useState(false);
   const [copied, setCopied] = useState("");
   const [error, setError] = useState("");
+
+  // Security tab state
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showCurrentPw, setShowCurrentPw] = useState(false);
+  const [showNewPw, setShowNewPw] = useState(false);
+  const [savingPassword, setSavingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordSuccess, setPasswordSuccess] = useState(false);
+
+  // Delete account state
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deletingAccount, setDeletingAccount] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   useEffect(() => {
     if (!session?.user) return;
@@ -118,6 +135,67 @@ export default function SettingsPage() {
     navigator.clipboard?.writeText(text);
     setCopied(id);
     setTimeout(() => setCopied(""), 2000);
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError("");
+    setPasswordSuccess(false);
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError("New passwords do not match.");
+      return;
+    }
+    if (newPassword.length < 8) {
+      setPasswordError("New password must be at least 8 characters.");
+      return;
+    }
+
+    setSavingPassword(true);
+    try {
+      const res = await fetch("/api/auth/password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setPasswordError(data.error ?? "Failed to update password.");
+        return;
+      }
+      setPasswordSuccess(true);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setTimeout(() => setPasswordSuccess(false), 4000);
+    } catch {
+      setPasswordError("Something went wrong.");
+    } finally {
+      setSavingPassword(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    setDeleteError("");
+    setDeletingAccount(true);
+    try {
+      const res = await fetch("/api/user", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: deletePassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setDeleteError(data.error ?? "Failed to delete account.");
+        setDeletingAccount(false);
+        return;
+      }
+      await signOut({ redirect: false });
+      router.push("/");
+    } catch {
+      setDeleteError("Something went wrong.");
+      setDeletingAccount(false);
+    }
   };
 
   const update = (f: string, v: string) => setForm(p => ({ ...p, [f]: v }));
@@ -289,35 +367,13 @@ export default function SettingsPage() {
                               {key.requests} requests · {key.lastUsed ? `Last used ${new Date(key.lastUsed).toLocaleDateString()}` : "Never used"}
                             </p>
                           </div>
-                          <button onClick={() => handleDeleteKey(key.id)} className="text-on-surface-variant hover:text-error transition-colors p-2 rounded-lg hover:bg-error-container/20" title="Delete key">
+                          <button onClick={() => handleDeleteKey(key.id)} className="text-on-surface-variant hover:text-error transition-colors p-2 rounded-lg hover:bg-error-container/20">
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       ))}
                     </div>
                   )}
-                </div>
-
-                <div className="card p-6">
-                  <h3 className="font-manrope font-semibold text-base text-primary mb-3">API Reference</h3>
-                  <div className="space-y-3 text-sm text-on-surface-variant">
-                    <p>Base URL: <code className="bg-surface-container px-1.5 py-0.5 rounded text-xs font-mono text-primary">/api/v1</code></p>
-                    <div className="space-y-2">
-                      {[
-                        { method: "GET", path: "/api/v1/stacks", desc: "List public stacks" },
-                        { method: "GET", path: "/api/v1/stacks?slug=slug", desc: "Get a stack" },
-                        { method: "POST", path: "/api/v1/stacks", desc: "Create a stack" },
-                        { method: "GET", path: "/api/v1/profile", desc: "Get your profile" },
-                      ].map(({ method, path, desc }) => (
-                        <div key={path} className="flex items-center gap-3 p-2.5 bg-surface-container rounded-lg">
-                          <span className={cn("text-xs font-bold px-2 py-0.5 rounded font-mono shrink-0", method === "GET" ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700")}>{method}</span>
-                          <code className="text-xs font-mono text-primary flex-1 truncate">{path}</code>
-                          <span className="text-xs text-on-surface-variant hidden md:block shrink-0">{desc}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <p className="text-xs">Authentication: <code className="bg-surface-container px-1.5 py-0.5 rounded font-mono">Authorization: Bearer YOUR_KEY</code></p>
-                  </div>
                 </div>
               </motion.div>
             )}
@@ -347,32 +403,125 @@ export default function SettingsPage() {
 
             {tab === "Security" && (
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
+                {/* Change password */}
                 <div className="card p-6">
                   <h2 className="font-manrope font-semibold text-lg text-primary mb-5">Change password</h2>
-                  <div className="space-y-4">
+                  {passwordSuccess && (
+                    <div className="mb-4 flex items-center gap-2 p-3 bg-secondary-container/30 border border-secondary/20 rounded-xl text-sm text-secondary">
+                      <Check className="w-4 h-4" />Password updated successfully.
+                    </div>
+                  )}
+                  {passwordError && (
+                    <div className="mb-4 p-3 bg-error-container/20 border border-error/20 rounded-xl text-sm text-error">
+                      {passwordError}
+                    </div>
+                  )}
+                  <form onSubmit={handleChangePassword} className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-primary mb-1.5">Current password</label>
-                      <input type="password" className="input-field" placeholder="Enter current password" />
+                      <div className="relative">
+                        <input
+                          type={showCurrentPw ? "text" : "password"}
+                          value={currentPassword}
+                          onChange={e => setCurrentPassword(e.target.value)}
+                          className="input-field pr-12"
+                          placeholder="Enter current password"
+                          required
+                        />
+                        <button type="button" onClick={() => setShowCurrentPw(!showCurrentPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary p-1">
+                          {showCurrentPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-primary mb-1.5">New password</label>
-                      <input type="password" className="input-field" placeholder="Enter new password" />
+                      <div className="relative">
+                        <input
+                          type={showNewPw ? "text" : "password"}
+                          value={newPassword}
+                          onChange={e => setNewPassword(e.target.value)}
+                          className="input-field pr-12"
+                          placeholder="At least 8 characters"
+                          required
+                          minLength={8}
+                        />
+                        <button type="button" onClick={() => setShowNewPw(!showNewPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary p-1">
+                          {showNewPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-primary mb-1.5">Confirm new password</label>
-                      <input type="password" className="input-field" placeholder="Confirm new password" />
+                      <input
+                        type="password"
+                        value={confirmPassword}
+                        onChange={e => setConfirmPassword(e.target.value)}
+                        className="input-field"
+                        placeholder="Re-enter new password"
+                        required
+                      />
                     </div>
-                    <button className="flex items-center gap-2 bg-primary text-on-primary px-6 py-2.5 rounded-xl text-sm font-semibold font-manrope hover:opacity-90 transition-all">
-                      <Shield className="w-4 h-4" />Update password
+                    <button
+                      type="submit"
+                      disabled={savingPassword}
+                      className="flex items-center gap-2 bg-primary text-on-primary px-6 py-2.5 rounded-xl text-sm font-semibold font-manrope hover:opacity-90 disabled:opacity-60 transition-all"
+                    >
+                      {savingPassword ? <Loader2 className="w-4 h-4 animate-spin" /> : <Shield className="w-4 h-4" />}
+                      Update password
                     </button>
-                  </div>
+                  </form>
                 </div>
+
+                {/* Delete account */}
                 <div className="card p-6 border border-error/20">
                   <h3 className="font-manrope font-semibold text-base text-error mb-2">Danger zone</h3>
-                  <p className="text-sm text-on-surface-variant mb-4">Permanently delete your account. This cannot be undone.</p>
-                  <button className="flex items-center gap-2 border border-error/30 text-error px-4 py-2.5 rounded-xl text-sm font-semibold font-manrope hover:bg-error-container/20 transition-all">
-                    <Trash2 className="w-4 h-4" />Delete account
-                  </button>
+                  <p className="text-sm text-on-surface-variant mb-4">
+                    Permanently delete your account and all your stacks. This cannot be undone.
+                  </p>
+
+                  {!showDeleteConfirm ? (
+                    <button
+                      onClick={() => setShowDeleteConfirm(true)}
+                      className="flex items-center gap-2 border border-error/30 text-error px-4 py-2.5 rounded-xl text-sm font-semibold font-manrope hover:bg-error-container/20 transition-all"
+                    >
+                      <Trash2 className="w-4 h-4" />Delete account
+                    </button>
+                  ) : (
+                    <div className="space-y-4 p-4 bg-error-container/10 border border-error/20 rounded-xl">
+                      <div className="flex items-start gap-3">
+                        <AlertTriangle className="w-5 h-5 text-error shrink-0 mt-0.5" />
+                        <p className="text-sm text-error font-medium">
+                          Enter your password to confirm account deletion.
+                        </p>
+                      </div>
+                      {deleteError && (
+                        <p className="text-sm text-error">{deleteError}</p>
+                      )}
+                      <input
+                        type="password"
+                        value={deletePassword}
+                        onChange={e => setDeletePassword(e.target.value)}
+                        placeholder="Your current password"
+                        className="input-field border-error/30"
+                      />
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => { setShowDeleteConfirm(false); setDeletePassword(""); setDeleteError(""); }}
+                          className="px-4 py-2 text-sm text-on-surface-variant hover:text-primary transition-colors"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={handleDeleteAccount}
+                          disabled={deletingAccount || !deletePassword}
+                          className="flex items-center gap-2 bg-error text-on-error px-5 py-2 rounded-xl text-sm font-semibold font-manrope hover:opacity-90 disabled:opacity-60 transition-all"
+                        >
+                          {deletingAccount ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                          Delete my account
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </motion.div>
             )}

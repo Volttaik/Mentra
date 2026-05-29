@@ -1,20 +1,33 @@
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 
-const PROTECTED = ["/dashboard", "/upload", "/settings", "/admin", "/profile/edit"];
+const PROTECTED = ["/dashboard", "/upload", "/settings", "/profile/edit"];
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;
-  const isProtected = PROTECTED.some((p) => pathname.startsWith(p));
+  const userRole = (req.auth?.user as any)?.role;
 
+  if (pathname.startsWith("/admin") && !pathname.startsWith("/admin/login")) {
+    if (!req.auth) {
+      return NextResponse.redirect(new URL("/admin/login", req.url));
+    }
+    if (userRole !== "ADMIN") {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
+    return NextResponse.next();
+  }
+
+  const isProtected = PROTECTED.some((p) => pathname.startsWith(p));
   if (isProtected && !req.auth) {
     const loginUrl = new URL("/login", req.url);
     loginUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // Redirect logged-in users away from auth pages
   if (req.auth && (pathname === "/login" || pathname === "/register")) {
+    if (userRole === "ADMIN") {
+      return NextResponse.redirect(new URL("/admin", req.url));
+    }
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 

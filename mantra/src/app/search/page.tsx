@@ -1,54 +1,68 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Search, Filter, BookOpen, Users, Tag, X } from "lucide-react";
+import { Search, Filter, BookOpen, Users, Tag, X, Loader2 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import RepositoryCard from "@/components/ui/RepositoryCard";
 import UserCard from "@/components/ui/UserCard";
-import { MOCK_REPOSITORIES, MOCK_USERS, TRENDING_TAGS } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
-const FILTER_TYPES = ["All", "Repositories", "Users", "Tags"];
-const FILE_TYPES = ["All types", "PDF", "Video", "Markdown", "Jupyter", "Audio"];
+const FILTER_TYPES = ["All", "Stacks", "Users", "Tags"];
+
+interface Stack {
+  id: string; title: string; slug: string; description: string; courseCode: string;
+  university: string; department: string; semester: string; language: string;
+  isVerified: boolean; views: number; stars: number; forks: number; discussions: number;
+  tags: string[]; owner: { name: string; username: string; image: string | null };
+  modules: { id: string }[]; updatedDaysAgo: number; lastUpdated: string;
+  isStarred: boolean; isBookmarked: boolean;
+}
+interface User {
+  id: string; name: string; username: string; university: string; department: string;
+  bio?: string; followers: number; repositories: number; contributions: number;
+  achievements?: string[];
+}
 
 export default function SearchPage() {
   const [query, setQuery] = useState("");
   const [activeType, setActiveType] = useState("All");
-  const [fileType, setFileType] = useState("All types");
-  const [recentSearches] = useState(["quantum mechanics", "data structures", "organic chemistry"]);
+  const [loading, setLoading] = useState(false);
+  const [stacks, setStacks] = useState<Stack[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [tags, setTags] = useState<string[]>([]);
+  const [trendingTags, setTrendingTags] = useState<string[]>([]);
 
-  const repoResults = useMemo(() => {
-    if (!query) return [];
-    const q = query.toLowerCase();
-    return MOCK_REPOSITORIES.filter(r =>
-      r.title.toLowerCase().includes(q) ||
-      r.description.toLowerCase().includes(q) ||
-      r.tags.some(t => t.includes(q)) ||
-      r.courseCode.toLowerCase().includes(q) ||
-      r.university.toLowerCase().includes(q) ||
-      r.department.toLowerCase().includes(q)
-    );
-  }, [query]);
+  useEffect(() => {
+    fetch("/api/search?type=trending_tags")
+      .then(r => r.json())
+      .then(d => setTrendingTags(d.tags ?? []))
+      .catch(() => {});
+  }, []);
 
-  const userResults = useMemo(() => {
-    if (!query) return [];
-    const q = query.toLowerCase();
-    return MOCK_USERS.filter(u =>
-      u.name.toLowerCase().includes(q) ||
-      u.username.toLowerCase().includes(q) ||
-      u.university.toLowerCase().includes(q) ||
-      u.department.toLowerCase().includes(q)
-    );
-  }, [query]);
+  const search = useCallback(async (q: string) => {
+    if (!q.trim()) {
+      setStacks([]); setUsers([]); setTags([]);
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/search?q=${encodeURIComponent(q)}&limit=24`);
+      const data = await res.json();
+      setStacks(data.stacks ?? []);
+      setUsers(data.users ?? []);
+      setTags(data.tags ?? []);
+    } catch {}
+    setLoading(false);
+  }, []);
 
-  const tagResults = useMemo(() => {
-    if (!query) return [];
-    return TRENDING_TAGS.filter(t => t.includes(query.toLowerCase()));
-  }, [query]);
+  useEffect(() => {
+    const t = setTimeout(() => search(query), query ? 350 : 0);
+    return () => clearTimeout(t);
+  }, [query, search]);
 
-  const hasResults = repoResults.length > 0 || userResults.length > 0 || tagResults.length > 0;
+  const hasResults = stacks.length > 0 || users.length > 0 || tags.length > 0;
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -63,17 +77,19 @@ export default function SearchPage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               autoFocus
-              placeholder="Search repositories, users, topics, course codes..."
+              placeholder="Search stacks, users, topics, course codes..."
               className="w-full pl-12 pr-12 py-4 bg-surface-container-lowest border border-outline-variant/30 rounded-2xl text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary shadow-card text-base transition-all"
             />
-            {query && (
+            {loading ? (
+              <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary animate-spin" />
+            ) : query ? (
               <button
                 onClick={() => setQuery("")}
                 className="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
-            )}
+            ) : null}
           </div>
 
           {/* Type filters */}
@@ -90,18 +106,18 @@ export default function SearchPage() {
                       : "bg-surface-container text-on-surface-variant hover:bg-surface-container-high"
                   )}
                 >
-                  {type === "Repositories" && <BookOpen className="w-3.5 h-3.5" />}
+                  {type === "Stacks" && <BookOpen className="w-3.5 h-3.5" />}
                   {type === "Users" && <Users className="w-3.5 h-3.5" />}
                   {type === "Tags" && <Tag className="w-3.5 h-3.5" />}
                   {type}
-                  {type === "Repositories" && repoResults.length > 0 && (
+                  {type === "Stacks" && stacks.length > 0 && (
                     <span className="bg-outline-variant/20 text-on-surface-variant text-xs px-1.5 py-0.5 rounded-full">
-                      {repoResults.length}
+                      {stacks.length}
                     </span>
                   )}
-                  {type === "Users" && userResults.length > 0 && (
+                  {type === "Users" && users.length > 0 && (
                     <span className="bg-outline-variant/20 text-on-surface-variant text-xs px-1.5 py-0.5 rounded-full">
-                      {userResults.length}
+                      {users.length}
                     </span>
                   )}
                 </button>
@@ -113,41 +129,54 @@ export default function SearchPage() {
         {/* No query state */}
         {!query && (
           <div className="max-w-3xl mx-auto">
-            <div className="mb-8">
-              <h3 className="font-manrope font-semibold text-sm text-primary mb-3">Recent searches</h3>
-              <div className="flex flex-wrap gap-2">
-                {recentSearches.map(s => (
-                  <button
-                    key={s}
-                    onClick={() => setQuery(s)}
-                    className="flex items-center gap-2 tag hover:bg-secondary-container hover:text-on-secondary-container transition-all"
-                  >
-                    <Search className="w-3 h-3" />
-                    {s}
-                  </button>
-                ))}
+            {trendingTags.length > 0 && (
+              <div>
+                <h3 className="font-manrope font-semibold text-sm text-primary mb-3">Trending topics</h3>
+                <div className="flex flex-wrap gap-2">
+                  {trendingTags.map(tag => (
+                    <button
+                      key={tag}
+                      onClick={() => setQuery(tag)}
+                      className="tag hover:bg-secondary-container hover:text-on-secondary-container transition-all"
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
+            {trendingTags.length === 0 && (
+              <div className="text-center py-20 text-on-surface-variant">
+                <Search className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                <p className="text-sm">Start typing to search stacks, users, and topics.</p>
+              </div>
+            )}
+          </div>
+        )}
 
-            <div>
-              <h3 className="font-manrope font-semibold text-sm text-primary mb-3">Trending topics</h3>
-              <div className="flex flex-wrap gap-2">
-                {TRENDING_TAGS.map(tag => (
-                  <button
-                    key={tag}
-                    onClick={() => setQuery(tag)}
-                    className="tag hover:bg-secondary-container hover:text-on-secondary-container transition-all"
-                  >
-                    {tag}
-                  </button>
-                ))}
-              </div>
+        {/* Loading skeleton */}
+        {query && loading && !hasResults && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className="card p-6 animate-pulse space-y-4">
+                  <div className="space-y-2">
+                    <div className="h-3 bg-surface-container rounded w-1/3" />
+                    <div className="h-5 bg-surface-container rounded w-3/4" />
+                  </div>
+                  <div className="h-3 bg-surface-container rounded w-full" />
+                  <div className="flex gap-2">
+                    <div className="h-5 bg-surface-container rounded-full w-16" />
+                    <div className="h-5 bg-surface-container rounded-full w-16" />
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
 
         {/* Results */}
-        {query && (
+        {query && !loading && (
           <div className="space-y-10">
             {!hasResults && (
               <div className="text-center py-20">
@@ -159,25 +188,23 @@ export default function SearchPage() {
               </div>
             )}
 
-            {/* Repo results */}
-            {(activeType === "All" || activeType === "Repositories") && repoResults.length > 0 && (
+            {/* Stack results */}
+            {(activeType === "All" || activeType === "Stacks") && stacks.length > 0 && (
               <section>
                 <div className="flex items-center gap-2 mb-5">
                   <BookOpen className="w-5 h-5 text-on-surface-variant" />
-                  <h2 className="font-manrope font-semibold text-base text-primary">
-                    Repositories
-                  </h2>
-                  <span className="tag text-xs">{repoResults.length}</span>
+                  <h2 className="font-manrope font-semibold text-base text-primary">Stacks</h2>
+                  <span className="tag text-xs">{stacks.length}</span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {repoResults.map((repo, i) => (
+                  {stacks.map((stack, i) => (
                     <motion.div
-                      key={repo.id}
+                      key={stack.id}
                       initial={{ opacity: 0, y: 12 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.06 }}
+                      transition={{ delay: i * 0.04 }}
                     >
-                      <RepositoryCard repo={repo} />
+                      <RepositoryCard repo={stack} />
                     </motion.div>
                   ))}
                 </div>
@@ -185,20 +212,20 @@ export default function SearchPage() {
             )}
 
             {/* User results */}
-            {(activeType === "All" || activeType === "Users") && userResults.length > 0 && (
+            {(activeType === "All" || activeType === "Users") && users.length > 0 && (
               <section>
                 <div className="flex items-center gap-2 mb-5">
                   <Users className="w-5 h-5 text-on-surface-variant" />
                   <h2 className="font-manrope font-semibold text-base text-primary">Contributors</h2>
-                  <span className="tag text-xs">{userResults.length}</span>
+                  <span className="tag text-xs">{users.length}</span>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {userResults.map((user, i) => (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {users.map((user, i) => (
                     <motion.div
                       key={user.id}
                       initial={{ opacity: 0, y: 12 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.08 }}
+                      transition={{ delay: i * 0.06 }}
                     >
                       <UserCard user={user} />
                     </motion.div>
@@ -208,14 +235,14 @@ export default function SearchPage() {
             )}
 
             {/* Tag results */}
-            {(activeType === "All" || activeType === "Tags") && tagResults.length > 0 && (
+            {(activeType === "All" || activeType === "Tags") && tags.length > 0 && (
               <section>
                 <div className="flex items-center gap-2 mb-5">
                   <Tag className="w-5 h-5 text-on-surface-variant" />
                   <h2 className="font-manrope font-semibold text-base text-primary">Topics</h2>
                 </div>
                 <div className="flex flex-wrap gap-3">
-                  {tagResults.map((tag) => (
+                  {tags.map((tag) => (
                     <button
                       key={tag}
                       onClick={() => setQuery(tag)}

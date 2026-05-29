@@ -18,6 +18,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           where: { email: credentials.email as string },
         });
         if (!user || !user.password) return null;
+        if (user.bannedAt) return null;
         const valid = await bcrypt.compare(
           credentials.password as string,
           user.password
@@ -29,21 +30,24 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           email: user.email,
           username: user.username,
           image: user.image,
-        };
+          role: user.role,
+        } as any;
       },
     }),
   ],
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id as string;
-        token.username = (user as { username: string }).username;
+        (token as any).id = user.id;
+        (token as any).username = (user as any).username;
+        (token as any).role = (user as any).role;
       }
       return token;
     },
     async session({ session, token }) {
-      session.user.id = token.id as string;
-      session.user.username = token.username as string;
+      if (token.id) (session.user as any).id = token.id;
+      (session.user as any).username = String((token as any).username ?? "");
+      (session.user as any).role = String((token as any).role ?? "STUDENT");
       return session;
     },
   },

@@ -75,7 +75,7 @@ export default function UploadPage() {
           description: form.description,
           department: form.category,
           courseCode: form.courseCode,
-          university: session.user.university ?? form.university,
+          university: (session.user as any).university ?? form.university,
           semester: form.semester,
           language: selectedType === "video" ? "Video" : selectedType === "live" ? "Live" : "PDF",
           tags: form.tags,

@@ -1,14 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import {
   Star, GitFork, Eye, Shield, Clock, MessageSquare,
-  Download, Share2, Bookmark, BookOpen, FileText, Video,
+  Share2, Bookmark, BookOpen, FileText, Video,
   Music, HelpCircle, ChevronRight, Tag, Plus,
-  Code2, ArrowLeft, Loader2,
+  Code2, ArrowLeft, Loader2, X, Edit2, Trash2,
+  AlertTriangle, Send, Upload, File as FileIcon, Check,
+  Download,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -28,18 +31,35 @@ const TABS = ["Overview", "Modules", "Discussions", "Contributors"];
 interface StackData {
   id: string; title: string; slug: string; description: string; courseCode: string;
   university: string; department: string; semester: string; language: string;
-  isVerified: boolean; views: number; readme: string | null;
+  isVerified: boolean; isPublic: boolean; views: number; readme: string | null;
   stars: number; forks: number; discussions: number;
-  tags: string[]; owner: { id: string; name: string; username: string; image: string | null; university: string | null; department: string | null };
+  tags: string[];
+  owner: { id: string; name: string; username: string; image: string | null; university: string | null; department: string | null };
   modules: { id: string; title: string; type: string; files: number; duration: string | null; order: number }[];
-  discussionsList: { id: string; title: string; body: string; resolved: boolean; createdAt: string; author: { name: string; username: string }; replies: number }[];
+  discussionsList: { id: string; title: string; body: string; resolved: boolean; createdAt: string; author: { name: string; username: string; image: string | null }; replies: number }[];
   contributors: { name: string; username: string; image: string | null }[];
   updatedDaysAgo: number; lastUpdated: string; createdAt: string;
   isStarred: boolean; isBookmarked: boolean;
 }
 
+interface DiscComment {
+  id: string; body: string; createdAt: string;
+  author: { name: string; username: string; image: string | null };
+}
+
+interface StackFileRecord {
+  id: string; name: string; url: string; size: number; mimeType: string; moduleId: string | null;
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 export default function StackPage({ params }: { params: { slug: string } }) {
   const { slug } = params;
+  const router = useRouter();
   const { data: session } = useSession();
   const [activeTab, setActiveTab] = useState("Overview");
   const [stack, setStack] = useState<StackData | null>(null);
@@ -50,6 +70,37 @@ export default function StackPage({ params }: { params: { slug: string } }) {
   const [forkCount, setForkCount] = useState(0);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  // Discussions
+  const [showDiscModal, setShowDiscModal] = useState(false);
+  const [discTitle, setDiscTitle] = useState("");
+  const [discContent, setDiscContent] = useState("");
+  const [submittingDisc, setSubmittingDisc] = useState(false);
+  const [selectedDiscId, setSelectedDiscId] = useState<string | null>(null);
+  const [discComments, setDiscComments] = useState<DiscComment[]>([]);
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [newComment, setNewComment] = useState("");
+  const [submittingComment, setSubmittingComment] = useState(false);
+
+  // Edit
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editForm, setEditForm] = useState({
+    title: "", description: "", courseCode: "", university: "", department: "",
+    semester: "", language: "PDF", isPublic: true, readme: "", tags: "",
+  });
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  // Delete
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletingStack, setDeletingStack] = useState(false);
+
+  // Files
+  const [expandedModule, setExpandedModule] = useState<string | null>(null);
+  const [moduleFiles, setModuleFiles] = useState<Record<string, StackFileRecord[]>>({});
+  const [uploadingFor, setUploadingFor] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [currentUploadModuleId, setCurrentUploadModuleId] = useState<string | null>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -62,10 +113,24 @@ export default function StackPage({ params }: { params: { slug: string } }) {
         setIsStarred(d.isStarred);
         setForkCount(d.forks);
         setIsBookmarked(d.isBookmarked);
+        setEditForm({
+          title: d.title,
+          description: d.description,
+          courseCode: d.courseCode,
+          university: d.university,
+          department: d.department,
+          semester: d.semester,
+          language: d.language,
+          isPublic: d.isPublic,
+          readme: d.readme ?? "",
+          tags: d.tags.join(", "),
+        });
       })
       .catch(() => setError("Failed to load stack."))
       .finally(() => setLoading(false));
   }, [slug]);
+
+  const isOwner = session?.user?.id === stack?.owner?.id;
 
   const handleStar = async () => {
     if (!session?.user) return;
@@ -83,7 +148,12 @@ export default function StackPage({ params }: { params: { slug: string } }) {
     try {
       const res = await fetch(`/api/stacks/${slug}/fork`, { method: "POST" });
       const data = await res.json();
-      if (res.ok) setForkCount(data.count);
+      if (res.ok) {
+        setForkCount(data.count);
+        if (data.forkSlug) router.push(`/stacks/${data.forkSlug}`);
+      } else if (res.status === 409) {
+        alert("You have already forked this stack.");
+      }
     } finally { setActionLoading(null); }
   };
 
@@ -95,6 +165,174 @@ export default function StackPage({ params }: { params: { slug: string } }) {
       const data = await res.json();
       if (res.ok) setIsBookmarked(data.bookmarked);
     } finally { setActionLoading(null); }
+  };
+
+  const handleShare = () => {
+    navigator.clipboard?.writeText(window.location.href);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  // Discussions
+  const handleCreateDiscussion = async () => {
+    if (!discTitle.trim() || !stack) return;
+    setSubmittingDisc(true);
+    try {
+      const res = await fetch(`/api/stacks/${slug}/discussions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: discTitle.trim(), body: discContent.trim() }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setStack(prev => prev ? {
+          ...prev,
+          discussionsList: [data.discussion ?? {
+            id: data.id ?? Date.now().toString(),
+            title: discTitle.trim(),
+            body: discContent.trim(),
+            resolved: false,
+            createdAt: new Date().toISOString(),
+            author: { name: session?.user?.name ?? "", username: (session?.user as any)?.username ?? "", image: null },
+            replies: 0,
+          }, ...prev.discussionsList],
+        } : prev);
+        setDiscTitle("");
+        setDiscContent("");
+        setShowDiscModal(false);
+      }
+    } finally { setSubmittingDisc(false); }
+  };
+
+  const handleSelectDiscussion = async (discId: string) => {
+    if (selectedDiscId === discId) {
+      setSelectedDiscId(null);
+      return;
+    }
+    setSelectedDiscId(discId);
+    setLoadingComments(true);
+    setDiscComments([]);
+    try {
+      const res = await fetch(`/api/stacks/${slug}/discussions/${discId}/comments`);
+      const data = await res.json();
+      if (res.ok) setDiscComments(data.comments ?? []);
+    } finally { setLoadingComments(false); }
+  };
+
+  const handleAddComment = async () => {
+    if (!newComment.trim() || !selectedDiscId) return;
+    setSubmittingComment(true);
+    try {
+      const res = await fetch(`/api/stacks/${slug}/discussions/${selectedDiscId}/comments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ body: newComment.trim() }),
+      });
+      const data = await res.json();
+      if (res.ok && data.comment) {
+        setDiscComments(prev => [...prev, data.comment]);
+        setNewComment("");
+        setStack(prev => prev ? {
+          ...prev,
+          discussionsList: prev.discussionsList.map(d =>
+            d.id === selectedDiscId ? { ...d, replies: d.replies + 1 } : d
+          ),
+        } : prev);
+      }
+    } finally { setSubmittingComment(false); }
+  };
+
+  // Edit stack
+  const handleEditStack = async () => {
+    if (!stack) return;
+    setSavingEdit(true);
+    try {
+      const tagsArr = editForm.tags.split(",").map(t => t.trim()).filter(Boolean);
+      const res = await fetch(`/api/stacks/${slug}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...editForm, tags: tagsArr }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setShowEditModal(false);
+        if (data.slug && data.slug !== slug) {
+          router.push(`/stacks/${data.slug}`);
+        } else {
+          const refreshed = await fetch(`/api/stacks/${slug}`).then(r => r.json());
+          if (!refreshed.error) setStack(refreshed);
+        }
+      } else {
+        alert(data.error ?? "Failed to save changes.");
+      }
+    } finally { setSavingEdit(false); }
+  };
+
+  // Delete stack
+  const handleDeleteStack = async () => {
+    setDeletingStack(true);
+    try {
+      const res = await fetch(`/api/stacks/${slug}`, { method: "DELETE" });
+      if (res.ok) {
+        router.push("/dashboard");
+      } else {
+        const data = await res.json();
+        alert(data.error ?? "Failed to delete stack.");
+        setShowDeleteConfirm(false);
+      }
+    } finally { setDeletingStack(false); }
+  };
+
+  // File upload
+  const handleModuleExpand = async (moduleId: string) => {
+    if (expandedModule === moduleId) {
+      setExpandedModule(null);
+      return;
+    }
+    setExpandedModule(moduleId);
+    if (moduleFiles[moduleId]) return;
+    try {
+      const res = await fetch(`/api/stacks/${slug}/files?moduleId=${moduleId}`);
+      const data = await res.json();
+      if (res.ok) setModuleFiles(prev => ({ ...prev, [moduleId]: data.files ?? [] }));
+    } catch {}
+  };
+
+  const handleUploadClick = (moduleId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentUploadModuleId(moduleId);
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !currentUploadModuleId) return;
+    setUploadingFor(currentUploadModuleId);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("moduleId", currentUploadModuleId);
+      const res = await fetch(`/api/stacks/${slug}/files`, { method: "POST", body: fd });
+      const data = await res.json();
+      if (res.ok && data.file) {
+        setModuleFiles(prev => ({
+          ...prev,
+          [currentUploadModuleId]: [...(prev[currentUploadModuleId] ?? []), data.file],
+        }));
+        setStack(prev => prev ? {
+          ...prev,
+          modules: prev.modules.map(m =>
+            m.id === currentUploadModuleId ? { ...m, files: m.files + 1 } : m
+          ),
+        } : prev);
+      } else {
+        alert(data.error ?? "Upload failed.");
+      }
+    } finally {
+      setUploadingFor(null);
+      setCurrentUploadModuleId(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   };
 
   if (loading) {
@@ -125,6 +363,10 @@ export default function StackPage({ params }: { params: { slug: string } }) {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
+
+      {/* Hidden file input */}
+      <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileChange} />
+
       <main className="flex-1 max-w-[1200px] mx-auto px-4 md:px-6 py-8 w-full">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-on-surface-variant mb-6">
@@ -147,6 +389,11 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                 {stack.courseCode && <span className="tag-accent text-xs">{stack.courseCode}</span>}
                 {stack.university && <span className="tag text-xs">{stack.university}</span>}
                 {stack.semester && <span className="tag text-xs">{stack.semester}</span>}
+                {!stack.isPublic && (
+                  <span className="flex items-center gap-1 text-xs font-medium text-on-surface-variant bg-surface-container px-3 py-1 rounded-full border border-outline-variant/20">
+                    Private
+                  </span>
+                )}
                 {stack.isVerified && (
                   <span className="flex items-center gap-1 text-xs font-medium text-secondary bg-secondary-container/60 px-3 py-1 rounded-full border border-secondary/20">
                     <Shield className="w-3 h-3" />Verified
@@ -168,12 +415,30 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                 </div>
                 <div>
                   <span className="text-sm font-medium text-primary group-hover:text-secondary transition-colors">{stack.owner.name}</span>
-                  <span className="text-on-surface-variant text-sm"> · {stack.owner.department ?? stack.university}</span>
+                  <span className="text-on-surface-variant text-sm"> · {stack.owner.department ?? stack.owner.university}</span>
                 </div>
               </Link>
+
+              {/* Owner actions */}
+              {isOwner && (
+                <div className="flex items-center gap-2 mt-5 pt-5 border-t border-outline-variant/10">
+                  <button
+                    onClick={() => setShowEditModal(true)}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-surface-container hover:bg-surface-container-high transition-all text-primary"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />Edit stack
+                  </button>
+                  <button
+                    onClick={() => setShowDeleteConfirm(true)}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border border-error/20 text-error hover:bg-error-container/20 transition-all"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />Delete
+                  </button>
+                </div>
+              )}
             </div>
 
-            {/* Actions */}
+            {/* Action sidebar */}
             <div className="flex flex-col gap-3 shrink-0 md:w-48">
               <div className="grid grid-cols-3 gap-2 text-center">
                 {[
@@ -227,14 +492,11 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                       <Bookmark className={cn("w-4 h-4", isBookmarked && "fill-current")} />
                     </button>
                     <button
-                      onClick={() => navigator.clipboard?.writeText(window.location.href)}
+                      onClick={handleShare}
                       className="flex-1 flex items-center justify-center py-2.5 rounded-xl border border-outline-variant/30 text-on-surface-variant hover:bg-surface-container transition-all"
                       title="Copy link"
                     >
-                      <Share2 className="w-4 h-4" />
-                    </button>
-                    <button className="flex-1 flex items-center justify-center py-2.5 rounded-xl border border-outline-variant/30 text-on-surface-variant hover:bg-surface-container transition-all" title="Download">
-                      <Download className="w-4 h-4" />
+                      {copied ? <Check className="w-4 h-4 text-secondary" /> : <Share2 className="w-4 h-4" />}
                     </button>
                   </div>
                 </>
@@ -257,7 +519,7 @@ export default function StackPage({ params }: { params: { slug: string } }) {
               <div className="flex -space-x-2">
                 {[stack.owner, ...stack.contributors].slice(0, 6).map((c, i) => (
                   <div key={i} className="w-7 h-7 rounded-full bg-secondary-container border-2 border-background flex items-center justify-center text-[10px] font-bold text-on-secondary-container font-manrope" title={c.name}>
-                    {c.name.split(" ").map(n => n[0]).join("").slice(0, 2)}
+                    {c.image ? <img src={c.image} alt="" className="w-full h-full rounded-full object-cover" /> : c.name.split(" ").map(n => n[0]).join("").slice(0, 2)}
                   </div>
                 ))}
               </div>
@@ -280,6 +542,11 @@ export default function StackPage({ params }: { params: { slug: string } }) {
               )}
             >
               {tab}
+              {tab === "Discussions" && stack.discussionsList.length > 0 && (
+                <span className="ml-1.5 text-xs bg-secondary-container text-on-secondary-container px-1.5 py-0.5 rounded-full">
+                  {stack.discussionsList.length}
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -304,7 +571,7 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                         </p>
                         {stack.modules.length > 0 && (
                           <>
-                            <h3 className="font-manrope font-semibold text-base text-primary mt-4">What's included</h3>
+                            <h3 className="font-manrope font-semibold text-base text-primary mt-4">What&apos;s included</h3>
                             <ul className="space-y-2">
                               {stack.modules.map(m => (
                                 <li key={m.id} className="flex items-center gap-2 text-sm text-on-surface-variant">
@@ -318,7 +585,7 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                         )}
                         <div className="bg-secondary-container/30 border border-secondary/10 rounded-xl p-4 mt-4">
                           <p className="text-sm text-on-secondary-container font-medium">
-                            ⚠️ This stack follows the Mentra Academic Integrity Guidelines. Do not upload copyrighted materials without permission.
+                            ℹ️ This stack follows the Mentra Academic Integrity Guidelines.
                           </p>
                         </div>
                       </>
@@ -334,7 +601,7 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                   <div className="card p-12 text-center">
                     <BookOpen className="w-10 h-10 text-outline-variant mx-auto mb-3" />
                     <p className="font-manrope font-semibold text-primary">No modules yet</p>
-                    <p className="text-sm text-on-surface-variant mt-1">Modules will appear here once they're added.</p>
+                    <p className="text-sm text-on-surface-variant mt-1">Modules will appear here once they&apos;re added.</p>
                   </div>
                 ) : (
                   stack.modules.map((module, i) => (
@@ -343,25 +610,68 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                       initial={{ opacity: 0, x: -12 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.07 }}
-                      className="card-sm p-5 flex items-center gap-4 group hover:-translate-y-0.5 transition-all"
                     >
-                      <div className="w-10 h-10 bg-secondary-container rounded-xl flex items-center justify-center text-on-secondary-container shrink-0">
-                        {MODULE_ICONS[module.type] ?? <BookOpen className="w-4 h-4" />}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-manrope font-semibold text-sm text-primary group-hover:text-secondary transition-colors">
-                          Module {String(i + 1).padStart(2, "0")} — {module.title}
-                        </p>
-                        <div className="flex items-center gap-3 mt-1 text-xs text-on-surface-variant">
-                          {module.files > 0 && <span>{module.files} files</span>}
-                          {module.duration && <><span>·</span><span>{module.duration}</span></>}
-                          <span className="capitalize">· {module.type}</span>
+                      <div
+                        className="card-sm p-5 flex items-center gap-4 group hover:-translate-y-0.5 transition-all cursor-pointer"
+                        onClick={() => handleModuleExpand(module.id)}
+                      >
+                        <div className="w-10 h-10 bg-secondary-container rounded-xl flex items-center justify-center text-on-secondary-container shrink-0">
+                          {MODULE_ICONS[module.type] ?? <BookOpen className="w-4 h-4" />}
                         </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-manrope font-semibold text-sm text-primary group-hover:text-secondary transition-colors">
+                            Module {String(i + 1).padStart(2, "0")} — {module.title}
+                          </p>
+                          <div className="flex items-center gap-3 mt-1 text-xs text-on-surface-variant">
+                            <span>{module.files} files</span>
+                            {module.duration && <><span>·</span><span>{module.duration}</span></>}
+                            <span className="capitalize">· {module.type}</span>
+                          </div>
+                        </div>
+                        {isOwner && (
+                          <button
+                            onClick={e => handleUploadClick(module.id, e)}
+                            disabled={uploadingFor === module.id}
+                            className="flex items-center gap-1.5 text-xs text-on-surface-variant hover:text-primary transition-colors px-3 py-1.5 rounded-lg hover:bg-surface-container"
+                          >
+                            {uploadingFor === module.id ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <><Upload className="w-3.5 h-3.5" />Upload</>
+                            )}
+                          </button>
+                        )}
+                        <ChevronRight className={cn("w-4 h-4 text-on-surface-variant transition-transform", expandedModule === module.id && "rotate-90")} />
                       </div>
-                      <button className="flex items-center gap-1.5 text-xs text-on-surface-variant hover:text-primary transition-colors px-3 py-1.5 rounded-lg hover:bg-surface-container">
-                        <Download className="w-3.5 h-3.5" />Download
-                      </button>
-                      <ChevronRight className="w-4 h-4 text-on-surface-variant group-hover:text-secondary transition-colors" />
+
+                      {expandedModule === module.id && (
+                        <div className="border border-outline-variant/10 rounded-b-2xl bg-surface-container-low px-5 pb-4 pt-3 -mt-2 space-y-2">
+                          {moduleFiles[module.id] === undefined ? (
+                            <div className="flex items-center gap-2 text-xs text-on-surface-variant py-2">
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />Loading files…
+                            </div>
+                          ) : moduleFiles[module.id].length === 0 ? (
+                            <p className="text-xs text-on-surface-variant py-2">No files uploaded yet.{isOwner ? " Click Upload to add files." : ""}</p>
+                          ) : (
+                            moduleFiles[module.id].map(f => (
+                              <a
+                                key={f.id}
+                                href={f.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-surface-container transition-all group/file"
+                              >
+                                <FileIcon className="w-4 h-4 text-secondary shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm text-primary group-hover/file:text-secondary transition-colors truncate">{f.name}</p>
+                                  <p className="text-xs text-on-surface-variant">{formatFileSize(f.size)}</p>
+                                </div>
+                                <Download className="w-4 h-4 text-on-surface-variant group-hover/file:text-primary transition-colors" />
+                              </a>
+                            ))
+                          )}
+                        </div>
+                      )}
                     </motion.div>
                   ))
                 )}
@@ -372,7 +682,10 @@ export default function StackPage({ params }: { params: { slug: string } }) {
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
                 <div className="flex justify-end">
                   {session?.user ? (
-                    <button className="flex items-center gap-2 bg-primary text-on-primary px-4 py-2.5 rounded-xl text-sm font-semibold font-manrope hover:opacity-90 transition-all">
+                    <button
+                      onClick={() => setShowDiscModal(true)}
+                      className="flex items-center gap-2 bg-primary text-on-primary px-4 py-2.5 rounded-xl text-sm font-semibold font-manrope hover:opacity-90 transition-all"
+                    >
                       <Plus className="w-4 h-4" />New Discussion
                     </button>
                   ) : (
@@ -389,28 +702,81 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                   </div>
                 ) : (
                   stack.discussionsList.map((disc, i) => (
-                    <motion.div
-                      key={disc.id}
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.08 }}
-                      className="card-sm p-5 group hover:-translate-y-0.5 transition-all cursor-pointer"
-                    >
-                      <div className="flex items-start gap-3">
-                        <MessageSquare className={cn("w-5 h-5 mt-0.5 shrink-0", disc.resolved ? "text-green-500" : "text-secondary")} />
-                        <div className="flex-1">
-                          <div className="flex items-start justify-between gap-3">
-                            <p className="font-medium text-sm text-primary group-hover:text-secondary transition-colors">{disc.title}</p>
-                            {disc.resolved && <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium shrink-0">Resolved</span>}
-                          </div>
-                          <div className="flex items-center gap-3 mt-1.5 text-xs text-on-surface-variant">
-                            <span>by @{disc.author.username}</span>
-                            <span>·</span><span>{disc.replies} replies</span>
-                            <span>·</span><span>{timeAgo(disc.createdAt)}</span>
+                    <div key={disc.id}>
+                      <motion.div
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.06 }}
+                        className={cn(
+                          "card-sm p-5 group transition-all cursor-pointer",
+                          selectedDiscId === disc.id ? "border-secondary/30 bg-secondary-container/5" : "hover:-translate-y-0.5"
+                        )}
+                        onClick={() => handleSelectDiscussion(disc.id)}
+                      >
+                        <div className="flex items-start gap-3">
+                          <MessageSquare className={cn("w-5 h-5 mt-0.5 shrink-0", disc.resolved ? "text-green-500" : "text-secondary")} />
+                          <div className="flex-1">
+                            <div className="flex items-start justify-between gap-3">
+                              <p className="font-medium text-sm text-primary group-hover:text-secondary transition-colors">{disc.title}</p>
+                              {disc.resolved && <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium shrink-0">Resolved</span>}
+                            </div>
+                            {disc.body && (
+                              <p className="text-xs text-on-surface-variant mt-1 line-clamp-2">{disc.body}</p>
+                            )}
+                            <div className="flex items-center gap-3 mt-1.5 text-xs text-on-surface-variant">
+                              <span>by @{disc.author.username}</span>
+                              <span>·</span><span>{disc.replies} replies</span>
+                              <span>·</span><span>{timeAgo(disc.createdAt)}</span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </motion.div>
+                      </motion.div>
+
+                      {selectedDiscId === disc.id && (
+                        <div className="border border-outline-variant/10 border-t-0 rounded-b-2xl bg-surface-container-low px-5 pb-4 pt-4 space-y-3 -mt-1">
+                          {loadingComments ? (
+                            <div className="flex items-center gap-2 text-xs text-on-surface-variant py-2">
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />Loading replies…
+                            </div>
+                          ) : discComments.length === 0 ? (
+                            <p className="text-xs text-on-surface-variant py-2">No replies yet. Be the first to reply!</p>
+                          ) : (
+                            discComments.map(comment => (
+                              <div key={comment.id} className="flex gap-3">
+                                <div className="w-7 h-7 bg-secondary-container rounded-full flex items-center justify-center text-[10px] font-bold text-on-secondary-container shrink-0 mt-0.5">
+                                  {comment.author.name.split(" ").map(n => n[0]).join("").slice(0, 2)}
+                                </div>
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-xs font-medium text-primary">@{comment.author.username}</span>
+                                    <span className="text-xs text-on-surface-variant">{timeAgo(comment.createdAt)}</span>
+                                  </div>
+                                  <p className="text-sm text-on-surface-variant leading-relaxed">{comment.body}</p>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                          {session?.user && (
+                            <div className="flex items-center gap-2 pt-2 border-t border-outline-variant/10">
+                              <input
+                                value={newComment}
+                                onChange={e => setNewComment(e.target.value)}
+                                onKeyDown={e => e.key === "Enter" && !e.shiftKey && handleAddComment()}
+                                placeholder="Write a reply…"
+                                className="flex-1 px-3 py-2 bg-surface-container-lowest border border-outline-variant/30 rounded-xl text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-1 focus:ring-secondary/30"
+                              />
+                              <button
+                                onClick={handleAddComment}
+                                disabled={submittingComment || !newComment.trim()}
+                                className="p-2 bg-primary text-on-primary rounded-xl hover:opacity-90 disabled:opacity-50 transition-all"
+                              >
+                                {submittingComment ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   ))
                 )}
               </motion.div>
@@ -491,6 +857,171 @@ export default function StackPage({ params }: { params: { slug: string } }) {
           </aside>
         </div>
       </main>
+
+      {/* ── New Discussion Modal ── */}
+      {showDiscModal && (
+        <div className="fixed inset-0 bg-primary/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-surface-container-lowest rounded-2xl shadow-modal w-full max-w-lg p-6"
+          >
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="font-manrope font-semibold text-lg text-primary">New Discussion</h3>
+              <button onClick={() => setShowDiscModal(false)} className="text-on-surface-variant hover:text-primary transition-colors p-1">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-primary mb-1.5">Title</label>
+                <input
+                  value={discTitle}
+                  onChange={e => setDiscTitle(e.target.value)}
+                  placeholder="What do you want to discuss?"
+                  className="input-field"
+                  autoFocus
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-primary mb-1.5">Description <span className="text-on-surface-variant font-normal">(optional)</span></label>
+                <textarea
+                  value={discContent}
+                  onChange={e => setDiscContent(e.target.value)}
+                  rows={4}
+                  placeholder="Provide more context…"
+                  className="input-field resize-none"
+                />
+              </div>
+              <div className="flex justify-end gap-3 pt-2">
+                <button onClick={() => setShowDiscModal(false)} className="px-4 py-2 text-sm text-on-surface-variant hover:text-primary transition-colors">Cancel</button>
+                <button
+                  onClick={handleCreateDiscussion}
+                  disabled={submittingDisc || !discTitle.trim()}
+                  className="flex items-center gap-2 bg-primary text-on-primary px-5 py-2 rounded-xl text-sm font-semibold font-manrope hover:opacity-90 disabled:opacity-60 transition-all"
+                >
+                  {submittingDisc ? <Loader2 className="w-4 h-4 animate-spin" /> : "Post discussion"}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* ── Edit Stack Modal ── */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-primary/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-surface-container-lowest rounded-2xl shadow-modal w-full max-w-2xl p-6 my-4"
+          >
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="font-manrope font-semibold text-lg text-primary">Edit Stack</h3>
+              <button onClick={() => setShowEditModal(false)} className="text-on-surface-variant hover:text-primary p-1">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-primary mb-1.5">Title</label>
+                <input value={editForm.title} onChange={e => setEditForm(p => ({ ...p, title: e.target.value }))} className="input-field" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-primary mb-1.5">Description</label>
+                <textarea value={editForm.description} onChange={e => setEditForm(p => ({ ...p, description: e.target.value }))} rows={3} className="input-field resize-none" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-primary mb-1.5">Course Code</label>
+                  <input value={editForm.courseCode} onChange={e => setEditForm(p => ({ ...p, courseCode: e.target.value }))} className="input-field" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-primary mb-1.5">University</label>
+                  <input value={editForm.university} onChange={e => setEditForm(p => ({ ...p, university: e.target.value }))} className="input-field" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-primary mb-1.5">Department</label>
+                  <input value={editForm.department} onChange={e => setEditForm(p => ({ ...p, department: e.target.value }))} className="input-field" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-primary mb-1.5">Semester</label>
+                  <input value={editForm.semester} onChange={e => setEditForm(p => ({ ...p, semester: e.target.value }))} placeholder="e.g. Fall 2026" className="input-field" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-primary mb-1.5">Language / Format</label>
+                  <select value={editForm.language} onChange={e => setEditForm(p => ({ ...p, language: e.target.value }))} className="input-field">
+                    {["PDF", "Markdown", "Slides", "Video", "Mixed"].map(l => <option key={l}>{l}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-primary mb-1.5">Visibility</label>
+                  <select value={editForm.isPublic ? "public" : "private"} onChange={e => setEditForm(p => ({ ...p, isPublic: e.target.value === "public" }))} className="input-field">
+                    <option value="public">Public</option>
+                    <option value="private">Private</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-primary mb-1.5">Tags <span className="text-on-surface-variant font-normal">(comma-separated)</span></label>
+                <input value={editForm.tags} onChange={e => setEditForm(p => ({ ...p, tags: e.target.value }))} placeholder="e.g. machine-learning, python, tutorial" className="input-field" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-primary mb-1.5">README</label>
+                <textarea value={editForm.readme} onChange={e => setEditForm(p => ({ ...p, readme: e.target.value }))} rows={5} placeholder="Describe this stack…" className="input-field resize-none font-mono text-xs" />
+              </div>
+              <div className="flex justify-end gap-3 pt-2">
+                <button onClick={() => setShowEditModal(false)} className="px-4 py-2 text-sm text-on-surface-variant hover:text-primary transition-colors">Cancel</button>
+                <button
+                  onClick={handleEditStack}
+                  disabled={savingEdit}
+                  className="flex items-center gap-2 bg-primary text-on-primary px-6 py-2.5 rounded-xl text-sm font-semibold font-manrope hover:opacity-90 disabled:opacity-60 transition-all"
+                >
+                  {savingEdit ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4" />Save changes</>}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* ── Delete Confirmation ── */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-primary/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-surface-container-lowest rounded-2xl shadow-modal w-full max-w-md p-6"
+          >
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 bg-error-container rounded-2xl flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5 text-error" />
+              </div>
+              <div>
+                <h3 className="font-manrope font-semibold text-lg text-primary mb-2">Delete this stack?</h3>
+                <p className="text-sm text-on-surface-variant leading-relaxed">
+                  This will permanently delete <strong className="text-primary">{stack.title}</strong> and all its modules, discussions, and files. This cannot be undone.
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 mt-6">
+              <button onClick={() => setShowDeleteConfirm(false)} className="px-4 py-2 text-sm text-on-surface-variant hover:text-primary transition-colors">Cancel</button>
+              <button
+                onClick={handleDeleteStack}
+                disabled={deletingStack}
+                className="flex items-center gap-2 bg-error text-on-error px-5 py-2 rounded-xl text-sm font-semibold font-manrope hover:opacity-90 disabled:opacity-60 transition-all"
+              >
+                {deletingStack ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Trash2 className="w-4 h-4" />Delete permanently</>}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
       <Footer />
     </div>
   );

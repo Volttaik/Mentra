@@ -15,7 +15,7 @@ import Footer from "@/components/layout/Footer";
 
 const ROTATING_WORDS = ["Knowledge", "Research", "Courses", "Notes", "Ideas"];
 
-const STATS = [
+const STATS_FALLBACK = [
   { value: "48k+", label: "Stacks published" },
   { value: "312k+", label: "Active learners" },
   { value: "1,200+", label: "Universities" },
@@ -242,7 +242,7 @@ export default function HomePage() {
 
             {/* Inline stats */}
             <div className="flex items-center gap-7 flex-wrap">
-              {STATS.slice(0, 3).map((s, i) => (
+              {STATS_FALLBACK.slice(0, 3).map((s, i) => (
                 <div key={s.label} className={i > 0 ? "pl-7 border-l border-outline-variant/20" : ""}>
                   <p className="font-manrope font-bold text-[1.25rem] text-primary leading-none">{s.value}</p>
                   <p className="text-xs text-on-surface-variant mt-1">{s.label}</p>
@@ -404,7 +404,7 @@ export default function HomePage() {
                 {/* Floating stat card */}
                 <div className="absolute bottom-6 left-6 right-6 bg-surface-container-lowest/90 backdrop-blur-sm border border-outline-variant/20 rounded-2xl p-4">
                   <div className="grid grid-cols-3 gap-4 text-center">
-                    {STATS.map(s => (
+                    {STATS_FALLBACK.map(s => (
                       <div key={s.label}>
                         <p className="font-manrope font-bold text-lg text-primary">{s.value}</p>
                         <p className="text-[10px] text-on-surface-variant mt-0.5">{s.label}</p>
@@ -515,7 +515,7 @@ export default function HomePage() {
         </div>
         <div className="max-w-[1200px] mx-auto px-4 md:px-6 relative z-10">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {STATS.map((stat, i) => (
+            {STATS_FALLBACK.map((stat, i) => (
               <motion.div
                 key={stat.label}
                 initial={{ opacity: 0, y: 16 }}

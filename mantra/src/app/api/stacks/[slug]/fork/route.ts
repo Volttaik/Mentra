@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { slugify } from "@/lib/utils";
 
 export async function POST(
   _req: NextRequest,
@@ -13,29 +14,75 @@ export async function POST(
   const { slug } = params;
   const userId = session.user.id;
 
-  const stack = await prisma.stack.findUnique({ where: { slug }, select: { id: true, ownerId: true, title: true } });
-  if (!stack) return NextResponse.json({ error: "Stack not found" }, { status: 404 });
+  const original = await prisma.stack.findUnique({
+    where: { slug },
+    include: {
+      tags: { include: { tag: true } },
+      modules: { orderBy: { order: "asc" } },
+    },
+  });
+  if (!original) return NextResponse.json({ error: "Stack not found" }, { status: 404 });
 
-  const alreadyForked = await prisma.stackFork.findFirst({ where: { userId, stackId: stack.id } });
+  const alreadyForked = await prisma.stackFork.findFirst({ where: { userId, stackId: original.id } });
   if (alreadyForked) {
     return NextResponse.json({ error: "Already forked" }, { status: 409 });
   }
 
-  await prisma.stackFork.create({ data: { userId, stackId: stack.id } });
+  const forkTitle = `Fork of ${original.title}`;
+  const baseSlug = slugify(forkTitle);
+  let forkSlug = baseSlug;
+  let collision = await prisma.stack.findFirst({ where: { slug: forkSlug } });
+  let i = 2;
+  while (collision) {
+    forkSlug = `${baseSlug}-${i++}`;
+    collision = await prisma.stack.findFirst({ where: { slug: forkSlug } });
+  }
 
-  // Notify owner
-  if (stack.ownerId !== userId) {
+  const forkedStack = await prisma.stack.create({
+    data: {
+      title: forkTitle,
+      slug: forkSlug,
+      description: original.description,
+      courseCode: original.courseCode,
+      university: original.university,
+      department: original.department,
+      semester: original.semester,
+      language: original.language,
+      isPublic: true,
+      readme: original.readme,
+      ownerId: userId,
+      modules: {
+        create: original.modules.map(m => ({
+          title: m.title,
+          type: m.type,
+          order: m.order,
+          duration: m.duration,
+          files: 0,
+        })),
+      },
+    },
+  });
+
+  for (const stackTag of original.tags) {
+    await prisma.stackTag.create({
+      data: { stackId: forkedStack.id, tagId: stackTag.tagId },
+    }).catch(() => {});
+  }
+
+  await prisma.stackFork.create({ data: { userId, stackId: original.id } });
+
+  if (original.ownerId !== userId) {
     await prisma.notification.create({
       data: {
-        userId: stack.ownerId,
+        userId: original.ownerId,
         type: "FORK",
         title: "New fork",
-        body: `${session.user.name} forked your stack "${stack.title}"`,
+        body: `${session.user.name} forked your stack "${original.title}"`,
         link: `/stacks/${slug}`,
       },
     }).catch(() => {});
   }
 
-  const count = await prisma.stackFork.count({ where: { stackId: stack.id } });
-  return NextResponse.json({ forked: true, count });
+  const count = await prisma.stackFork.count({ where: { stackId: original.id } });
+  return NextResponse.json({ forked: true, count, forkSlug });
 }
