@@ -6,14 +6,16 @@ import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import {
   BookOpen, Bell, Search, Menu, X, ChevronDown,
-  Upload, Settings, LogOut, User, LayoutDashboard,
+  Upload, Settings, LogOut, User, LayoutDashboard, Moon, Sun,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTheme } from "@/components/providers/ThemeProvider";
 
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const { data: session, status } = useSession();
+  const { theme, toggle } = useTheme();
   const isAuth = status === "authenticated";
   const isLoading = status === "loading";
 
@@ -89,6 +91,15 @@ export default function Navbar() {
             <span className="ml-auto text-xs bg-surface-container-high px-1.5 py-0.5 rounded text-on-surface-variant/60">⌘K</span>
           </Link>
 
+          {/* Dark mode toggle */}
+          <button
+            onClick={toggle}
+            className="p-2 rounded-xl text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all"
+            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </button>
+
           {isLoading ? (
             <div className="w-8 h-8 bg-surface-container rounded-full animate-pulse" />
           ) : isAuth ? (
@@ -122,11 +133,11 @@ export default function Navbar() {
                   <div className="absolute right-0 top-12 w-56 bg-surface-container-lowest rounded-2xl shadow-modal border border-outline-variant/20 py-2 z-50">
                     <div className="px-4 py-3 border-b border-outline-variant/10">
                       <p className="font-semibold text-sm text-primary font-manrope truncate">{session?.user?.name}</p>
-                      <p className="text-xs text-on-surface-variant">@{session?.user?.username}</p>
+                      <p className="text-xs text-on-surface-variant">@{(session?.user as any)?.username}</p>
                     </div>
                     {[
                       { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-                      { href: session?.user?.username ? `/profile/${session.user.username}` : "/dashboard", label: "Profile", icon: User },
+                      { href: (session?.user as any)?.username ? `/profile/${(session?.user as any).username}` : "/dashboard", label: "Profile", icon: User },
                       { href: "/upload", label: "New Stack", icon: Upload },
                       { href: "/settings", label: "Settings", icon: Settings },
                     ].map(item => (
@@ -165,13 +176,21 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Mobile Menu Toggle */}
-        <button
-          className="md:hidden p-2 text-on-surface-variant"
-          onClick={() => setMobileOpen(!mobileOpen)}
-        >
-          {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
+        {/* Mobile right: theme toggle + menu */}
+        <div className="md:hidden flex items-center gap-1">
+          <button
+            onClick={toggle}
+            className="p-2 rounded-xl text-on-surface-variant hover:bg-surface-container transition-all"
+          >
+            {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </button>
+          <button
+            className="p-2 text-on-surface-variant"
+            onClick={() => setMobileOpen(!mobileOpen)}
+          >
+            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
       </nav>
 
       {/* Mobile Menu */}
@@ -190,9 +209,9 @@ export default function Navbar() {
               <>
                 <div className="px-4 py-2">
                   <p className="font-semibold text-sm text-primary">{session?.user?.name}</p>
-                  <p className="text-xs text-on-surface-variant">@{session?.user?.username}</p>
+                  <p className="text-xs text-on-surface-variant">@{(session?.user as any)?.username}</p>
                 </div>
-                <Link href={`/profile/${session?.user?.username}`} onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-on-surface-variant hover:bg-surface-container transition-colors">
+                <Link href={`/profile/${(session?.user as any)?.username}`} onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-on-surface-variant hover:bg-surface-container transition-colors">
                   <User className="w-4 h-4" /> Profile
                 </Link>
                 <Link href="/upload" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-on-surface-variant hover:bg-surface-container transition-colors">

@@ -5,6 +5,7 @@ import { mkdir, writeFile, unlink } from "fs/promises";
 import path from "path";
 import { extractTextFromFile, isTextExtractable } from "@/lib/mt-extractor";
 import { buildAndEncryptMt } from "@/lib/mt-engine";
+import { randomBytes } from "crypto";
 
 const ALLOWED_MIME_TYPES = new Set([
   "application/pdf",
@@ -45,6 +46,20 @@ const MEDIA_MIMES = new Set([
   "video/mp4",
   "video/webm",
 ]);
+
+const PDF_MIMES = new Set([
+  "application/pdf",
+]);
+
+function generateDecoy(): Buffer {
+  const header = "MENTRA-SECURED-CONTENT-v1\n";
+  const lines: string[] = [header];
+  for (let i = 0; i < 120; i++) {
+    lines.push(randomBytes(32).toString("base64") + "\n");
+  }
+  lines.push("END-MENTRA-SECURED-CONTENT\n");
+  return Buffer.from(lines.join(""), "utf8");
+}
 
 export async function GET(
   req: NextRequest,
@@ -105,10 +120,10 @@ export async function POST(
   const moduleId = formData.get("moduleId") as string | null;
   const displayName = (formData.get("displayName") as string | null)?.trim() || null;
 
-  const maxSize = 25 * 1024 * 1024;
+  const maxSize = 50 * 1024 * 1024;
   if (file.size > maxSize) {
     return NextResponse.json(
-      { error: "File exceeds 25 MB limit" },
+      { error: "File exceeds 50 MB limit" },
       { status: 413 }
     );
   }
@@ -132,10 +147,16 @@ export async function POST(
   const buffer = Buffer.from(bytes);
 
   const isMedia = MEDIA_MIMES.has(mimeType);
-  const canExtract = isTextExtractable(mimeType, file.name);
+  const isPdf = PDF_MIMES.has(mimeType) || file.name.toLowerCase().endsWith(".pdf");
+  const isText = mimeType.startsWith("text/") || ["text/plain", "text/markdown"].includes(mimeType);
+  const isDocx = mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" || file.name.toLowerCase().endsWith(".docx");
 
   let fileUrl = "";
+  let rawPath: string | null = null;
   let mtContentId: string | null = null;
+
+  const storageDir = path.join(process.cwd(), ".mt-storage", stack.id);
+  await mkdir(storageDir, { recursive: true });
 
   if (isMedia) {
     const safeName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
@@ -143,14 +164,20 @@ export async function POST(
     await mkdir(uploadDir, { recursive: true });
     await writeFile(path.join(uploadDir, safeName), buffer);
     fileUrl = `/uploads/${stack.id}/${safeName}`;
-  } else if (canExtract) {
+  } else if (isPdf) {
+    const safeName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+    const rawFilePath = path.join(storageDir, safeName);
+    await writeFile(rawFilePath, buffer);
+    rawPath = rawFilePath;
+    const decoy = generateDecoy();
+    await writeFile(rawFilePath + ".decoy", decoy);
     fileUrl = "";
-
+  } else if (isDocx || isText) {
     let extractionError: string | null = null;
     try {
       const rawText = await extractTextFromFile(buffer, mimeType, file.name);
       if (!rawText || rawText.trim().length === 0) {
-        extractionError = `No readable text could be extracted from "${file.name}". The file may be scanned, image-only, password-protected, or corrupted.`;
+        extractionError = `No readable text could be extracted from "${file.name}".`;
       } else {
         const { mt, packet } = buildAndEncryptMt(rawText, stack.id, file.name, mimeType);
 
@@ -198,13 +225,7 @@ export async function POST(
     } catch (extractErr: any) {
       console.error("[MT Pipeline] Extraction failed:", extractErr);
       const msg = extractErr?.message ?? String(extractErr);
-      if (msg.includes("password") || msg.includes("encrypted")) {
-        extractionError = `"${file.name}" appears to be password-protected. Remove the password and re-upload.`;
-      } else if (msg.includes("corrupt") || msg.includes("invalid") || msg.includes("Unexpected")) {
-        extractionError = `"${file.name}" could not be read — the file may be corrupted or in an unsupported format.`;
-      } else {
-        extractionError = `Extraction failed for "${file.name}": ${msg.slice(0, 120)}`;
-      }
+      extractionError = `Extraction failed for "${file.name}": ${msg.slice(0, 120)}`;
     }
 
     if (extractionError) {
@@ -212,14 +233,7 @@ export async function POST(
     }
   } else {
     const safeName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
-    const uploadDir = path.join(
-      process.cwd(),
-      ".mt-storage",
-      stack.id
-    );
-    await mkdir(uploadDir, { recursive: true });
-    await writeFile(path.join(uploadDir, safeName), buffer);
-    fileUrl = "";
+    await writeFile(path.join(storageDir, safeName), buffer);
   }
 
   const record = await prisma.stackFile.create({
@@ -228,6 +242,7 @@ export async function POST(
       moduleId: moduleId ?? null,
       name: displayName ?? file.name,
       url: fileUrl,
+      rawPath: rawPath ?? null,
       size: file.size,
       mimeType: mimeType,
       mtContentId: mtContentId ?? null,
@@ -277,6 +292,10 @@ export async function DELETE(
     if (fileRecord.url?.startsWith("/uploads/")) {
       const diskPath = path.join(process.cwd(), "public", fileRecord.url);
       await unlink(diskPath).catch(() => {});
+    }
+    if (fileRecord.rawPath) {
+      await unlink(fileRecord.rawPath).catch(() => {});
+      await unlink(fileRecord.rawPath + ".decoy").catch(() => {});
     }
   }
   return NextResponse.json({ success: true });

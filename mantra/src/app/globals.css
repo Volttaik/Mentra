@@ -4,6 +4,92 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Light Mode CSS Variables ──────────────────────────────── */
+:root {
+  --c-surface: 254 249 242;
+  --c-surface-dim: 222 217 211;
+  --c-surface-bright: 254 249 242;
+  --c-surface-container-lowest: 255 255 255;
+  --c-surface-container-low: 248 243 236;
+  --c-surface-container: 242 237 230;
+  --c-surface-container-high: 236 231 225;
+  --c-surface-container-highest: 231 226 219;
+  --c-on-surface: 29 27 23;
+  --c-on-surface-variant: 77 69 63;
+  --c-inverse-surface: 50 48 44;
+  --c-inverse-on-surface: 245 240 233;
+  --c-outline: 127 117 110;
+  --c-outline-variant: 208 196 188;
+  --c-surface-tint: 105 92 81;
+  --c-primary: 20 11 5;
+  --c-on-primary: 255 255 255;
+  --c-primary-container: 43 33 24;
+  --c-on-primary-container: 151 135 123;
+  --c-inverse-primary: 213 195 181;
+  --c-secondary: 115 91 37;
+  --c-on-secondary: 255 255 255;
+  --c-secondary-container: 254 219 153;
+  --c-on-secondary-container: 120 95 41;
+  --c-tertiary: 18 11 4;
+  --c-on-tertiary: 255 255 255;
+  --c-tertiary-container: 42 33 24;
+  --c-on-tertiary-container: 149 136 123;
+  --c-error: 186 26 26;
+  --c-on-error: 255 255 255;
+  --c-error-container: 255 218 214;
+  --c-on-error-container: 147 0 10;
+  --c-primary-fixed: 242 223 209;
+  --c-primary-fixed-dim: 213 195 181;
+  --c-secondary-fixed: 255 222 160;
+  --c-secondary-fixed-dim: 227 194 130;
+  --c-background: 254 249 242;
+  --c-on-background: 29 27 23;
+  --c-surface-variant: 231 226 219;
+}
+
+/* ── Dark Mode CSS Variables ──────────────────────────────── */
+html.dark {
+  --c-surface: 24 19 13;
+  --c-surface-dim: 16 12 8;
+  --c-surface-bright: 34 27 20;
+  --c-surface-container-lowest: 18 13 9;
+  --c-surface-container-low: 24 19 13;
+  --c-surface-container: 30 24 17;
+  --c-surface-container-high: 37 30 22;
+  --c-surface-container-highest: 45 37 28;
+  --c-on-surface: 228 220 212;
+  --c-on-surface-variant: 188 178 168;
+  --c-inverse-surface: 228 220 212;
+  --c-inverse-on-surface: 50 44 38;
+  --c-outline: 148 138 128;
+  --c-outline-variant: 58 50 42;
+  --c-surface-tint: 190 170 148;
+  --c-primary: 230 220 210;
+  --c-on-primary: 20 11 5;
+  --c-primary-container: 45 35 25;
+  --c-on-primary-container: 200 185 170;
+  --c-inverse-primary: 60 48 38;
+  --c-secondary: 218 180 110;
+  --c-on-secondary: 55 38 5;
+  --c-secondary-container: 75 55 15;
+  --c-on-secondary-container: 215 178 110;
+  --c-tertiary: 220 208 196;
+  --c-on-tertiary: 18 11 4;
+  --c-tertiary-container: 42 33 24;
+  --c-on-tertiary-container: 198 185 172;
+  --c-error: 255 180 168;
+  --c-on-error: 100 0 5;
+  --c-error-container: 140 0 10;
+  --c-on-error-container: 255 218 214;
+  --c-primary-fixed: 55 42 30;
+  --c-primary-fixed-dim: 80 62 46;
+  --c-secondary-fixed: 88 65 18;
+  --c-secondary-fixed-dim: 105 80 28;
+  --c-background: 16 11 7;
+  --c-on-background: 228 220 212;
+  --c-surface-variant: 45 38 30;
+}
+
 * {
   box-sizing: border-box;
   padding: 0;
@@ -17,11 +103,12 @@ html, body {
 }
 
 body {
-  background-color: #fef9f2;
-  color: #1d1b17;
+  background-color: rgb(var(--c-background));
+  color: rgb(var(--c-on-background));
   font-family: 'Be Vietnam Pro', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -30,8 +117,8 @@ h1, h2, h3, h4, h5, h6 {
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #d0c4bc; border-radius: 9999px; }
-::-webkit-scrollbar-thumb:hover { background: #7f756e; }
+::-webkit-scrollbar-thumb { background: rgb(var(--c-outline-variant)); border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: rgb(var(--c-outline)); }
 
 /* ── Unified Input System ────────────────────────────────── */
 
@@ -53,6 +140,10 @@ h1, h2, h3, h4, h5, h6 {
     background-repeat: no-repeat;
     background-position: right 12px center;
     padding-right: 36px;
+  }
+
+  .dark select.input-field {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23bca870' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   }
 
   textarea.input-field {
@@ -107,16 +198,16 @@ h1, h2, h3, h4, h5, h6 {
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
   .parchment-blur {
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    background: rgba(254, 249, 242, 0.88);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    background: rgba(var(--c-background), 0.88);
   }
 
   .glass {
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    background: rgba(255, 255, 255, 0.6);
-    border: 1px solid rgba(208, 196, 188, 0.3);
+    background: rgba(var(--c-surface-container-lowest), 0.6);
+    border: 1px solid rgba(var(--c-outline-variant), 0.3);
   }
 
   .organic-blob {
@@ -129,14 +220,14 @@ h1, h2, h3, h4, h5, h6 {
   }
 
   .gradient-text {
-    background: linear-gradient(135deg, #140b05 0%, #735b25 100%);
+    background: linear-gradient(135deg, rgb(var(--c-primary)) 0%, rgb(var(--c-secondary)) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
   .shimmer {
-    background: linear-gradient(90deg, #f2ede6 25%, #ece7e1 50%, #f2ede6 75%);
+    background: linear-gradient(90deg, rgb(var(--c-surface-container-low)) 25%, rgb(var(--c-surface-container)) 50%, rgb(var(--c-surface-container-low)) 75%);
     background-size: 400% 100%;
     animation: shimmer 1.8s ease infinite;
   }

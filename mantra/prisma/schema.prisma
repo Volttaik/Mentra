@@ -93,6 +93,7 @@ model Stack {
   isVerified  Boolean  @default(false)
   isArchived  Boolean  @default(false)
   readme      String?
+  banner      String?
   views       Int      @default(0)
   ownerId     String
   createdAt   DateTime @default(now())
@@ -119,6 +120,7 @@ model StackFile {
   moduleId    String?
   name        String
   url         String
+  rawPath     String?
   size        Int      @default(0)
   mimeType    String   @default("application/octet-stream")
   mtContentId String?

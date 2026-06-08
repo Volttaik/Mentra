@@ -1,12 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  allowedDevOrigins: ["*"],
   experimental: {
-    serverComponentsExternalPackages: ["pdf-parse", "mammoth"],
+    serverComponentsExternalPackages: ["pdf-parse"],
   },
   webpack: (config, { isServer }) => {
     if (isServer) {
-      config.externals = [...(config.externals || []), "pdf-parse", "mammoth"];
+      config.externals = [...(config.externals || []), "pdf-parse"];
     }
     return config;
   },
@@ -19,6 +18,7 @@ const nextConfig = {
       { protocol: "https", hostname: "ui-avatars.com" },
       { protocol: "https", hostname: "picsum.photos" },
     ],
+    unoptimized: true,
   },
 };
 

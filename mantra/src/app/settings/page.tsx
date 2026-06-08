@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   User, Key, Bell, Shield, Save, Plus, Trash2,
   Copy, Check, Loader2, ArrowLeft, AlertTriangle, Eye, EyeOff,
+  Camera, ImageIcon,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Link from "next/link";
@@ -78,12 +79,19 @@ interface ApiKey {
 export default function SettingsPage() {
   const { data: session, update: updateSession } = useSession();
   const router = useRouter();
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
   const [tab, setTab] = useState("Profile");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [form, setForm] = useState({
     name: "", bio: "", university: "", department: "", level: "", website: "", location: "",
   });
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
+
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
   const [newKeyName, setNewKeyName] = useState("");
   const [newKeyValue, setNewKeyValue] = useState("");
@@ -92,7 +100,6 @@ export default function SettingsPage() {
   const [copied, setCopied] = useState("");
   const [error, setError] = useState("");
 
-  // Security tab state
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -102,7 +109,6 @@ export default function SettingsPage() {
   const [passwordError, setPasswordError] = useState("");
   const [passwordSuccess, setPasswordSuccess] = useState(false);
 
-  // Delete account state
   const [deletePassword, setDeletePassword] = useState("");
   const [deletingAccount, setDeletingAccount] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -121,6 +127,8 @@ export default function SettingsPage() {
           website: d.user.website ?? "",
           location: d.user.location ?? "",
         });
+        if (d.user.image) setAvatarPreview(d.user.image);
+        if (d.user.banner) setBannerPreview(d.user.banner);
       }
     });
   }, [session]);
@@ -154,6 +162,36 @@ export default function SettingsPage() {
       setError("Something went wrong.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleImageUpload = async (file: File, type: "avatar" | "banner") => {
+    const setUploading = type === "avatar" ? setUploadingAvatar : setUploadingBanner;
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("type", type);
+      formData.append("file", file);
+      const res = await fetch("/api/profile/settings", {
+        method: "PATCH",
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Upload failed");
+        return;
+      }
+      if (type === "avatar" && data.image) {
+        setAvatarPreview(data.image);
+        await updateSession();
+      }
+      if (type === "banner" && data.banner) {
+        setBannerPreview(data.banner);
+      }
+    } catch {
+      setError("Upload failed.");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -194,7 +232,6 @@ export default function SettingsPage() {
     e.preventDefault();
     setPasswordError("");
     setPasswordSuccess(false);
-
     if (newPassword !== confirmPassword) {
       setPasswordError("New passwords do not match.");
       return;
@@ -203,7 +240,6 @@ export default function SettingsPage() {
       setPasswordError("New password must be at least 8 characters.");
       return;
     }
-
     setSavingPassword(true);
     try {
       const res = await fetch("/api/auth/password", {
@@ -252,6 +288,10 @@ export default function SettingsPage() {
   };
 
   const update = (f: string, v: string) => setForm(p => ({ ...p, [f]: v }));
+
+  const initials = form.name
+    ? form.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()
+    : "?";
 
   if (!session) {
     return (
@@ -309,57 +349,156 @@ export default function SettingsPage() {
             )}
 
             {tab === "Profile" && (
-              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="card p-6 space-y-5">
-                <h2 className="font-manrope font-semibold text-lg text-primary">Profile information</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-primary mb-1.5">Full name</label>
-                    <input value={form.name} onChange={e => update("name", e.target.value)} className="input-field" placeholder="Your name" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-primary mb-1.5">Location</label>
-                    <input value={form.location} onChange={e => update("location", e.target.value)} className="input-field" placeholder="City, Country" />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-primary mb-1.5">Bio</label>
-                  <textarea value={form.bio} onChange={e => update("bio", e.target.value)} rows={3} className="input-field resize-none" placeholder="Tell the community about yourself..." />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-primary mb-1.5">University</label>
-                    <input value={form.university} onChange={e => update("university", e.target.value)} className="input-field" placeholder="Your university" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-primary mb-1.5">Department</label>
-                    <input value={form.department} onChange={e => update("department", e.target.value)} className="input-field" placeholder="Your department" />
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-primary mb-1.5">Academic level</label>
-                    <select value={form.level} onChange={e => update("level", e.target.value)} className="input-field">
-                      <option value="">Select level</option>
-                      {["Undergraduate", "Masters", "PhD", "Professor", "Lecturer", "Other"].map(l => (
-                        <option key={l}>{l}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-primary mb-1.5">Website</label>
-                    <input value={form.website} onChange={e => update("website", e.target.value)} className="input-field" placeholder="https://yoursite.com" />
-                  </div>
-                </div>
-                <div className="pt-2 flex items-center gap-3">
-                  <button
-                    onClick={handleSaveProfile}
-                    disabled={saving}
-                    className="flex items-center gap-2 bg-primary text-on-primary px-6 py-2.5 rounded-xl text-sm font-semibold font-manrope hover:opacity-90 disabled:opacity-60 transition-all"
+              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
+
+                {/* Banner + Avatar card */}
+                <div className="card overflow-hidden">
+                  {/* Banner */}
+                  <div
+                    className="relative h-32 bg-gradient-to-r from-primary-container via-secondary-container to-primary-fixed overflow-hidden group cursor-pointer"
+                    onClick={() => bannerInputRef.current?.click()}
                   >
-                    {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
-                    {saved ? "Saved!" : "Save changes"}
-                  </button>
-                  {saved && <span className="text-sm text-secondary">Profile updated successfully.</span>}
+                    {bannerPreview ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={bannerPreview} alt="Banner" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-primary/10">
+                        <div className="flex items-center gap-2 bg-surface-container-lowest/90 px-4 py-2 rounded-xl text-sm font-medium text-primary">
+                          <ImageIcon className="w-4 h-4" />
+                          Upload banner
+                        </div>
+                      </div>
+                    )}
+                    {bannerPreview && (
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-primary/20">
+                        <div className="flex items-center gap-2 bg-surface-container-lowest/90 px-4 py-2 rounded-xl text-sm font-medium text-primary">
+                          <ImageIcon className="w-4 h-4" />
+                          Change banner
+                        </div>
+                      </div>
+                    )}
+                    {uploadingBanner && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-primary/20">
+                        <Loader2 className="w-6 h-6 text-on-primary animate-spin" />
+                      </div>
+                    )}
+                  </div>
+                  <input
+                    ref={bannerInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={e => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const reader = new FileReader();
+                      reader.onload = ev => setBannerPreview(ev.target?.result as string);
+                      reader.readAsDataURL(file);
+                      handleImageUpload(file, "banner");
+                    }}
+                  />
+
+                  {/* Avatar */}
+                  <div className="px-5 pb-5">
+                    <div className="flex items-end gap-4 -mt-10 mb-4">
+                      <div className="relative group cursor-pointer" onClick={() => avatarInputRef.current?.click()}>
+                        <div className="w-20 h-20 rounded-2xl bg-secondary-container border-4 border-surface-container-lowest flex items-center justify-center overflow-hidden">
+                          {avatarPreview ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="font-bold font-manrope text-xl text-on-secondary-container">{initials}</span>
+                          )}
+                          <div className="absolute inset-0 bg-primary/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl">
+                            {uploadingAvatar ? (
+                              <Loader2 className="w-5 h-5 text-on-primary animate-spin" />
+                            ) : (
+                              <Camera className="w-5 h-5 text-on-primary" />
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <input
+                        ref={avatarInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={e => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          const reader = new FileReader();
+                          reader.onload = ev => setAvatarPreview(ev.target?.result as string);
+                          reader.readAsDataURL(file);
+                          handleImageUpload(file, "avatar");
+                        }}
+                      />
+                      <div>
+                        <p className="font-manrope font-semibold text-base text-primary">{form.name || "Your name"}</p>
+                        <button
+                          type="button"
+                          onClick={() => avatarInputRef.current?.click()}
+                          className="text-xs text-secondary hover:text-primary transition-colors font-medium"
+                        >
+                          Change photo
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Profile form card */}
+                <div className="card p-6 space-y-5">
+                  <h2 className="font-manrope font-semibold text-lg text-primary">Profile information</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-1.5">Full name</label>
+                      <input value={form.name} onChange={e => update("name", e.target.value)} className="input-field" placeholder="Your name" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-1.5">Location</label>
+                      <input value={form.location} onChange={e => update("location", e.target.value)} className="input-field" placeholder="City, Country" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-1.5">Bio</label>
+                    <textarea value={form.bio} onChange={e => update("bio", e.target.value)} rows={3} className="input-field resize-none" placeholder="Tell the community about yourself..." />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-1.5">University / Organisation</label>
+                      <input value={form.university} onChange={e => update("university", e.target.value)} className="input-field" placeholder="Your university or company" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-1.5">Department / Field</label>
+                      <input value={form.department} onChange={e => update("department", e.target.value)} className="input-field" placeholder="Department or field of work" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-1.5">Level / Role</label>
+                      <select value={form.level} onChange={e => update("level", e.target.value)} className="input-field">
+                        <option value="">Select level</option>
+                        {["Undergraduate", "Masters", "PhD", "Professor", "Lecturer", "Freelancer", "Creator", "Other"].map(l => (
+                          <option key={l}>{l}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-1.5">Website</label>
+                      <input value={form.website} onChange={e => update("website", e.target.value)} className="input-field" placeholder="https://yoursite.com" />
+                    </div>
+                  </div>
+                  <div className="pt-2 flex items-center gap-3">
+                    <button
+                      onClick={handleSaveProfile}
+                      disabled={saving}
+                      className="flex items-center gap-2 bg-primary text-on-primary px-6 py-2.5 rounded-xl text-sm font-semibold font-manrope hover:opacity-90 disabled:opacity-60 transition-all"
+                    >
+                      {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+                      {saved ? "Saved!" : "Save changes"}
+                    </button>
+                    {saved && <span className="text-sm text-secondary">Profile updated successfully.</span>}
+                  </div>
                 </div>
               </motion.div>
             )}
@@ -431,13 +570,10 @@ export default function SettingsPage() {
               </motion.div>
             )}
 
-            {tab === "Notifications" && (
-              <NotificationsTab />
-            )}
+            {tab === "Notifications" && <NotificationsTab />}
 
             {tab === "Security" && (
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
-                {/* Change password */}
                 <div className="card p-6">
                   <h2 className="font-manrope font-semibold text-lg text-primary mb-5">Change password</h2>
                   {passwordSuccess && (
@@ -454,14 +590,7 @@ export default function SettingsPage() {
                     <div>
                       <label className="block text-sm font-medium text-primary mb-1.5">Current password</label>
                       <div className="relative">
-                        <input
-                          type={showCurrentPw ? "text" : "password"}
-                          value={currentPassword}
-                          onChange={e => setCurrentPassword(e.target.value)}
-                          className="input-field pr-12"
-                          placeholder="Enter current password"
-                          required
-                        />
+                        <input type={showCurrentPw ? "text" : "password"} value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} className="input-field pr-12" placeholder="Enter current password" required />
                         <button type="button" onClick={() => setShowCurrentPw(!showCurrentPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary p-1">
                           {showCurrentPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
@@ -470,15 +599,7 @@ export default function SettingsPage() {
                     <div>
                       <label className="block text-sm font-medium text-primary mb-1.5">New password</label>
                       <div className="relative">
-                        <input
-                          type={showNewPw ? "text" : "password"}
-                          value={newPassword}
-                          onChange={e => setNewPassword(e.target.value)}
-                          className="input-field pr-12"
-                          placeholder="At least 8 characters"
-                          required
-                          minLength={8}
-                        />
+                        <input type={showNewPw ? "text" : "password"} value={newPassword} onChange={e => setNewPassword(e.target.value)} className="input-field pr-12" placeholder="At least 8 characters" required minLength={8} />
                         <button type="button" onClick={() => setShowNewPw(!showNewPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary p-1">
                           {showNewPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
@@ -486,70 +607,35 @@ export default function SettingsPage() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-primary mb-1.5">Confirm new password</label>
-                      <input
-                        type="password"
-                        value={confirmPassword}
-                        onChange={e => setConfirmPassword(e.target.value)}
-                        className="input-field"
-                        placeholder="Re-enter new password"
-                        required
-                      />
+                      <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="input-field" placeholder="Re-enter new password" required />
                     </div>
-                    <button
-                      type="submit"
-                      disabled={savingPassword}
-                      className="flex items-center gap-2 bg-primary text-on-primary px-6 py-2.5 rounded-xl text-sm font-semibold font-manrope hover:opacity-90 disabled:opacity-60 transition-all"
-                    >
+                    <button type="submit" disabled={savingPassword} className="flex items-center gap-2 bg-primary text-on-primary px-6 py-2.5 rounded-xl text-sm font-semibold font-manrope hover:opacity-90 disabled:opacity-60 transition-all">
                       {savingPassword ? <Loader2 className="w-4 h-4 animate-spin" /> : <Shield className="w-4 h-4" />}
                       Update password
                     </button>
                   </form>
                 </div>
 
-                {/* Delete account */}
                 <div className="card p-6 border border-error/20">
                   <h3 className="font-manrope font-semibold text-base text-error mb-2">Danger zone</h3>
                   <p className="text-sm text-on-surface-variant mb-4">
                     Permanently delete your account and all your stacks. This cannot be undone.
                   </p>
-
                   {!showDeleteConfirm ? (
-                    <button
-                      onClick={() => setShowDeleteConfirm(true)}
-                      className="flex items-center gap-2 border border-error/30 text-error px-4 py-2.5 rounded-xl text-sm font-semibold font-manrope hover:bg-error-container/20 transition-all"
-                    >
+                    <button onClick={() => setShowDeleteConfirm(true)} className="flex items-center gap-2 border border-error/30 text-error px-4 py-2.5 rounded-xl text-sm font-semibold font-manrope hover:bg-error-container/20 transition-all">
                       <Trash2 className="w-4 h-4" />Delete account
                     </button>
                   ) : (
                     <div className="space-y-4 p-4 bg-error-container/10 border border-error/20 rounded-xl">
                       <div className="flex items-start gap-3">
                         <AlertTriangle className="w-5 h-5 text-error shrink-0 mt-0.5" />
-                        <p className="text-sm text-error font-medium">
-                          Enter your password to confirm account deletion.
-                        </p>
+                        <p className="text-sm text-error font-medium">Enter your password to confirm account deletion.</p>
                       </div>
-                      {deleteError && (
-                        <p className="text-sm text-error">{deleteError}</p>
-                      )}
-                      <input
-                        type="password"
-                        value={deletePassword}
-                        onChange={e => setDeletePassword(e.target.value)}
-                        placeholder="Your current password"
-                        className="input-field border-error/30"
-                      />
+                      {deleteError && <p className="text-sm text-error">{deleteError}</p>}
+                      <input type="password" value={deletePassword} onChange={e => setDeletePassword(e.target.value)} placeholder="Your current password" className="input-field border-error/30" />
                       <div className="flex gap-3">
-                        <button
-                          onClick={() => { setShowDeleteConfirm(false); setDeletePassword(""); setDeleteError(""); }}
-                          className="px-4 py-2 text-sm text-on-surface-variant hover:text-primary transition-colors"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          onClick={handleDeleteAccount}
-                          disabled={deletingAccount || !deletePassword}
-                          className="flex items-center gap-2 bg-error text-on-error px-5 py-2 rounded-xl text-sm font-semibold font-manrope hover:opacity-90 disabled:opacity-60 transition-all"
-                        >
+                        <button onClick={() => { setShowDeleteConfirm(false); setDeletePassword(""); setDeleteError(""); }} className="px-4 py-2 text-sm text-on-surface-variant hover:text-primary transition-colors">Cancel</button>
+                        <button onClick={handleDeleteAccount} disabled={deletingAccount || !deletePassword} className="flex items-center gap-2 bg-error text-on-error px-5 py-2 rounded-xl text-sm font-semibold font-manrope hover:opacity-90 disabled:opacity-60 transition-all">
                           {deletingAccount ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                           Delete my account
                         </button>

@@ -1,2 +1,1 @@
-- [Mentra Next.js setup](mentra-setup.md) — Next.js 15 app in /mantra subdir (folder kept as-is); brand name is "Mentra", term is "stacks" not "repositories"; workflow: `cd mantra && npm run dev -- --port 5000`
-- [Mentra auth quirks](mentra-auth-quirks.md) — Stale root-level mantra/auth.ts (deleted); real auth in src/auth.ts; next-auth types in src/types/next-auth.d.ts
+- [Next.js 14 on Replit - SWC SIGBUS fix](nextjs-swc-replit.md) — SWC native binary crashes with SIGBUS; must disable it and use Babel with specific plugins + @babel/runtime

@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 const TABS = ["Stacks", "Starred", "Contributions"];
 
 interface ProfileUser {
-  id: string; name: string; username: string; image: string | null;
+  id: string; name: string; username: string; image: string | null; banner: string | null;
   bio: string | null; university: string | null; department: string | null;
   level: string | null; isVerified: boolean; role: string;
   createdAt: string; followers: number; following: number;
@@ -119,9 +119,16 @@ export default function ProfilePage({ params }: { params: { username: string } }
       <Navbar />
 
       {/* Banner */}
-      <div className="h-40 md:h-52 bg-gradient-to-r from-primary-container via-secondary-container to-primary-fixed relative overflow-hidden">
-        <div className="organic-blob w-96 h-96 bg-secondary -top-20 -right-20" />
-        <div className="organic-blob w-64 h-64 bg-primary-fixed top-0 left-1/4" />
+      <div className="h-40 md:h-52 relative overflow-hidden">
+        {user.banner ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={user.banner} alt="Profile banner" className="w-full h-full object-cover" />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-r from-primary-container via-secondary-container to-primary-fixed">
+            <div className="organic-blob w-96 h-96 bg-secondary -top-20 -right-20" />
+            <div className="organic-blob w-64 h-64 bg-primary-fixed top-0 left-1/4" />
+          </div>
+        )}
       </div>
 
       <main className="flex-1 max-w-[1200px] mx-auto px-4 md:px-6 w-full">

@@ -45,8 +45,8 @@ const FEATURES = [
   },
   {
     icon: Zap,
-    title: "AI-powered insights",
-    description: "Auto-generated flashcards, summaries, and concept maps are built into every stack automatically.",
+    title: "Structured content",
+    description: "Every uploaded file is processed into structured sections, key concepts, and summaries — ready to study.",
   },
   {
     icon: Globe,
@@ -372,7 +372,7 @@ export default function HomePage() {
                 {[
                   "Stacks grow richer with each contributing student",
                   "Professors can verify and endorse content",
-                  "AI-powered tools built into every stack",
+                  "Structured content extraction built into every stack",
                 ].map((point, i) => (
                   <motion.div
                     key={point}

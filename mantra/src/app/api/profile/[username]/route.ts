@@ -44,6 +44,7 @@ export async function GET(
       name: true,
       username: true,
       image: true,
+      banner: true,
       bio: true,
       university: true,
       department: true,

@@ -11,7 +11,7 @@ import {
   Music, HelpCircle, ChevronRight, Tag, Plus,
   Code2, ArrowLeft, Loader2, X, Edit2, Trash2,
   AlertTriangle, Send, Upload, File as FileIcon, Check,
-  Download, BookOpenCheck, Lock,
+  Download, BookOpenCheck, Lock, Maximize2,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -51,7 +51,7 @@ interface DiscComment {
 }
 
 interface StackFileRecord {
-  id: string; name: string; url: string; size: number; mimeType: string; moduleId: string | null; mtContentId: string | null;
+  id: string; name: string; url: string; rawPath: string | null; size: number; mimeType: string; moduleId: string | null; mtContentId: string | null;
 }
 
 function formatFileSize(bytes: number): string {
@@ -790,6 +790,24 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                               >
                                 <BookOpen className="w-4 h-4" />Read
                               </button>
+                            ) : f.rawPath !== undefined && f.rawPath !== null ? (
+                              <div className="flex items-center gap-2">
+                                <a
+                                  href={`/pdf-view/${f.id}?stack=${slug}&name=${encodeURIComponent(f.name)}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-1.5 px-4 py-2 bg-secondary text-on-secondary rounded-xl text-sm font-semibold font-manrope hover:opacity-90 transition-all"
+                                >
+                                  <Maximize2 className="w-4 h-4" />View
+                                </a>
+                                <a
+                                  href={`/api/stacks/${slug}/files/${f.id}/download`}
+                                  className="flex items-center gap-1.5 px-3 py-2 bg-surface-container border border-outline-variant/30 rounded-xl text-sm font-medium text-on-surface-variant hover:bg-surface-container-high transition-all"
+                                  title="Download (protected)"
+                                >
+                                  <Download className="w-4 h-4" />
+                                </a>
+                              </div>
                             ) : f.url ? (
                               <a
                                 href={f.url}
@@ -903,6 +921,25 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                                     <BookOpen className="w-3.5 h-3.5" />
                                     Read
                                   </button>
+                                ) : f.rawPath !== undefined && f.rawPath !== null ? (
+                                  <div className="flex items-center gap-1.5">
+                                    <a
+                                      href={`/pdf-view/${f.id}?stack=${slug}&name=${encodeURIComponent(f.name)}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="flex items-center gap-1.5 text-xs font-medium text-secondary bg-secondary-container/40 hover:bg-secondary-container px-3 py-1.5 rounded-lg transition-all"
+                                    >
+                                      <Maximize2 className="w-3.5 h-3.5" />
+                                      View
+                                    </a>
+                                    <a
+                                      href={`/api/stacks/${slug}/files/${f.id}/download`}
+                                      className="p-1.5 rounded-lg hover:bg-surface-container-high text-on-surface-variant hover:text-primary transition-all"
+                                      title="Download (protected)"
+                                    >
+                                      <Download className="w-4 h-4" />
+                                    </a>
+                                  </div>
                                 ) : f.url ? (
                                   <a
                                     href={f.url}
