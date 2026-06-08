@@ -21,8 +21,9 @@ export async function extractTextFromFile(
     lower.endsWith(".pdf")
   ) {
     try {
+      // Use lib path directly to avoid pdf-parse test fixture loader breaking in Next.js
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const pdfParse = require("pdf-parse") as (buf: Buffer) => Promise<{ text: string }>;
+      const pdfParse = require("pdf-parse/lib/pdf-parse.js") as (buf: Buffer) => Promise<{ text: string }>;
       const result = await pdfParse(buffer);
       return result.text || "";
     } catch (err) {
