@@ -86,6 +86,9 @@ model Stack {
   department  String?
   semester    String?
   language    String   @default("PDF")
+  isPaid      Boolean  @default(false)
+  price       Float?
+  duration    String?
   isPublic    Boolean  @default(true)
   isVerified  Boolean  @default(false)
   isArchived  Boolean  @default(false)

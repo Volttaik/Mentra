@@ -1,22 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import {
-  Video, FileText, Package, Radio, Upload, ChevronRight,
+  FileText, Package, Upload, ChevronRight,
   X, Plus, Check, BookOpen, ArrowLeft, Loader2,
+  File, AlertCircle,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import { cn } from "@/lib/utils";
 
 const CONTENT_TYPES = [
-  { id: "lecture", icon: FileText, title: "Lecture Notes", description: "PDFs, markdown notes, slides, or written materials", color: "bg-secondary-container text-on-secondary-container" },
-  { id: "video", icon: Video, title: "Video Lecture", description: "High-quality video teaching content", color: "bg-primary-fixed text-primary" },
-  { id: "bundle", icon: Package, title: "Course Bundle", description: "Combined multi-format course stack", color: "bg-tertiary-fixed text-tertiary" },
-  { id: "live", icon: Radio, title: "Live Session", description: "Interactive real-time mentoring or tutoring", color: "bg-surface-container-high text-on-surface-variant" },
+  {
+    id: "lecture",
+    icon: FileText,
+    title: "Lecture Notes",
+    description: "PDFs, markdown notes, slides, or written materials",
+    color: "bg-secondary-container text-on-secondary-container",
+  },
+  {
+    id: "bundle",
+    icon: Package,
+    title: "Course Bundle",
+    description: "Combined multi-format course stack",
+    color: "bg-tertiary-fixed text-tertiary",
+  },
 ];
 
 const CATEGORIES = [
@@ -24,18 +35,36 @@ const CATEGORIES = [
   "Chemistry", "Economics", "Engineering", "Medicine", "History", "Other",
 ];
 
-const STEPS = ["Content Type", "Details", "Modules", "Publish"];
+const MODULE_TYPES = ["lecture", "flashcards", "quiz", "assignment"];
+
+const STEPS = ["Content Type", "Details", "Content", "Modules", "Publish"];
+
+const PLATFORM_COMMISSION = 0.1;
 
 export default function UploadPage() {
   const router = useRouter();
   const { data: session } = useSession();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [step, setStep] = useState(0);
   const [selectedType, setSelectedType] = useState("");
   const [form, setForm] = useState({
-    title: "", description: "", category: "", courseCode: "",
-    university: "", semester: "", tags: [] as string[], isPublic: true,
+    title: "",
+    description: "",
+    category: "",
+    courseCode: "",
+    university: "",
+    semester: "",
+    duration: "",
+    tags: [] as string[],
+    isPublic: true,
+    isPaid: false,
+    price: "",
   });
   const [tagInput, setTagInput] = useState("");
+  const [contentText, setContentText] = useState("");
+  const [contentFiles, setContentFiles] = useState<File[]>([]);
+  const [dragOver, setDragOver] = useState(false);
   const [modules, setModules] = useState([{ title: "", type: "lecture" }]);
   const [publishing, setPublishing] = useState(false);
   const [error, setError] = useState("");
@@ -57,11 +86,45 @@ export default function UploadPage() {
   const addModule = () =>
     setModules(prev => [...prev, { title: "", type: "lecture" }]);
 
+  const handleFileDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const files = Array.from(e.dataTransfer.files);
+    setContentFiles(prev => [...prev, ...files]);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const files = Array.from(e.target.files);
+      setContentFiles(prev => [...prev, ...files]);
+    }
+  };
+
+  const removeFile = (index: number) =>
+    setContentFiles(prev => prev.filter((_, i) => i !== index));
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  const priceNum = parseFloat(form.price) || 0;
+  const commission = priceNum * PLATFORM_COMMISSION;
+  const creatorEarnings = priceNum - commission;
+
+  const isBundle = selectedType === "bundle";
+
   const handlePublish = async () => {
     if (!session?.user) { router.push("/login"); return; }
     if (!form.title.trim() || !form.description.trim()) {
       setError("Title and description are required.");
       setStep(1);
+      return;
+    }
+    if (form.isPaid && (!form.price || priceNum <= 0)) {
+      setError("Please enter a valid price for your paid stack.");
+      setStep(4);
       return;
     }
     setPublishing(true);
@@ -73,14 +136,17 @@ export default function UploadPage() {
         body: JSON.stringify({
           title: form.title,
           description: form.description,
-          department: form.category,
+          department: isBundle ? null : form.category,
           courseCode: form.courseCode,
-          university: (session.user as any).university ?? form.university,
-          semester: form.semester,
-          language: selectedType === "video" ? "Video" : selectedType === "live" ? "Live" : "PDF",
+          university: isBundle ? null : ((session.user as any).university ?? form.university),
+          semester: isBundle ? null : form.semester,
+          duration: isBundle ? form.duration : null,
+          language: "PDF",
           tags: form.tags,
           modules: modules.filter(m => m.title.trim()),
           isPublic: form.isPublic,
+          isPaid: form.isPaid,
+          price: form.isPaid ? form.price : null,
         }),
       });
       const data = await res.json();
@@ -116,12 +182,21 @@ export default function UploadPage() {
                 onClick={() => i < step && setStep(i)}
                 className={cn(
                   "flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all",
-                  step === i ? "bg-secondary-container text-on-secondary-container font-semibold" :
-                  step > i ? "text-secondary cursor-pointer hover:bg-surface-container" :
-                  "text-on-surface-variant opacity-50 cursor-default"
+                  step === i
+                    ? "bg-secondary-container text-on-secondary-container font-semibold"
+                    : step > i
+                    ? "text-secondary cursor-pointer hover:bg-surface-container"
+                    : "text-on-surface-variant opacity-50 cursor-default"
                 )}
               >
-                <span className={cn("w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold", step > i ? "bg-secondary text-on-secondary" : step === i ? "bg-on-secondary-container text-secondary-container" : "bg-outline-variant/30 text-on-surface-variant")}>
+                <span className={cn(
+                  "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold",
+                  step > i
+                    ? "bg-secondary text-on-secondary"
+                    : step === i
+                    ? "bg-on-secondary-container text-secondary-container"
+                    : "bg-outline-variant/30 text-on-surface-variant"
+                )}>
                   {step > i ? <Check className="w-3 h-3" /> : i + 1}
                 </span>
                 {s}
@@ -132,7 +207,8 @@ export default function UploadPage() {
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-error-container/20 border border-error/20 rounded-xl text-sm text-error">
+          <div className="mb-6 p-4 bg-error-container/20 border border-error/20 rounded-xl flex items-center gap-3 text-sm text-error">
+            <AlertCircle className="w-4 h-4 shrink-0" />
             {error}
           </div>
         )}
@@ -145,7 +221,10 @@ export default function UploadPage() {
               <button
                 key={type.id}
                 onClick={() => { setSelectedType(type.id); setStep(1); }}
-                className={cn("w-full card-sm p-6 flex items-center gap-5 cursor-pointer group hover:-translate-y-0.5 transition-all text-left", selectedType === type.id && "ring-2 ring-secondary")}
+                className={cn(
+                  "w-full card-sm p-6 flex items-center gap-5 cursor-pointer group hover:-translate-y-0.5 transition-all text-left",
+                  selectedType === type.id && "ring-2 ring-secondary"
+                )}
               >
                 <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center shrink-0", type.color)}>
                   <type.icon className="w-6 h-6" />
@@ -164,44 +243,97 @@ export default function UploadPage() {
         {step === 1 && (
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
             <h2 className="font-manrope font-semibold text-lg text-primary mb-6">Content details</h2>
+
             <div>
               <label className="block text-sm font-medium text-primary mb-1.5">Stack title *</label>
-              <input value={form.title} onChange={e => update("title", e.target.value)} placeholder="e.g. Advanced Algorithms — COMP 401" className="input-field" required />
+              <input
+                value={form.title}
+                onChange={e => update("title", e.target.value)}
+                placeholder="e.g. Advanced Algorithms — COMP 401"
+                className="input-field"
+                required
+              />
             </div>
+
             <div>
               <label className="block text-sm font-medium text-primary mb-1.5">Description *</label>
-              <textarea value={form.description} onChange={e => update("description", e.target.value)} placeholder="Briefly describe what students will learn and what's included..." rows={4} className="input-field resize-none" required />
+              <textarea
+                value={form.description}
+                onChange={e => update("description", e.target.value)}
+                placeholder="Briefly describe what students will learn and what's included..."
+                rows={4}
+                className="input-field resize-none"
+                required
+              />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+
+            <div className={cn("grid gap-4", isBundle ? "grid-cols-1" : "grid-cols-2")}>
               <div>
                 <label className="block text-sm font-medium text-primary mb-1.5">Course code</label>
-                <input value={form.courseCode} onChange={e => update("courseCode", e.target.value)} placeholder="e.g. CS 401" className="input-field" />
+                <input
+                  value={form.courseCode}
+                  onChange={e => update("courseCode", e.target.value)}
+                  placeholder="e.g. CS 401"
+                  className="input-field"
+                />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-primary mb-1.5">Semester</label>
-                <input value={form.semester} onChange={e => update("semester", e.target.value)} placeholder="e.g. Fall 2025" className="input-field" />
-              </div>
+              {isBundle ? (
+                <div>
+                  <label className="block text-sm font-medium text-primary mb-1.5">Duration</label>
+                  <input
+                    value={form.duration}
+                    onChange={e => update("duration", e.target.value)}
+                    placeholder="e.g. 12 weeks"
+                    className="input-field"
+                  />
+                </div>
+              ) : (
+                <div>
+                  <label className="block text-sm font-medium text-primary mb-1.5">Semester</label>
+                  <input
+                    value={form.semester}
+                    onChange={e => update("semester", e.target.value)}
+                    placeholder="e.g. Fall 2025"
+                    className="input-field"
+                  />
+                </div>
+              )}
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-primary mb-1.5">University</label>
-                <input value={form.university} onChange={e => update("university", e.target.value)} placeholder="Your university" className="input-field" />
+
+            {!isBundle && (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-primary mb-1.5">University</label>
+                  <input
+                    value={form.university}
+                    onChange={e => update("university", e.target.value)}
+                    placeholder="Your university"
+                    className="input-field"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-primary mb-1.5">Department</label>
+                  <select
+                    value={form.category}
+                    onChange={e => update("category", e.target.value)}
+                    className="input-field"
+                  >
+                    <option value="">Select a department</option>
+                    {CATEGORIES.map(c => <option key={c}>{c}</option>)}
+                  </select>
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-primary mb-1.5">Department</label>
-                <select value={form.category} onChange={e => update("category", e.target.value)} className="input-field">
-                  <option value="">Select a department</option>
-                  {CATEGORIES.map(c => <option key={c}>{c}</option>)}
-                </select>
-              </div>
-            </div>
+            )}
+
             <div>
               <label className="block text-sm font-medium text-primary mb-1.5">Tags</label>
               <div className="flex gap-2 mb-2 flex-wrap">
                 {form.tags.map(tag => (
                   <span key={tag} className="flex items-center gap-1 tag-accent text-xs">
                     {tag}
-                    <button onClick={() => removeTag(tag)} className="hover:text-error transition-colors"><X className="w-3 h-3" /></button>
+                    <button onClick={() => removeTag(tag)} className="hover:text-error transition-colors">
+                      <X className="w-3 h-3" />
+                    </button>
                   </span>
                 ))}
               </div>
@@ -213,9 +345,12 @@ export default function UploadPage() {
                   placeholder="Add a tag and press Enter"
                   className="input-field flex-1"
                 />
-                <button onClick={addTag} className="btn-primary px-4 py-3 rounded-xl"><Plus className="w-4 h-4" /></button>
+                <button onClick={addTag} className="btn-primary px-4 py-3 rounded-xl">
+                  <Plus className="w-4 h-4" />
+                </button>
               </div>
             </div>
+
             <div>
               <label className="block text-sm font-medium text-primary mb-2">Visibility</label>
               <div className="flex gap-2">
@@ -223,24 +358,125 @@ export default function UploadPage() {
                   <button
                     key={String(opt.value)}
                     onClick={() => update("isPublic", opt.value)}
-                    className={cn("flex-1 py-3 rounded-xl text-sm font-semibold font-manrope capitalize transition-all border", form.isPublic === opt.value ? "bg-secondary-container border-secondary/30 text-on-secondary-container" : "border-outline-variant/30 text-on-surface-variant hover:bg-surface-container")}
+                    className={cn(
+                      "flex-1 py-3 rounded-xl text-sm font-semibold font-manrope capitalize transition-all border",
+                      form.isPublic === opt.value
+                        ? "bg-secondary-container border-secondary/30 text-on-secondary-container"
+                        : "border-outline-variant/30 text-on-surface-variant hover:bg-surface-container"
+                    )}
                   >
                     {opt.label}
                   </button>
                 ))}
               </div>
             </div>
+
             <div className="flex gap-3 pt-4">
               <button onClick={() => setStep(0)} className="btn-secondary flex-1">Back</button>
-              <button onClick={() => { if (!form.title.trim() || !form.description.trim()) { setError("Title and description are required."); return; } setError(""); setStep(2); }} className="btn-primary flex-1">Continue →</button>
+              <button
+                onClick={() => {
+                  if (!form.title.trim() || !form.description.trim()) {
+                    setError("Title and description are required.");
+                    return;
+                  }
+                  setError("");
+                  setStep(2);
+                }}
+                className="btn-primary flex-1"
+              >
+                Continue →
+              </button>
             </div>
           </motion.div>
         )}
 
-        {/* Step 2: Modules */}
+        {/* Step 2: Content */}
         {step === 2 && (
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+            <h2 className="font-manrope font-semibold text-lg text-primary mb-2">Add your content</h2>
+            <p className="text-sm text-on-surface-variant mb-6">Upload files or write your content directly. You can do both.</p>
+
+            {/* File upload area */}
+            <div>
+              <label className="block text-sm font-medium text-primary mb-2">Upload files</label>
+              <div
+                onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={handleFileDrop}
+                onClick={() => fileInputRef.current?.click()}
+                className={cn(
+                  "border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer transition-all",
+                  dragOver
+                    ? "border-secondary bg-secondary-container/20"
+                    : "border-outline-variant/30 hover:border-secondary/40 hover:bg-surface-container/50"
+                )}
+              >
+                <div className="w-12 h-12 bg-secondary-container rounded-2xl flex items-center justify-center">
+                  <Upload className="w-6 h-6 text-on-secondary-container" />
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-medium text-primary">Drop files here or click to browse</p>
+                  <p className="text-xs text-on-surface-variant mt-1">PDF, DOCX, ZIP, PPTX — up to 25MB each</p>
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept=".pdf,.docx,.doc,.zip,.pptx,.ppt,.xlsx,.xls,.txt,.md"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+              </div>
+
+              {contentFiles.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  {contentFiles.map((file, i) => (
+                    <div key={i} className="flex items-center gap-3 p-3 bg-surface-container rounded-xl">
+                      <div className="w-8 h-8 bg-secondary-container rounded-lg flex items-center justify-center shrink-0">
+                        <File className="w-4 h-4 text-on-secondary-container" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-primary truncate">{file.name}</p>
+                        <p className="text-xs text-on-surface-variant">{formatFileSize(file.size)}</p>
+                      </div>
+                      <button
+                        onClick={() => removeFile(i)}
+                        className="text-on-surface-variant hover:text-error transition-colors shrink-0"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Text editor */}
+            <div>
+              <label className="block text-sm font-medium text-primary mb-2">Write content</label>
+              <textarea
+                value={contentText}
+                onChange={e => setContentText(e.target.value)}
+                placeholder="Write your lecture notes, course overview, or any supporting content here..."
+                rows={10}
+                className="input-field resize-none font-mono text-sm leading-relaxed"
+              />
+              <p className="text-xs text-on-surface-variant mt-1.5">{contentText.length} characters</p>
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <button onClick={() => setStep(1)} className="btn-secondary flex-1">Back</button>
+              <button onClick={() => setStep(3)} className="btn-primary flex-1">Continue →</button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Step 3: Modules */}
+        {step === 3 && (
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-            <h2 className="font-manrope font-semibold text-lg text-primary mb-6">Organize your modules</h2>
+            <h2 className="font-manrope font-semibold text-lg text-primary mb-2">Organize your modules</h2>
+            <p className="text-sm text-on-surface-variant mb-6">Break your content into structured learning modules.</p>
+
             {modules.map((mod, i) => (
               <div key={i} className="card-sm p-5 flex items-center gap-4">
                 <div className="w-8 h-8 bg-secondary-container rounded-xl flex items-center justify-center font-bold font-manrope text-sm text-on-secondary-container shrink-0">
@@ -248,40 +484,58 @@ export default function UploadPage() {
                 </div>
                 <input
                   value={mod.title}
-                  onChange={e => { const u = [...modules]; u[i].title = e.target.value; setModules(u); }}
+                  onChange={e => {
+                    const u = [...modules];
+                    u[i].title = e.target.value;
+                    setModules(u);
+                  }}
                   placeholder={`Module ${i + 1} title...`}
                   className="flex-1 bg-transparent border-b border-outline-variant/30 py-1 text-sm text-on-surface focus:outline-none focus:border-secondary transition-colors placeholder:text-on-surface-variant/50"
                 />
                 <select
                   value={mod.type}
-                  onChange={e => { const u = [...modules]; u[i].type = e.target.value; setModules(u); }}
-                  className="text-xs bg-surface-container text-on-surface-variant border-none rounded-lg px-2 py-1.5 focus:outline-none"
+                  onChange={e => {
+                    const u = [...modules];
+                    u[i].type = e.target.value;
+                    setModules(u);
+                  }}
+                  className="text-xs bg-surface-container text-on-surface-variant border-none rounded-lg px-2 py-1.5 focus:outline-none capitalize"
                 >
-                  {["lecture", "assignment", "quiz", "video", "flashcard"].map(t => (
+                  {MODULE_TYPES.map(t => (
                     <option key={t} value={t} className="capitalize">{t}</option>
                   ))}
                 </select>
                 {modules.length > 1 && (
-                  <button onClick={() => setModules(m => m.filter((_, j) => j !== i))} className="text-on-surface-variant hover:text-error transition-colors">
+                  <button
+                    onClick={() => setModules(m => m.filter((_, j) => j !== i))}
+                    className="text-on-surface-variant hover:text-error transition-colors"
+                  >
                     <X className="w-4 h-4" />
                   </button>
                 )}
               </div>
             ))}
-            <button onClick={addModule} className="w-full border-2 border-dashed border-outline-variant/30 rounded-2xl p-4 flex items-center justify-center gap-2 text-sm text-on-surface-variant hover:border-secondary/40 hover:text-secondary transition-all">
+
+            <button
+              onClick={addModule}
+              className="w-full border-2 border-dashed border-outline-variant/30 rounded-2xl p-4 flex items-center justify-center gap-2 text-sm text-on-surface-variant hover:border-secondary/40 hover:text-secondary transition-all"
+            >
               <Plus className="w-4 h-4" />Add module
             </button>
+
             <div className="flex gap-3 pt-4">
-              <button onClick={() => setStep(1)} className="btn-secondary flex-1">Back</button>
-              <button onClick={() => setStep(3)} className="btn-primary flex-1">Review & Publish →</button>
+              <button onClick={() => setStep(2)} className="btn-secondary flex-1">Back</button>
+              <button onClick={() => setStep(4)} className="btn-primary flex-1">Review & Publish →</button>
             </div>
           </motion.div>
         )}
 
-        {/* Step 3: Publish */}
-        {step === 3 && (
+        {/* Step 4: Publish */}
+        {step === 4 && (
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
             <h2 className="font-manrope font-semibold text-lg text-primary mb-6">Ready to publish?</h2>
+
+            {/* Stack summary */}
             <div className="card p-6 space-y-4">
               <div className="flex items-start gap-4">
                 <div className="w-12 h-12 bg-secondary-container rounded-2xl flex items-center justify-center shrink-0">
@@ -293,12 +547,19 @@ export default function UploadPage() {
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3 pt-4 border-t border-outline-variant/10 text-sm">
+                <div><span className="text-on-surface-variant">Type:</span> <span className="font-medium text-primary capitalize">{selectedType === "bundle" ? "Course Bundle" : "Lecture Notes"}</span></div>
                 <div><span className="text-on-surface-variant">Course:</span> <span className="font-medium text-primary">{form.courseCode || "—"}</span></div>
-                <div><span className="text-on-surface-variant">Semester:</span> <span className="font-medium text-primary">{form.semester || "—"}</span></div>
-                <div><span className="text-on-surface-variant">Department:</span> <span className="font-medium text-primary">{form.category || "—"}</span></div>
+                {!isBundle && (
+                  <>
+                    <div><span className="text-on-surface-variant">Semester:</span> <span className="font-medium text-primary">{form.semester || "—"}</span></div>
+                    <div><span className="text-on-surface-variant">Department:</span> <span className="font-medium text-primary">{form.category || "—"}</span></div>
+                  </>
+                )}
+                {isBundle && (
+                  <div><span className="text-on-surface-variant">Duration:</span> <span className="font-medium text-primary">{form.duration || "—"}</span></div>
+                )}
                 <div><span className="text-on-surface-variant">Modules:</span> <span className="font-medium text-primary">{modules.filter(m => m.title.trim()).length}</span></div>
                 <div><span className="text-on-surface-variant">Visibility:</span> <span className="font-medium text-primary capitalize">{form.isPublic ? "Public" : "Private"}</span></div>
-                <div><span className="text-on-surface-variant">Type:</span> <span className="font-medium text-primary capitalize">{selectedType}</span></div>
               </div>
               {form.tags.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 pt-2">
@@ -306,8 +567,81 @@ export default function UploadPage() {
                 </div>
               )}
             </div>
-            <div className="flex gap-3 pt-4">
-              <button onClick={() => setStep(2)} className="btn-secondary">Back</button>
+
+            {/* Monetization */}
+            <div className="card p-6 space-y-4">
+              <h3 className="font-manrope font-semibold text-base text-primary">Stack pricing</h3>
+              <div className="flex gap-2">
+                {[{ label: "Free", value: false }, { label: "Paid", value: true }].map(opt => (
+                  <button
+                    key={String(opt.value)}
+                    onClick={() => update("isPaid", opt.value)}
+                    className={cn(
+                      "flex-1 py-3 rounded-xl text-sm font-semibold font-manrope transition-all border",
+                      form.isPaid === opt.value
+                        ? "bg-secondary-container border-secondary/30 text-on-secondary-container"
+                        : "border-outline-variant/30 text-on-surface-variant hover:bg-surface-container"
+                    )}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+
+              {form.isPaid && (
+                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-1.5">Selling price (₦)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={form.price}
+                      onChange={e => update("price", e.target.value)}
+                      placeholder="e.g. 1000"
+                      className="input-field"
+                    />
+                  </div>
+
+                  {priceNum > 0 && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="rounded-xl overflow-hidden border border-outline-variant/20">
+                      <div className="bg-surface-container px-4 py-3 border-b border-outline-variant/10">
+                        <p className="text-xs font-semibold text-on-surface-variant uppercase tracking-wide">Revenue breakdown</p>
+                      </div>
+                      <div className="divide-y divide-outline-variant/10">
+                        <div className="flex items-center justify-between px-4 py-3">
+                          <span className="text-sm text-on-surface-variant">Stack price</span>
+                          <span className="text-sm font-semibold text-primary">₦{priceNum.toLocaleString()}</span>
+                        </div>
+                        <div className="flex items-center justify-between px-4 py-3">
+                          <span className="text-sm text-on-surface-variant">Mentra commission (10%)</span>
+                          <span className="text-sm font-medium text-error">−₦{commission.toLocaleString()}</span>
+                        </div>
+                        <div className="flex items-center justify-between px-4 py-3 bg-secondary-container/30">
+                          <span className="text-sm font-semibold text-primary">Your earnings (90%)</span>
+                          <span className="text-sm font-bold text-secondary">₦{creatorEarnings.toLocaleString()}</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </motion.div>
+              )}
+
+              {!form.isPaid && (
+                <p className="text-xs text-on-surface-variant">This stack will be available to everyone for free.</p>
+              )}
+            </div>
+
+            {/* Final visibility */}
+            <div className="flex items-center gap-3 px-4 py-3 bg-surface-container rounded-xl text-sm">
+              <div className={cn("w-2 h-2 rounded-full shrink-0", form.isPublic ? "bg-secondary" : "bg-outline-variant")} />
+              <span className="text-on-surface-variant">
+                This stack will be published as <span className="font-semibold text-primary">{form.isPublic ? "Public" : "Private"}</span>
+                {form.isPaid && priceNum > 0 ? ` · Paid (₦${priceNum.toLocaleString()})` : " · Free"}
+              </span>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button onClick={() => setStep(3)} className="btn-secondary">Back</button>
               <button
                 onClick={handlePublish}
                 disabled={publishing}

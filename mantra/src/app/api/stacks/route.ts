@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
   }
   try {
     const body = await req.json();
-    const { title, description, department, courseCode, university, semester, language, tags, modules, isPublic } = body;
+    const { title, description, department, courseCode, university, semester, duration, language, tags, modules, isPublic, isPaid, price } = body;
 
     if (!title?.trim() || !description?.trim()) {
       return NextResponse.json({ error: "Title and description are required." }, { status: 400 });
@@ -123,8 +123,11 @@ export async function POST(req: NextRequest) {
         university: university?.trim() || null,
         department: department?.trim() || null,
         semester: semester?.trim() || null,
+        duration: duration?.trim() || null,
         language: language || "PDF",
         isPublic: isPublic !== false,
+        isPaid: isPaid === true,
+        price: isPaid && price ? parseFloat(price) : null,
         ownerId: session.user.id,
         tags: {
           create: (tags as string[] ?? [])
