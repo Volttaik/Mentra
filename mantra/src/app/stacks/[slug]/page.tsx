@@ -4,19 +4,20 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Star, GitFork, Eye, Shield, Clock, MessageSquare,
   Share2, Bookmark, BookOpen, FileText, Video,
   Music, HelpCircle, ChevronRight, Tag, Plus,
   Code2, ArrowLeft, Loader2, X, Edit2, Trash2,
   AlertTriangle, Send, Upload, File as FileIcon, Check,
-  Download,
+  Download, BookOpenCheck, Lock,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { formatNumber, timeAgo } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import MtViewer from "@/components/MtViewer";
 
 const MODULE_ICONS: Record<string, React.ReactNode> = {
   lecture: <BookOpen className="w-4 h-4" />,
@@ -48,7 +49,7 @@ interface DiscComment {
 }
 
 interface StackFileRecord {
-  id: string; name: string; url: string; size: number; mimeType: string; moduleId: string | null;
+  id: string; name: string; url: string; size: number; mimeType: string; moduleId: string | null; mtContentId: string | null;
 }
 
 function formatFileSize(bytes: number): string {
@@ -102,6 +103,10 @@ export default function StackPage({ params }: { params: { slug: string } }) {
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [currentUploadModuleId, setCurrentUploadModuleId] = useState<string | null>(null);
+
+  // MT Viewer
+  const [viewerContentId, setViewerContentId] = useState<string | null>(null);
+  const [viewerFileName, setViewerFileName] = useState<string>("");
 
   useEffect(() => {
     setLoading(true);
@@ -674,20 +679,50 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                             <p className="text-xs text-on-surface-variant py-2">No files uploaded yet.{isOwner ? " Click Upload to add files." : ""}</p>
                           ) : (
                             moduleFiles[module.id].map(f => (
-                              <a
+                              <div
                                 key={f.id}
-                                href={f.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
                                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-surface-container transition-all group/file"
                               >
-                                <FileIcon className="w-4 h-4 text-secondary shrink-0" />
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm text-primary group-hover/file:text-secondary transition-colors truncate">{f.name}</p>
-                                  <p className="text-xs text-on-surface-variant">{formatFileSize(f.size)}</p>
+                                <div className="w-7 h-7 bg-secondary-container/60 rounded-lg flex items-center justify-center shrink-0">
+                                  {f.mtContentId ? (
+                                    <BookOpenCheck className="w-3.5 h-3.5 text-secondary" />
+                                  ) : (
+                                    <FileIcon className="w-3.5 h-3.5 text-secondary" />
+                                  )}
                                 </div>
-                                <Download className="w-4 h-4 text-on-surface-variant group-hover/file:text-primary transition-colors" />
-                              </a>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm text-primary truncate">{f.name}</p>
+                                  <p className="text-xs text-on-surface-variant flex items-center gap-1">
+                                    {formatFileSize(f.size)}
+                                    {f.mtContentId && (
+                                      <span className="flex items-center gap-0.5 text-secondary ml-1">
+                                        <Lock className="w-2.5 h-2.5" />MT secured
+                                      </span>
+                                    )}
+                                  </p>
+                                </div>
+                                {f.mtContentId ? (
+                                  <button
+                                    onClick={() => {
+                                      setViewerContentId(f.mtContentId!);
+                                      setViewerFileName(f.name);
+                                    }}
+                                    className="flex items-center gap-1.5 text-xs font-medium text-secondary bg-secondary-container/40 hover:bg-secondary-container px-3 py-1.5 rounded-lg transition-all"
+                                  >
+                                    <BookOpen className="w-3.5 h-3.5" />
+                                    Read
+                                  </button>
+                                ) : f.url ? (
+                                  <a
+                                    href={f.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="p-1.5 rounded-lg hover:bg-surface-container-high text-on-surface-variant hover:text-primary transition-all"
+                                  >
+                                    <Download className="w-4 h-4" />
+                                  </a>
+                                ) : null}
+                              </div>
                             ))
                           )}
                         </div>
@@ -1041,6 +1076,16 @@ export default function StackPage({ params }: { params: { slug: string } }) {
           </motion.div>
         </div>
       )}
+
+      <AnimatePresence>
+        {viewerContentId && (
+          <MtViewer
+            contentId={viewerContentId}
+            fileName={viewerFileName}
+            onClose={() => { setViewerContentId(null); setViewerFileName(""); }}
+          />
+        )}
+      </AnimatePresence>
 
       <Footer />
     </div>

@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { writeFile, mkdir, unlink } from "fs/promises";
+import { mkdir, writeFile, unlink } from "fs/promises";
 import path from "path";
+import { extractTextFromFile, isTextExtractable } from "@/lib/mt-extractor";
+import { buildAndEncryptMt } from "@/lib/mt-engine";
 
 const ALLOWED_MIME_TYPES = new Set([
   "application/pdf",
@@ -29,7 +31,20 @@ const ALLOWED_MIME_TYPES = new Set([
   "video/webm",
 ]);
 
-const BLOCKED_EXTENSIONS = /\.(html?|svg|php|sh|exe|bat|cmd|js|mjs|ts|jsx|tsx|py|rb|go|java|c|cpp)$/i;
+const BLOCKED_EXTENSIONS =
+  /\.(html?|svg|php|sh|exe|bat|cmd|js|mjs|ts|jsx|tsx|py|rb|go|java|c|cpp)$/i;
+
+const MEDIA_MIMES = new Set([
+  "image/png",
+  "image/jpeg",
+  "image/gif",
+  "image/webp",
+  "audio/mpeg",
+  "audio/wav",
+  "audio/ogg",
+  "video/mp4",
+  "video/webm",
+]);
 
 export async function GET(
   req: NextRequest,
@@ -84,50 +99,133 @@ export async function POST(
   }
 
   const file = formData.get("file") as File | null;
-  if (!file) return NextResponse.json({ error: "No file provided" }, { status: 400 });
+  if (!file)
+    return NextResponse.json({ error: "No file provided" }, { status: 400 });
 
   const moduleId = formData.get("moduleId") as string | null;
 
   const maxSize = 25 * 1024 * 1024;
   if (file.size > maxSize) {
-    return NextResponse.json({ error: "File exceeds 25 MB limit" }, { status: 413 });
+    return NextResponse.json(
+      { error: "File exceeds 25 MB limit" },
+      { status: 413 }
+    );
   }
 
   if (BLOCKED_EXTENSIONS.test(file.name)) {
-    return NextResponse.json({ error: "File type not allowed" }, { status: 415 });
+    return NextResponse.json(
+      { error: "File type not allowed" },
+      { status: 415 }
+    );
   }
 
   const mimeType = file.type || "application/octet-stream";
   if (!ALLOWED_MIME_TYPES.has(mimeType) && !mimeType.startsWith("text/")) {
-    return NextResponse.json({ error: "File type not allowed" }, { status: 415 });
+    return NextResponse.json(
+      { error: "File type not allowed" },
+      { status: 415 }
+    );
   }
 
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
 
-  const safeName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
-  const uploadDir = path.join(process.cwd(), "public", "uploads", stack.id);
-  await mkdir(uploadDir, { recursive: true });
-  await writeFile(path.join(uploadDir, safeName), buffer);
+  const isMedia = MEDIA_MIMES.has(mimeType);
+  const canExtract = isTextExtractable(mimeType, file.name);
 
-  const url = `/uploads/${stack.id}/${safeName}`;
+  let fileUrl = "";
+  let mtContentId: string | null = null;
+
+  if (isMedia) {
+    const safeName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+    const uploadDir = path.join(process.cwd(), "public", "uploads", stack.id);
+    await mkdir(uploadDir, { recursive: true });
+    await writeFile(path.join(uploadDir, safeName), buffer);
+    fileUrl = `/uploads/${stack.id}/${safeName}`;
+  } else if (canExtract) {
+    fileUrl = "";
+
+    try {
+      const rawText = await extractTextFromFile(buffer, mimeType, file.name);
+      const { mt, packet } = buildAndEncryptMt(rawText, stack.id, file.name, mimeType);
+
+      const lastEdition = await prisma.edition.findFirst({
+        where: { stackId: stack.id },
+        orderBy: { createdAt: "desc" },
+      });
+
+      let nextVersion = "1.0";
+      if (lastEdition) {
+        const [major, minor] = lastEdition.version.split(".").map(Number);
+        nextVersion = `${major}.${(minor ?? 0) + 1}`;
+      }
+
+      const edition = await prisma.edition.create({
+        data: {
+          stackId: stack.id,
+          version: nextVersion,
+          changelog: `Uploaded: ${file.name}`,
+          snapshot: {
+            title: stack.id,
+            source: file.name,
+          },
+          editorId: session.user.id,
+          mtContent: {
+            create: {
+              stackId: stack.id,
+              rawContent: "",
+              sections: mt.sections as any,
+              concepts: mt.concepts as any,
+              summary: mt.summary,
+              references: mt.references as any,
+              searchIndex: mt.searchIndex,
+              fileName: file.name,
+              fileType: mimeType,
+              encryptedData: packet.encryptedData,
+              encryptedIv: packet.iv,
+              authTag: packet.authTag,
+              isEncrypted: true,
+            },
+          },
+        },
+        include: { mtContent: true },
+      });
+
+      mtContentId = edition.mtContent[0]?.id ?? null;
+    } catch (extractErr) {
+      console.error("[MT Pipeline] Extraction failed:", extractErr);
+    }
+  } else {
+    const safeName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+    const uploadDir = path.join(
+      process.cwd(),
+      ".mt-storage",
+      stack.id
+    );
+    await mkdir(uploadDir, { recursive: true });
+    await writeFile(path.join(uploadDir, safeName), buffer);
+    fileUrl = "";
+  }
 
   const record = await prisma.stackFile.create({
     data: {
       stackId: stack.id,
       moduleId: moduleId ?? null,
       name: file.name,
-      url,
+      url: fileUrl,
       size: file.size,
-      mimeType: file.type || "application/octet-stream",
+      mimeType: mimeType,
+      mtContentId: mtContentId ?? null,
     },
   });
 
   if (moduleId) {
-    await prisma.module.update({
-      where: { id: moduleId },
-      data: { files: { increment: 1 } },
-    }).catch(() => {});
+    await prisma.module
+      .update({
+        where: { id: moduleId },
+        data: { files: { increment: 1 } },
+      })
+      .catch(() => {});
   }
 
   return NextResponse.json({ file: record });
@@ -144,7 +242,8 @@ export async function DELETE(
 
   const { searchParams } = new URL(req.url);
   const fileId = searchParams.get("fileId");
-  if (!fileId) return NextResponse.json({ error: "Missing fileId" }, { status: 400 });
+  if (!fileId)
+    return NextResponse.json({ error: "Missing fileId" }, { status: 400 });
 
   const stack = await prisma.stack.findUnique({
     where: { slug: params.slug },
@@ -155,10 +254,12 @@ export async function DELETE(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const fileRecord = await prisma.stackFile.findFirst({ where: { id: fileId, stackId: stack.id } });
+  const fileRecord = await prisma.stackFile.findFirst({
+    where: { id: fileId, stackId: stack.id },
+  });
   if (fileRecord) {
     await prisma.stackFile.delete({ where: { id: fileId } }).catch(() => {});
-    if (fileRecord.url.startsWith("/uploads/")) {
+    if (fileRecord.url?.startsWith("/uploads/")) {
       const diskPath = path.join(process.cwd(), "public", fileRecord.url);
       await unlink(diskPath).catch(() => {});
     }

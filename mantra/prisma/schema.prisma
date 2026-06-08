@@ -114,15 +114,16 @@ model Stack {
 }
 
 model StackFile {
-  id        String   @id @default(cuid())
-  stackId   String
-  moduleId  String?
-  name      String
-  url       String
-  size      Int      @default(0)
-  mimeType  String   @default("application/octet-stream")
-  createdAt DateTime @default(now())
-  stack     Stack    @relation(fields: [stackId], references: [id], onDelete: Cascade)
+  id          String   @id @default(cuid())
+  stackId     String
+  moduleId    String?
+  name        String
+  url         String
+  size        Int      @default(0)
+  mimeType    String   @default("application/octet-stream")
+  mtContentId String?
+  createdAt   DateTime @default(now())
+  stack       Stack    @relation(fields: [stackId], references: [id], onDelete: Cascade)
 
   @@map("stack_files")
 }
@@ -154,6 +155,10 @@ model MtContent {
   searchIndex   String
   fileName      String?
   fileType      String?
+  encryptedData String?
+  encryptedIv   String?
+  authTag       String?
+  isEncrypted   Boolean  @default(false)
   createdAt     DateTime @default(now())
 
   edition       Edition  @relation(fields: [editionId], references: [id], onDelete: Cascade)
