@@ -27,7 +27,7 @@ const MODULE_ICONS: Record<string, React.ReactNode> = {
   flashcard: <HelpCircle className="w-4 h-4" />,
 };
 
-const TABS = ["Overview", "Modules", "Discussions", "Contributors"];
+const TABS = ["Overview", "Content", "Modules", "Discussions", "Contributors"];
 
 interface StackData {
   id: string; title: string; slug: string; description: string; courseCode: string;
@@ -105,6 +105,11 @@ export default function StackPage({ params }: { params: { slug: string } }) {
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [currentUploadModuleId, setCurrentUploadModuleId] = useState<string | null>(null);
+
+  // All-files Content tab
+  const [allFiles, setAllFiles] = useState<StackFileRecord[]>([]);
+  const [allFilesLoading, setAllFilesLoading] = useState(false);
+  const [allFilesFetched, setAllFilesFetched] = useState(false);
 
   // MT Viewer
   const [viewerContentId, setViewerContentId] = useState<string | null>(null);
@@ -297,6 +302,26 @@ export default function StackPage({ params }: { params: { slug: string } }) {
         showMessage(data.error ?? "Failed to delete stack.", "error");
       }
     } finally { setDeletingStack(false); }
+  };
+
+  // Fetch all stack files for Content tab
+  const fetchAllFiles = async () => {
+    if (allFilesFetched) return;
+    setAllFilesLoading(true);
+    try {
+      const res = await fetch(`/api/stacks/${slug}/files`);
+      const data = await res.json();
+      if (res.ok) {
+        setAllFiles(data.files ?? []);
+        setAllFilesFetched(true);
+      }
+    } catch {}
+    setAllFilesLoading(false);
+  };
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    if (tab === "Content") fetchAllFiles();
   };
 
   // File upload
@@ -560,27 +585,34 @@ export default function StackPage({ params }: { params: { slug: string } }) {
           )}
         </motion.div>
 
-        {/* Tabs */}
-        <div className="flex gap-1 bg-surface-container rounded-2xl p-1 mb-8 w-fit overflow-x-auto no-scrollbar">
-          {TABS.map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={cn(
-                "px-4 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap",
-                activeTab === tab
-                  ? "bg-surface-container-lowest text-primary shadow-card font-semibold"
-                  : "text-on-surface-variant hover:text-primary"
-              )}
-            >
-              {tab}
-              {tab === "Discussions" && stack.discussionsList.length > 0 && (
-                <span className="ml-1.5 text-xs bg-secondary-container text-on-secondary-container px-1.5 py-0.5 rounded-full">
-                  {stack.discussionsList.length}
-                </span>
-              )}
-            </button>
-          ))}
+        {/* Tabs — full-width wrapper so overflow-x-auto actually triggers */}
+        <div className="w-full overflow-x-auto no-scrollbar mb-8">
+          <div className="flex gap-1 bg-surface-container rounded-2xl p-1 w-fit min-w-full sm:min-w-0">
+            {TABS.map(tab => (
+              <button
+                key={tab}
+                onClick={() => handleTabChange(tab)}
+                className={cn(
+                  "px-4 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap flex items-center gap-1.5",
+                  activeTab === tab
+                    ? "bg-surface-container-lowest text-primary shadow-card font-semibold"
+                    : "text-on-surface-variant hover:text-primary"
+                )}
+              >
+                {tab}
+                {tab === "Discussions" && stack.discussionsList.length > 0 && (
+                  <span className="text-xs bg-secondary-container text-on-secondary-container px-1.5 py-0.5 rounded-full">
+                    {stack.discussionsList.length}
+                  </span>
+                )}
+                {tab === "Content" && allFilesFetched && allFiles.length > 0 && (
+                  <span className="text-xs bg-secondary-container text-on-secondary-container px-1.5 py-0.5 rounded-full">
+                    {allFiles.length}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -671,6 +703,111 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                     )}
                   </div>
                 </div>
+              </motion.div>
+            )}
+
+            {activeTab === "Content" && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-on-surface-variant">
+                    {allFilesLoading ? (
+                      <span className="flex items-center gap-1.5"><Loader2 className="w-3.5 h-3.5 animate-spin" />Loading files…</span>
+                    ) : (
+                      <><span className="font-semibold text-primary">{allFiles.length}</span> file{allFiles.length !== 1 ? "s" : ""} in this stack</>
+                    )}
+                  </p>
+                  {isOwner && (
+                    <p className="text-xs text-on-surface-variant">Upload files from the Modules tab</p>
+                  )}
+                </div>
+
+                {allFilesLoading && (
+                  <div className="space-y-3">
+                    {[1, 2, 3].map(i => (
+                      <div key={i} className="card p-5 animate-pulse flex items-center gap-4">
+                        <div className="w-10 h-10 bg-surface-container rounded-xl shrink-0" />
+                        <div className="flex-1 space-y-2">
+                          <div className="h-4 bg-surface-container rounded w-2/3" />
+                          <div className="h-3 bg-surface-container rounded w-1/3" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {!allFilesLoading && allFiles.length === 0 && (
+                  <div className="card p-16 text-center">
+                    <div className="w-16 h-16 bg-surface-container rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <FileIcon className="w-8 h-8 text-outline-variant" />
+                    </div>
+                    <h3 className="font-manrope font-semibold text-primary mb-2">No content yet</h3>
+                    <p className="text-sm text-on-surface-variant max-w-sm mx-auto">
+                      {isOwner
+                        ? "Upload files to your modules to make them available here. Go to the Modules tab to get started."
+                        : "The owner hasn't uploaded any content yet. Check back soon."}
+                    </p>
+                  </div>
+                )}
+
+                {!allFilesLoading && allFiles.length > 0 && (
+                  <div className="space-y-3">
+                    {allFiles.map((f, i) => {
+                      const ext = f.name.split(".").pop()?.toUpperCase() ?? "FILE";
+                      return (
+                        <motion.div
+                          key={f.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.04 }}
+                          className="card p-5 flex items-center gap-4 group"
+                        >
+                          <div className={cn(
+                            "w-11 h-11 rounded-xl flex items-center justify-center shrink-0 text-xs font-bold font-manrope",
+                            f.mtContentId
+                              ? "bg-secondary-container text-on-secondary-container"
+                              : "bg-surface-container text-on-surface-variant"
+                          )}>
+                            {f.mtContentId ? <Lock className="w-4 h-4" /> : ext.slice(0, 3)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm text-primary truncate">{f.name}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-xs text-on-surface-variant">{formatFileSize(f.size)}</span>
+                              {f.mtContentId ? (
+                                <span className="flex items-center gap-1 text-xs text-secondary font-medium">
+                                  <Lock className="w-2.5 h-2.5" />MT Encrypted
+                                </span>
+                              ) : (
+                                <span className="text-xs text-on-surface-variant">{ext}</span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            {f.mtContentId ? (
+                              <button
+                                onClick={() => { setViewerContentId(f.mtContentId!); setViewerFileName(f.name); }}
+                                className="flex items-center gap-1.5 px-4 py-2 bg-secondary text-on-secondary rounded-xl text-sm font-semibold font-manrope hover:opacity-90 transition-all"
+                              >
+                                <BookOpen className="w-4 h-4" />Read
+                              </button>
+                            ) : f.url ? (
+                              <a
+                                href={f.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1.5 px-4 py-2 bg-surface-container border border-outline-variant/30 rounded-xl text-sm font-medium text-primary hover:bg-surface-container-high transition-all"
+                              >
+                                <Download className="w-4 h-4" />Download
+                              </a>
+                            ) : (
+                              <span className="text-xs text-on-surface-variant px-3 py-2 bg-surface-container rounded-xl">Stored</span>
+                            )}
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                )}
               </motion.div>
             )}
 
