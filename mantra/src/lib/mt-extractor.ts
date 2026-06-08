@@ -22,11 +22,11 @@ export async function extractTextFromFile(
   ) {
     try {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const pdfParseModule = require("pdf-parse");
-      const pdfParse = (typeof pdfParseModule === "function" ? pdfParseModule : pdfParseModule.default) as (buf: Buffer) => Promise<{ text: string }>;
+      const pdfParse = require("pdf-parse") as (buf: Buffer) => Promise<{ text: string }>;
       const result = await pdfParse(buffer);
       return result.text || "";
-    } catch {
+    } catch (err) {
+      console.error(`PDF extraction error for "${fileName}":`, err);
       return `[PDF content from ${fileName} — text extraction unavailable]`;
     }
   }
