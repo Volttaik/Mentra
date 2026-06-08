@@ -145,55 +145,69 @@ export async function POST(
   } else if (canExtract) {
     fileUrl = "";
 
+    let extractionError: string | null = null;
     try {
       const rawText = await extractTextFromFile(buffer, mimeType, file.name);
-      const { mt, packet } = buildAndEncryptMt(rawText, stack.id, file.name, mimeType);
+      if (!rawText || rawText.trim().length === 0) {
+        extractionError = `No readable text could be extracted from "${file.name}". The file may be scanned, image-only, password-protected, or corrupted.`;
+      } else {
+        const { mt, packet } = buildAndEncryptMt(rawText, stack.id, file.name, mimeType);
 
-      const lastEdition = await prisma.edition.findFirst({
-        where: { stackId: stack.id },
-        orderBy: { createdAt: "desc" },
-      });
+        const lastEdition = await prisma.edition.findFirst({
+          where: { stackId: stack.id },
+          orderBy: { createdAt: "desc" },
+        });
 
-      let nextVersion = "1.0";
-      if (lastEdition) {
-        const [major, minor] = lastEdition.version.split(".").map(Number);
-        nextVersion = `${major}.${(minor ?? 0) + 1}`;
-      }
+        let nextVersion = "1.0";
+        if (lastEdition) {
+          const [major, minor] = lastEdition.version.split(".").map(Number);
+          nextVersion = `${major}.${(minor ?? 0) + 1}`;
+        }
 
-      const edition = await prisma.edition.create({
-        data: {
-          stackId: stack.id,
-          version: nextVersion,
-          changelog: `Uploaded: ${file.name}`,
-          snapshot: {
-            title: stack.id,
-            source: file.name,
-          },
-          editorId: session.user.id,
-          mtContent: {
-            create: {
-              stackId: stack.id,
-              rawContent: "",
-              sections: mt.sections as any,
-              concepts: mt.concepts as any,
-              summary: mt.summary,
-              references: mt.references as any,
-              searchIndex: mt.searchIndex,
-              fileName: file.name,
-              fileType: mimeType,
-              encryptedData: packet.encryptedData,
-              encryptedIv: packet.iv,
-              authTag: packet.authTag,
-              isEncrypted: true,
+        const edition = await prisma.edition.create({
+          data: {
+            stackId: stack.id,
+            version: nextVersion,
+            changelog: `Uploaded: ${file.name}`,
+            snapshot: { title: stack.id, source: file.name },
+            editorId: session.user.id,
+            mtContent: {
+              create: {
+                stackId: stack.id,
+                rawContent: "",
+                sections: mt.sections as any,
+                concepts: mt.concepts as any,
+                summary: mt.summary,
+                references: mt.references as any,
+                searchIndex: mt.searchIndex,
+                fileName: file.name,
+                fileType: mimeType,
+                encryptedData: packet.encryptedData,
+                encryptedIv: packet.iv,
+                authTag: packet.authTag,
+                isEncrypted: true,
+              },
             },
           },
-        },
-        include: { mtContent: true },
-      });
+          include: { mtContent: true },
+        });
 
-      mtContentId = edition.mtContent[0]?.id ?? null;
-    } catch (extractErr) {
+        mtContentId = edition.mtContent[0]?.id ?? null;
+      }
+    } catch (extractErr: any) {
       console.error("[MT Pipeline] Extraction failed:", extractErr);
+      const msg = extractErr?.message ?? String(extractErr);
+      if (msg.includes("password") || msg.includes("encrypted")) {
+        extractionError = `"${file.name}" appears to be password-protected. Remove the password and re-upload.`;
+      } else if (msg.includes("corrupt") || msg.includes("invalid") || msg.includes("Unexpected")) {
+        extractionError = `"${file.name}" could not be read — the file may be corrupted or in an unsupported format.`;
+      } else {
+        extractionError = `Extraction failed for "${file.name}": ${msg.slice(0, 120)}`;
+      }
+    }
+
+    if (extractionError) {
+      return NextResponse.json({ error: extractionError }, { status: 422 });
     }
   } else {
     const safeName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;

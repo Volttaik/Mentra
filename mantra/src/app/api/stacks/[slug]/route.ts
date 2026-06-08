@@ -11,35 +11,47 @@ export async function GET(
   const session = await auth();
   const userId = session?.user?.id ?? "__none__";
 
-  const stack = await prisma.stack.findUnique({
-    where: { slug },
-    include: {
-      owner: { select: { id: true, name: true, username: true, image: true, university: true, department: true } },
-      tags: { include: { tag: true } },
-      modules: { orderBy: { order: "asc" } },
-      discussions: {
-        orderBy: { createdAt: "desc" },
-        take: 20,
-        include: {
-          user: { select: { name: true, username: true, image: true } },
-          _count: { select: { comments: true } },
+  const [stack, latestEdition] = await Promise.all([
+    prisma.stack.findUnique({
+      where: { slug },
+      include: {
+        owner: { select: { id: true, name: true, username: true, image: true, university: true, department: true } },
+        tags: { include: { tag: true } },
+        modules: { orderBy: { order: "asc" } },
+        discussions: {
+          orderBy: { createdAt: "desc" },
+          take: 20,
+          include: {
+            user: { select: { name: true, username: true, image: true } },
+            _count: { select: { comments: true } },
+          },
+        },
+        contributions: {
+          orderBy: { createdAt: "desc" },
+          take: 20,
+          include: { user: { select: { name: true, username: true, image: true } } },
+        },
+        _count: { select: { stars: true, forks: true, discussions: true } },
+        stars: { where: { userId }, select: { userId: true } },
+        bookmarks: { where: { userId }, select: { userId: true } },
+        forks: {
+          take: 10,
+          include: { user: { select: { name: true, username: true, image: true } } },
+          orderBy: { createdAt: "desc" },
         },
       },
-      contributions: {
-        orderBy: { createdAt: "desc" },
-        take: 20,
-        include: { user: { select: { name: true, username: true, image: true } } },
+    }),
+    prisma.edition.findFirst({
+      where: { stack: { slug } },
+      orderBy: { createdAt: "desc" },
+      include: {
+        mtContent: {
+          select: { id: true, summary: true, concepts: true, fileName: true, fileType: true },
+          take: 1,
+        },
       },
-      _count: { select: { stars: true, forks: true, discussions: true } },
-      stars: { where: { userId }, select: { userId: true } },
-      bookmarks: { where: { userId }, select: { userId: true } },
-      forks: {
-        take: 10,
-        include: { user: { select: { name: true, username: true, image: true } } },
-        orderBy: { createdAt: "desc" },
-      },
-    },
-  });
+    }).catch(() => null),
+  ]);
 
   if (!stack) {
     return NextResponse.json({ error: "Stack not found" }, { status: 404 });
@@ -56,6 +68,8 @@ export async function GET(
 
   prisma.stack.update({ where: { id: stack.id }, data: { views: { increment: 1 } } }).catch(() => {});
 
+  const latestMt = latestEdition?.mtContent?.[0] ?? null;
+
   return NextResponse.json({
     id: stack.id,
     title: stack.title,
@@ -68,6 +82,8 @@ export async function GET(
     language: stack.language,
     isVerified: stack.isVerified,
     isPublic: stack.isPublic,
+    isPaid: stack.isPaid ?? false,
+    price: stack.price ?? null,
     views: stack.views,
     readme: stack.readme,
     stars: stack._count.stars,
@@ -91,6 +107,13 @@ export async function GET(
     createdAt: stack.createdAt.toISOString(),
     isStarred: stack.stars.some(s => s.userId === userId),
     isBookmarked: stack.bookmarks.some(b => b.userId === userId),
+    latestMt: latestMt ? {
+      id: latestMt.id,
+      summary: latestMt.summary,
+      concepts: latestMt.concepts,
+      fileName: latestMt.fileName,
+      fileType: latestMt.fileType,
+    } : null,
   });
 }
 

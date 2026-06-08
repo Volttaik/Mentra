@@ -32,7 +32,8 @@ const TABS = ["Overview", "Modules", "Discussions", "Contributors"];
 interface StackData {
   id: string; title: string; slug: string; description: string; courseCode: string;
   university: string; department: string; semester: string; language: string;
-  isVerified: boolean; isPublic: boolean; views: number; readme: string | null;
+  isVerified: boolean; isPublic: boolean; isPaid: boolean; price: number | null;
+  views: number; readme: string | null;
   stars: number; forks: number; discussions: number;
   tags: string[];
   owner: { id: string; name: string; username: string; image: string | null; university: string | null; department: string | null };
@@ -41,6 +42,7 @@ interface StackData {
   contributors: { name: string; username: string; image: string | null }[];
   updatedDaysAgo: number; lastUpdated: string; createdAt: string;
   isStarred: boolean; isBookmarked: boolean;
+  latestMt: { id: string; summary: string; concepts: any; fileName: string; fileType: string } | null;
 }
 
 interface DiscComment {
@@ -416,7 +418,12 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                 {stack.semester && <span className="tag text-xs">{stack.semester}</span>}
                 {!stack.isPublic && (
                   <span className="flex items-center gap-1 text-xs font-medium text-on-surface-variant bg-surface-container px-3 py-1 rounded-full border border-outline-variant/20">
-                    Private
+                    <Lock className="w-3 h-3" />Private
+                  </span>
+                )}
+                {stack.isPaid && (
+                  <span className="flex items-center gap-1 text-xs font-medium text-amber-700 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
+                    ₦{stack.price?.toLocaleString()} · Paid
                   </span>
                 )}
                 {stack.isVerified && (
@@ -580,10 +587,48 @@ export default function StackPage({ params }: { params: { slug: string } }) {
           <div className="lg:col-span-2 space-y-6">
             {activeTab === "Overview" && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+                {/* MT Content Summary */}
+                {stack.latestMt && (
+                  <div className="card p-6 space-y-4">
+                    <div className="flex items-center gap-2 pb-3 border-b border-outline-variant/10">
+                      <BookOpenCheck className="w-5 h-5 text-secondary" />
+                      <h2 className="font-manrope font-semibold text-base text-primary">MT Content Summary</h2>
+                      <span className="ml-auto text-xs text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-full">{stack.latestMt.fileName}</span>
+                    </div>
+                    {stack.latestMt.summary && (
+                      <p className="text-sm text-on-surface-variant leading-relaxed">{stack.latestMt.summary}</p>
+                    )}
+                    {Array.isArray(stack.latestMt.concepts) && stack.latestMt.concepts.length > 0 && (
+                      <div>
+                        <p className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">Key Concepts</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {(stack.latestMt.concepts as string[]).slice(0, 12).map((c, i) => (
+                            <span key={i} className="tag-accent text-xs">{c}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    <button
+                      onClick={() => { setViewerContentId(stack.latestMt!.id); setViewerFileName(stack.latestMt!.fileName); }}
+                      className="flex items-center gap-2 text-sm font-medium text-secondary hover:text-primary transition-colors"
+                    >
+                      <BookOpen className="w-4 h-4" />Open full content viewer →
+                    </button>
+                  </div>
+                )}
+
                 <div className="card p-8">
                   <div className="flex items-center gap-2 mb-6 pb-4 border-b border-outline-variant/10">
                     <Code2 className="w-5 h-5 text-on-surface-variant" />
                     <h2 className="font-manrope font-semibold text-base text-primary">README.md</h2>
+                    {isOwner && (
+                      <button
+                        onClick={() => setShowEditModal(true)}
+                        className="ml-auto text-xs text-on-surface-variant hover:text-secondary transition-colors flex items-center gap-1"
+                      >
+                        <Edit2 className="w-3 h-3" />Edit
+                      </button>
+                    )}
                   </div>
                   <div className="prose prose-sm max-w-none space-y-4">
                     {stack.readme ? (
@@ -607,6 +652,15 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                               ))}
                             </ul>
                           </>
+                        )}
+                        {!stack.latestMt && isOwner && (
+                          <div className="bg-surface-container border border-outline-variant/20 rounded-xl p-4 mt-4 flex items-start gap-3">
+                            <Upload className="w-4 h-4 text-secondary shrink-0 mt-0.5" />
+                            <div>
+                              <p className="text-sm font-medium text-primary">No content uploaded yet</p>
+                              <p className="text-xs text-on-surface-variant mt-0.5">Go to the Modules tab to upload files to your stack modules.</p>
+                            </div>
+                          </div>
                         )}
                         <div className="bg-secondary-container/30 border border-secondary/10 rounded-xl p-4 mt-4">
                           <p className="text-sm text-on-secondary-container font-medium">
