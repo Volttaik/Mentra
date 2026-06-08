@@ -31,7 +31,7 @@ interface RepositoryCardProps {
 
 const LANG_COLORS: Record<string, string> = {
   Python: "bg-blue-400",
-  PDF: "bg-red-400",
+  Document: "bg-red-400",
   Markdown: "bg-purple-400",
   Jupyter: "bg-orange-400",
   default: "bg-secondary",

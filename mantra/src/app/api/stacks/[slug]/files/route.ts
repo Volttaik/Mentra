@@ -103,6 +103,7 @@ export async function POST(
     return NextResponse.json({ error: "No file provided" }, { status: 400 });
 
   const moduleId = formData.get("moduleId") as string | null;
+  const displayName = (formData.get("displayName") as string | null)?.trim() || null;
 
   const maxSize = 25 * 1024 * 1024;
   if (file.size > maxSize) {
@@ -225,7 +226,7 @@ export async function POST(
     data: {
       stackId: stack.id,
       moduleId: moduleId ?? null,
-      name: file.name,
+      name: displayName ?? file.name,
       url: fileUrl,
       size: file.size,
       mimeType: mimeType,

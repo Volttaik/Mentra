@@ -80,6 +80,7 @@ export default function UploadPage() {
   const [tagInput, setTagInput] = useState("");
   const [contentText, setContentText] = useState("");
   const [contentFiles, setContentFiles] = useState<File[]>([]);
+  const [fileDisplayNames, setFileDisplayNames] = useState<string[]>([]);
   const [dragOver, setDragOver] = useState(false);
   const [modules, setModules] = useState([{ title: "", type: "lecture" }]);
   const [publishing, setPublishing] = useState(false);
@@ -109,31 +110,33 @@ export default function UploadPage() {
   const addModule = () =>
     setModules(prev => [...prev, { title: "", type: "lecture" }]);
 
+  const stripExt = (name: string) => name.replace(/\.[^/.]+$/, "");
+
   const handleFileDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
     const files = Array.from(e.dataTransfer.files);
     setContentFiles(prev => [...prev, ...files]);
+    setFileDisplayNames(prev => [...prev, ...files.map(f => stripExt(f.name))]);
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setContentFiles(prev => [...prev, ...Array.from(e.target.files!)]);
+      const files = Array.from(e.target.files!);
+      setContentFiles(prev => [...prev, ...files]);
+      setFileDisplayNames(prev => [...prev, ...files.map(f => stripExt(f.name))]);
     }
   };
 
-  const removeFile = (index: number) =>
+  const removeFile = (index: number) => {
     setContentFiles(prev => prev.filter((_, i) => i !== index));
+    setFileDisplayNames(prev => prev.filter((_, i) => i !== index));
+  };
 
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
-
-  const getFileTypeLabel = (file: File) => {
-    const ext = file.name.split(".").pop()?.toUpperCase() ?? "FILE";
-    return ext;
   };
 
   const priceNum = parseFloat(form.price) || 0;
@@ -182,7 +185,7 @@ export default function UploadPage() {
           university: isBundle ? null : (session.user as any).university ?? form.university,
           semester: isBundle ? null : form.semester,
           duration: isBundle ? form.duration : null,
-          language: "PDF",
+          language: "Document",
           tags: form.tags,
           modules: modules.filter(m => m.title.trim()),
           isPublic: form.isPublic,
@@ -213,6 +216,7 @@ export default function UploadPage() {
         try {
           const fd = new FormData();
           fd.append("file", file);
+          if (fileDisplayNames[i]) fd.append("displayName", fileDisplayNames[i]);
           const fileRes = await fetch(`/api/stacks/${slug}/files`, {
             method: "POST",
             body: fd,
@@ -481,9 +485,9 @@ export default function UploadPage() {
                   setError("");
                   setStep(2);
                 }}
-                className="btn-primary flex-1"
+                className="btn-primary flex-1 flex items-center justify-center gap-1.5"
               >
-                Continue →
+                Continue <ChevronRight className="w-4 h-4" />
               </button>
             </div>
           </motion.div>
@@ -494,7 +498,7 @@ export default function UploadPage() {
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
             <div>
               <h2 className="font-manrope font-semibold text-lg text-primary mb-1">Add your content</h2>
-              <p className="text-sm text-on-surface-variant">Upload files or write content directly. Files are encrypted and stored as MT content.</p>
+              <p className="text-sm text-on-surface-variant">Upload files or write content directly.</p>
             </div>
 
             {/* File upload */}
@@ -517,7 +521,7 @@ export default function UploadPage() {
                 </div>
                 <div className="text-center">
                   <p className="text-sm font-medium text-primary">Drop files here or click to browse</p>
-                  <p className="text-xs text-on-surface-variant mt-1">PDF, DOCX, ZIP, PPTX, TXT, MD — up to 25 MB each</p>
+                  <p className="text-xs text-on-surface-variant mt-1">Documents, slides, and text files — up to 25 MB each</p>
                 </div>
                 <input
                   ref={fileInputRef}
@@ -531,20 +535,27 @@ export default function UploadPage() {
 
               <AnimatePresence>
                 {contentFiles.length > 0 && (
-                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mt-3 space-y-2">
+                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mt-3 space-y-3">
+                    <p className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Name your files</p>
                     {contentFiles.map((file, i) => (
-                      <div key={i} className="flex items-center gap-3 p-3 bg-surface-container rounded-xl group">
-                        <div className="w-9 h-9 bg-secondary-container rounded-lg flex items-center justify-center shrink-0">
+                      <div key={i} className="flex items-start gap-3 p-3 bg-surface-container rounded-xl group">
+                        <div className="w-9 h-9 bg-secondary-container rounded-lg flex items-center justify-center shrink-0 mt-0.5">
                           <File className="w-4 h-4 text-on-secondary-container" />
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-primary truncate">{file.name}</p>
-                          <p className="text-xs text-on-surface-variant flex items-center gap-2">
-                            <span>{formatFileSize(file.size)}</span>
-                            <span className="px-1.5 py-0.5 bg-secondary-container/50 text-secondary rounded text-[10px] font-medium">{getFileTypeLabel(file)}</span>
-                          </p>
+                        <div className="flex-1 min-w-0 space-y-1.5">
+                          <input
+                            value={fileDisplayNames[i] ?? ""}
+                            onChange={e => {
+                              const updated = [...fileDisplayNames];
+                              updated[i] = e.target.value;
+                              setFileDisplayNames(updated);
+                            }}
+                            placeholder="Content name…"
+                            className="w-full bg-transparent border-b border-outline-variant/40 py-0.5 text-sm font-medium text-primary focus:outline-none focus:border-secondary transition-colors placeholder:text-on-surface-variant/50"
+                          />
+                          <p className="text-xs text-on-surface-variant">{formatFileSize(file.size)}</p>
                         </div>
-                        <button onClick={() => removeFile(i)} className="text-on-surface-variant hover:text-error transition-colors shrink-0 opacity-0 group-hover:opacity-100">
+                        <button onClick={() => removeFile(i)} className="text-on-surface-variant hover:text-error transition-colors shrink-0 opacity-0 group-hover:opacity-100 mt-1">
                           <X className="w-4 h-4" />
                         </button>
                       </div>
@@ -610,14 +621,14 @@ export default function UploadPage() {
                   {contentFiles.length > 0 && `${contentFiles.length} file${contentFiles.length > 1 ? "s" : ""} ready`}
                   {contentFiles.length > 0 && contentText.trim() && " · "}
                   {contentText.trim() && `${contentText.length} characters of text`}
-                  {" "}· Will be encrypted with the MT engine on publish
+                  {" "}· Content will be secured on publish
                 </span>
               </div>
             )}
 
             <div className="flex gap-3 pt-2">
               <button onClick={() => setStep(1)} className="btn-secondary flex-1">Back</button>
-              <button onClick={() => setStep(3)} className="btn-primary flex-1">Continue →</button>
+              <button onClick={() => setStep(3)} className="btn-primary flex-1 flex items-center justify-center gap-1.5">Continue <ChevronRight className="w-4 h-4" /></button>
             </div>
           </motion.div>
         )}
@@ -675,7 +686,7 @@ export default function UploadPage() {
 
             <div className="flex gap-3 pt-2">
               <button onClick={() => setStep(2)} className="btn-secondary flex-1">Back</button>
-              <button onClick={() => setStep(4)} className="btn-primary flex-1">Review & Publish →</button>
+              <button onClick={() => setStep(4)} className="btn-primary flex-1 flex items-center justify-center gap-1.5">Review &amp; Publish <ChevronRight className="w-4 h-4" /></button>
             </div>
           </motion.div>
         )}
@@ -833,7 +844,7 @@ export default function UploadPage() {
                     {processing.phase === "creating" ? "Creating your stack…" : "Processing content…"}
                   </h2>
                   <p className="text-sm text-on-surface-variant mt-1">
-                    {processing.phase === "creating" ? "Setting up your stack in the database." : "Encrypting and securing your files with the MT engine."}
+                    {processing.phase === "creating" ? "Setting up your stack in the database." : "Preparing and securing your files."}
                   </p>
                 </>
               )}
@@ -854,9 +865,9 @@ export default function UploadPage() {
                     <div className="flex-1 min-w-0">
                       <p className={cn("text-sm truncate", f.status === "error" ? "text-error" : "text-primary")}>{f.name}</p>
                       {f.status === "error" && f.error && <p className="text-xs text-error/80">{f.error}</p>}
-                      {f.status === "done" && f.isMt && <p className="text-xs text-secondary">Encrypted · MT secured</p>}
+                      {f.status === "done" && f.isMt && <p className="text-xs text-secondary">Secured</p>}
                       {f.status === "done" && !f.isMt && <p className="text-xs text-on-surface-variant">Uploaded</p>}
-                      {f.status === "processing" && <p className="text-xs text-secondary">Extracting and encrypting…</p>}
+                      {f.status === "processing" && <p className="text-xs text-secondary">Preparing your content…</p>}
                       {f.status === "pending" && <p className="text-xs text-on-surface-variant">Waiting…</p>}
                     </div>
                   </div>
@@ -873,7 +884,7 @@ export default function UploadPage() {
                     <div className="flex-1 min-w-0">
                       <p className={cn("text-sm", processing.textStatus === "error" ? "text-error" : "text-primary")}>Text content</p>
                       {processing.textStatus === "error" && <p className="text-xs text-error/80">{processing.textError}</p>}
-                      {processing.textStatus === "done" && <p className="text-xs text-secondary">Processed · MT secured</p>}
+                      {processing.textStatus === "done" && <p className="text-xs text-secondary">Secured</p>}
                       {processing.textStatus === "processing" && <p className="text-xs text-secondary">Processing…</p>}
                       {processing.textStatus === "idle" && <p className="text-xs text-on-surface-variant">Waiting…</p>}
                     </div>

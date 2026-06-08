@@ -619,13 +619,13 @@ export default function StackPage({ params }: { params: { slug: string } }) {
           <div className="lg:col-span-2 space-y-6">
             {activeTab === "Overview" && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-                {/* MT Content Summary */}
+                {/* Content Summary */}
                 {stack.latestMt && (
                   <div className="card p-6 space-y-4">
                     <div className="flex items-center gap-2 pb-3 border-b border-outline-variant/10">
                       <BookOpenCheck className="w-5 h-5 text-secondary" />
-                      <h2 className="font-manrope font-semibold text-base text-primary">MT Content Summary</h2>
-                      <span className="ml-auto text-xs text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-full">{stack.latestMt.fileName}</span>
+                      <h2 className="font-manrope font-semibold text-base text-primary">Content Summary</h2>
+                      <span className="ml-auto text-xs text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-full">{stack.latestMt.fileName.replace(/\.[^/.]+$/, "")}</span>
                     </div>
                     {stack.latestMt.summary && (
                       <p className="text-sm text-on-surface-variant leading-relaxed">{stack.latestMt.summary}</p>
@@ -644,7 +644,7 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                       onClick={() => { setViewerContentId(stack.latestMt!.id); setViewerFileName(stack.latestMt!.fileName); }}
                       className="flex items-center gap-2 text-sm font-medium text-secondary hover:text-primary transition-colors"
                     >
-                      <BookOpen className="w-4 h-4" />Open full content viewer →
+                      <BookOpen className="w-4 h-4" />Read full content
                     </button>
                   </div>
                 )}
@@ -775,7 +775,7 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                               <span className="text-xs text-on-surface-variant">{formatFileSize(f.size)}</span>
                               {f.mtContentId ? (
                                 <span className="flex items-center gap-1 text-xs text-secondary font-medium">
-                                  <Lock className="w-2.5 h-2.5" />MT Encrypted
+                                  <Lock className="w-2.5 h-2.5" />Secured
                                 </span>
                               ) : (
                                 <span className="text-xs text-on-surface-variant">{ext}</span>
@@ -887,7 +887,7 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                                     {formatFileSize(f.size)}
                                     {f.mtContentId && (
                                       <span className="flex items-center gap-0.5 text-secondary ml-1">
-                                        <Lock className="w-2.5 h-2.5" />MT secured
+                                        <Lock className="w-2.5 h-2.5" />Secured
                                       </span>
                                     )}
                                   </p>
@@ -1201,7 +1201,7 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                 <div>
                   <label className="block text-sm font-medium text-primary mb-1.5">Language / Format</label>
                   <select value={editForm.language} onChange={e => setEditForm(p => ({ ...p, language: e.target.value }))} className="input-field">
-                    {["PDF", "Markdown", "Slides", "Video", "Mixed"].map(l => <option key={l}>{l}</option>)}
+                    {["Document", "Markdown", "Slides", "Video", "Mixed"].map(l => <option key={l}>{l}</option>)}
                   </select>
                 </div>
                 <div>
