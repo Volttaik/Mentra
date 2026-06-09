@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import {
   MapPin, GraduationCap, Calendar, Star, Users, BookOpen,
-  GitFork, UserPlus, Share2, Activity, ChevronRight, Loader2, Award,
+  GitFork, UserPlus, Share2, Activity, ChevronRight, Loader2, Award, Zap, Coins,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -14,6 +14,8 @@ import RepositoryCard from "@/components/ui/RepositoryCard";
 import ContributionGraph from "@/components/ui/ContributionGraph";
 import { formatNumber, timeAgo } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import { AnimatePresence } from "framer-motion";
+import BuyCreditsModal from "@/components/BuyCreditsModal";
 
 const TABS = ["Stacks", "Starred", "Contributions", "Purchased"];
 
@@ -48,6 +50,8 @@ export default function ProfilePage({ params }: { params: { username: string } }
   const [purchasedStacks, setPurchasedStacks] = useState<Stack[]>([]);
   const [revenue, setRevenue] = useState<number | null>(null);
   const [error, setError] = useState("");
+  const [credits, setCredits] = useState<number | null>(null);
+  const [showBuyCredits, setShowBuyCredits] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -65,6 +69,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
         if (d.isOwnProfile) {
           setPurchasedStacks(d.purchasedStacks ?? []);
           if (d.revenue != null) setRevenue(d.revenue);
+          fetch("/api/credits/balance").then(r => r.json()).then(c => setCredits(c.credits ?? 0)).catch(() => {});
         }
       })
       .catch(() => setError("Failed to load profile."))
@@ -311,6 +316,24 @@ export default function ProfilePage({ params }: { params: { username: string } }
               </div>
             </div>
 
+            {isOwnProfile && credits !== null && (
+              <div className="card p-5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-manrope font-semibold text-sm text-primary flex items-center gap-2">
+                    <Coins className="w-4 h-4 text-secondary" /> AI Credits
+                  </h3>
+                  <span className="font-manrope font-bold text-lg text-primary">{credits}</span>
+                </div>
+                <p className="text-xs text-on-surface-variant">Used for AI chat and quiz generation.</p>
+                <button
+                  onClick={() => setShowBuyCredits(true)}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold font-manrope bg-secondary-container text-on-secondary-container hover:opacity-90 transition-all"
+                >
+                  <Zap className="w-4 h-4" /> Buy Credits
+                </button>
+              </div>
+            )}
+
             {isOwnProfile && (
               <div className="card p-5 space-y-3">
                 <h3 className="font-manrope font-semibold text-sm text-primary">Quick actions</h3>
@@ -343,6 +366,16 @@ export default function ProfilePage({ params }: { params: { username: string } }
       </main>
 
       <Footer />
+
+      <AnimatePresence>
+        {showBuyCredits && (
+          <BuyCreditsModal
+            currentCredits={credits ?? 0}
+            onClose={() => setShowBuyCredits(false)}
+            onSuccess={(n) => { setCredits(n); setShowBuyCredits(false); }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

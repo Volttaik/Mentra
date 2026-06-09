@@ -6,9 +6,9 @@ import { X, Zap, Check, Loader2, Coins } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const PACKS = [
-  { id: "starter", label: "Starter", credits: 10, price: "₦500", popular: false, perCredit: "₦50/credit" },
-  { id: "popular", label: "Popular", credits: 25, price: "₦1,200", popular: true, perCredit: "₦48/credit" },
-  { id: "pro", label: "Pro", credits: 60, price: "₦2,500", popular: false, perCredit: "₦42/credit" },
+  { id: "starter", label: "Starter", credits: 50, price: "₦500", popular: false, perCredit: "₦10/credit" },
+  { id: "popular", label: "Popular", credits: 100, price: "₦1,000", popular: true, perCredit: "₦10/credit" },
+  { id: "pro", label: "Pro", credits: 250, price: "₦2,200", popular: false, perCredit: "₦8.80/credit" },
 ];
 
 interface Props {

@@ -3,9 +3,9 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
 const CREDIT_PACKS = {
-  starter: { credits: 10, amount: 50000 },
-  popular: { credits: 25, amount: 120000 },
-  pro: { credits: 60, amount: 250000 },
+  starter: { credits: 50, amount: 50000 },
+  popular: { credits: 100, amount: 100000 },
+  pro: { credits: 250, amount: 220000 },
 } as const;
 
 export async function POST(req: NextRequest) {

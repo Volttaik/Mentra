@@ -234,13 +234,7 @@ export default function ExplorePage() {
       <main className="flex-1 max-w-[1200px] mx-auto px-4 md:px-6 py-8 w-full">
         {/* Sort + Filter row */}
         <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-on-surface-variant">
-              <span className="font-semibold text-primary">{loading && stacks.length === 0 ? "—" : total}</span>
-              {" "}stacks
-              {selectedDept !== "All" && <span className="ml-1">in {selectedDept}</span>}
-            </span>
-          </div>
+          <div />
 
           <div className="flex items-center gap-2">
             {/* Sort pills */}
