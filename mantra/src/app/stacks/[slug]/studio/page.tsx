@@ -30,7 +30,7 @@ const DEPARTMENTS = [
 export default function StackStudioPage() {
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
 
   const [stack, setStack] = useState<StackData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -78,6 +78,15 @@ export default function StackStudioPage() {
   }, [slug]);
 
   const isOwner = session?.user?.id === stack?.owner?.id;
+
+  // Show loading while session is still resolving (prevents "not authorized" flash)
+  if (!loading && sessionStatus === "loading") {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-7 h-7 text-secondary animate-spin" />
+      </div>
+    );
+  }
 
   const handleBannerSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

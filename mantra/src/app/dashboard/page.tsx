@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { motion } from "framer-motion";
 import {
   BookOpen, Star, GitFork, Plus, Bell, Activity,
   ChevronRight, Bookmark, CheckCircle, MessageSquare,
@@ -27,29 +26,29 @@ interface Stats {
 }
 
 const NOTIF_ICONS: Record<string, React.ReactNode> = {
-  STAR: <Star className="w-3.5 h-3.5" />,
-  FORK: <GitFork className="w-3.5 h-3.5" />,
-  COMMENT: <MessageSquare className="w-3.5 h-3.5" />,
+  STAR:         <Star className="w-3.5 h-3.5" />,
+  FORK:         <GitFork className="w-3.5 h-3.5" />,
+  COMMENT:      <MessageSquare className="w-3.5 h-3.5" />,
   CONTRIBUTION: <CheckCircle className="w-3.5 h-3.5" />,
-  FOLLOW: <Users className="w-3.5 h-3.5" />,
-  SYSTEM: <Bell className="w-3.5 h-3.5" />,
+  FOLLOW:       <Users className="w-3.5 h-3.5" />,
+  SYSTEM:       <Bell className="w-3.5 h-3.5" />,
 };
 const NOTIF_COLORS: Record<string, string> = {
-  STAR: "bg-amber-100 text-amber-600",
-  FORK: "bg-blue-100 text-blue-600",
-  COMMENT: "bg-purple-100 text-purple-600",
+  STAR:         "bg-amber-100 text-amber-600",
+  FORK:         "bg-blue-100 text-blue-600",
+  COMMENT:      "bg-purple-100 text-purple-600",
   CONTRIBUTION: "bg-green-100 text-green-600",
-  FOLLOW: "bg-pink-100 text-pink-600",
-  SYSTEM: "bg-surface-container text-on-surface-variant",
+  FOLLOW:       "bg-pink-100 text-pink-600",
+  SYSTEM:       "bg-surface-container text-on-surface-variant",
 };
 
 export default function DashboardPage() {
   const { data: session } = useSession();
-  const [loading, setLoading] = useState(true);
-  const [myStacks, setMyStacks] = useState<Stack[]>([]);
+  const [loading, setLoading]             = useState(true);
+  const [myStacks, setMyStacks]           = useState<Stack[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [bookmarks, setBookmarks] = useState<Stack[]>([]);
-  const [stats, setStats] = useState<Stats>({ stackCount: 0, starsReceived: 0, followerCount: 0, totalViews: 0 });
+  const [bookmarks, setBookmarks]         = useState<Stack[]>([]);
+  const [stats, setStats]                 = useState<Stats>({ stackCount: 0, starsReceived: 0, followerCount: 0, totalViews: 0 });
 
   useEffect(() => {
     fetch("/api/dashboard")
@@ -74,24 +73,25 @@ export default function DashboardPage() {
     setNotifications(prev => prev.map(n => (!ids || ids.includes(n.id) ? { ...n, read: true } : n)));
   };
 
-  const unreadCount = notifications.filter(n => !n.read).length;
-  const displayName = session?.user?.name?.split(" ")[0] ?? "there";
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  const unreadCount  = notifications.filter(n => !n.read).length;
+  const displayName  = session?.user?.name?.split(" ")[0] ?? "there";
+  const hour         = new Date().getHours();
+  const greeting     = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 
   const STAT_CARDS = [
-    { label: "Stacks", value: stats.stackCount, icon: BookOpen, change: "your repositories" },
-    { label: "Stars received", value: stats.starsReceived, icon: Star, change: "from the community" },
-    { label: "Total views", value: stats.totalViews, icon: Eye, change: "across all stacks" },
-    { label: "Followers", value: stats.followerCount, icon: Users, change: "people following you" },
+    { label: "Stacks",         value: stats.stackCount,    icon: BookOpen, sub: "your repositories" },
+    { label: "Stars received", value: stats.starsReceived, icon: Star,     sub: "from the community" },
+    { label: "Total views",    value: stats.totalViews,    icon: Eye,      sub: "across all stacks" },
+    { label: "Followers",      value: stats.followerCount, icon: Users,    sub: "people following you" },
   ];
 
   return (
     <div className="min-h-screen flex flex-col bg-background pb-20 md:pb-0">
       <Navbar />
       <main className="flex-1 max-w-[1200px] mx-auto px-4 md:px-6 py-10 w-full">
+
         {/* Welcome */}
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-10 flex items-start justify-between">
+        <div className="mb-10 flex items-start justify-between animate-fade-in">
           <div>
             <h1 className="font-manrope font-bold text-2xl md:text-3xl text-primary mb-1">
               {greeting}, {displayName} ✨
@@ -103,25 +103,26 @@ export default function DashboardPage() {
                   : "You're all caught up!"}
             </p>
           </div>
-          <Link href="/upload" className="hidden md:flex items-center gap-2 bg-primary text-on-primary px-5 py-3 rounded-xl font-semibold font-manrope text-sm hover:opacity-90 transition-all shadow-card">
+          <Link
+            href="/upload"
+            className="hidden md:flex items-center gap-2 bg-primary text-on-primary px-5 py-3 rounded-xl font-semibold font-manrope text-sm hover:opacity-90 transition-all shadow-card"
+          >
             <Plus className="w-4 h-4" />
             New Stack
           </Link>
-        </motion.div>
+        </div>
 
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
           {STAT_CARDS.map((stat, i) => (
-            <motion.div
+            <div
               key={stat.label}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.08 }}
-              className="card p-5"
+              className="card p-5 animate-slide-up"
+              style={{ animationDelay: `${i * 60}ms`, animationFillMode: "both" }}
             >
               <div className="flex items-center justify-between mb-3">
                 <div className="w-9 h-9 bg-secondary-container rounded-xl flex items-center justify-center">
-                  <stat.icon className="w-4.5 h-4.5 text-on-secondary-container" size={18} />
+                  <stat.icon className="w-[18px] h-[18px] text-on-secondary-container" />
                 </div>
               </div>
               {loading ? (
@@ -130,7 +131,7 @@ export default function DashboardPage() {
                 <p className="font-manrope font-bold text-2xl text-primary">{formatNumber(stat.value)}</p>
               )}
               <p className="text-xs text-on-surface-variant mt-0.5">{stat.label}</p>
-            </motion.div>
+            </div>
           ))}
         </div>
 
@@ -164,40 +165,43 @@ export default function DashboardPage() {
                 <div className="card p-12 text-center">
                   <BookOpen className="w-12 h-12 text-outline-variant mx-auto mb-4" />
                   <h3 className="font-manrope font-semibold text-primary mb-2">No stacks yet</h3>
-                  <p className="text-sm text-on-surface-variant mb-5">Create your first stack to share your knowledge with the world.</p>
-                  <Link href="/upload" className="inline-flex items-center gap-2 bg-primary text-on-primary px-5 py-3 rounded-xl text-sm font-semibold font-manrope hover:opacity-90 transition-all">
+                  <p className="text-sm text-on-surface-variant mb-5">
+                    Create your first stack to share your knowledge with the world.
+                  </p>
+                  <Link
+                    href="/upload"
+                    className="inline-flex items-center gap-2 bg-primary text-on-primary px-5 py-3 rounded-xl text-sm font-semibold font-manrope hover:opacity-90 transition-all"
+                  >
                     <Plus className="w-4 h-4" /> Create first stack
                   </Link>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {myStacks.slice(0, 5).map((stack, i) => (
-                    <motion.div
+                    <Link
                       key={stack.id}
-                      initial={{ opacity: 0, x: -16 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.3 + i * 0.08 }}
+                      href={`/stacks/${stack.slug}`}
+                      className="block animate-slide-up"
+                      style={{ animationDelay: `${200 + i * 50}ms`, animationFillMode: "both" }}
                     >
-                      <Link href={`/stacks/${stack.slug}`}>
-                        <div className="card-sm p-4 flex items-center gap-4 cursor-pointer group hover:-translate-y-0.5 transition-all">
-                          <div className="w-10 h-10 bg-secondary-container rounded-xl flex items-center justify-center shrink-0">
-                            <BookOpen className="w-5 h-5 text-on-secondary-container" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-manrope font-semibold text-sm text-primary group-hover:text-secondary transition-colors truncate">
-                              {stack.title}
-                            </p>
-                            <p className="text-xs text-on-surface-variant truncate">
-                              {stack.courseCode && `${stack.courseCode} · `}{stack.university || "No university"}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-3 text-xs text-on-surface-variant shrink-0">
-                            <span className="flex items-center gap-1"><Star className="w-3.5 h-3.5" />{formatNumber(stack.stars)}</span>
-                            <span className="flex items-center gap-1"><GitFork className="w-3.5 h-3.5" />{formatNumber(stack.forks)}</span>
-                          </div>
+                      <div className="card-sm p-4 flex items-center gap-4 cursor-pointer group hover:-translate-y-0.5 transition-transform duration-150">
+                        <div className="w-10 h-10 bg-secondary-container rounded-xl flex items-center justify-center shrink-0">
+                          <BookOpen className="w-5 h-5 text-on-secondary-container" />
                         </div>
-                      </Link>
-                    </motion.div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-manrope font-semibold text-sm text-primary group-hover:text-secondary transition-colors truncate">
+                            {stack.title}
+                          </p>
+                          <p className="text-xs text-on-surface-variant truncate">
+                            {stack.courseCode && `${stack.courseCode} · `}{stack.university || "No university"}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-3 text-xs text-on-surface-variant shrink-0">
+                          <span className="flex items-center gap-1"><Star className="w-3.5 h-3.5" />{formatNumber(stack.stars)}</span>
+                          <span className="flex items-center gap-1"><GitFork className="w-3.5 h-3.5" />{formatNumber(stack.forks)}</span>
+                        </div>
+                      </div>
+                    </Link>
                   ))}
                 </div>
               )}
@@ -212,7 +216,7 @@ export default function DashboardPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {bookmarks.slice(0, 4).map(stack => (
                     <Link key={stack.id} href={`/stacks/${stack.slug}`}>
-                      <div className="card-sm p-5 cursor-pointer group hover:-translate-y-1 transition-all">
+                      <div className="card-sm p-5 cursor-pointer group hover:-translate-y-1 transition-transform duration-150">
                         <div className="flex items-start gap-3 mb-3">
                           <div className="w-9 h-9 bg-primary-fixed rounded-xl flex items-center justify-center shrink-0">
                             <BookOpen className="w-4 h-4 text-primary" />
@@ -274,7 +278,7 @@ export default function DashboardPage() {
                   <p className="text-sm text-on-surface-variant">No notifications yet.</p>
                 </div>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   {notifications.slice(0, 6).map(notif => {
                     const inner = (
                       <>
@@ -289,24 +293,15 @@ export default function DashboardPage() {
                       </>
                     );
                     const cls = cn(
-                      "flex items-start gap-3 p-3 rounded-xl transition-all cursor-pointer",
+                      "flex items-start gap-3 p-3 rounded-xl transition-colors cursor-pointer",
                       !notif.read ? "bg-secondary-container/30 hover:bg-secondary-container/50" : "hover:bg-surface-container"
                     );
                     return notif.link ? (
-                      <Link
-                        key={notif.id}
-                        href={notif.link}
-                        onClick={() => !notif.read && markRead([notif.id])}
-                        className={cls}
-                      >
+                      <Link key={notif.id} href={notif.link} onClick={() => !notif.read && markRead([notif.id])} className={cls}>
                         {inner}
                       </Link>
                     ) : (
-                      <div
-                        key={notif.id}
-                        onClick={() => !notif.read && markRead([notif.id])}
-                        className={cls}
-                      >
+                      <div key={notif.id} onClick={() => !notif.read && markRead([notif.id])} className={cls}>
                         {inner}
                       </div>
                     );
@@ -318,34 +313,26 @@ export default function DashboardPage() {
             {/* Quick actions */}
             <div className="card p-5">
               <h3 className="font-manrope font-semibold text-base text-primary mb-4">Quick actions</h3>
-              <div className="space-y-2">
-                <Link href="/upload" className="flex items-center gap-3 p-3 rounded-xl hover:bg-surface-container transition-colors group cursor-pointer">
-                  <div className="w-8 h-8 bg-secondary-container rounded-lg flex items-center justify-center shrink-0">
-                    <Plus className="w-4 h-4 text-on-secondary-container" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-primary group-hover:text-secondary transition-colors">Create a stack</p>
-                    <p className="text-xs text-on-surface-variant">Share your academic knowledge</p>
-                  </div>
-                </Link>
-                <Link href="/explore" className="flex items-center gap-3 p-3 rounded-xl hover:bg-surface-container transition-colors group cursor-pointer">
-                  <div className="w-8 h-8 bg-surface-container-high rounded-lg flex items-center justify-center shrink-0">
-                    <Activity className="w-4 h-4 text-on-surface-variant" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-primary group-hover:text-secondary transition-colors">Explore stacks</p>
-                    <p className="text-xs text-on-surface-variant">Discover community content</p>
-                  </div>
-                </Link>
-                <Link href={session?.user?.username ? `/profile/${session.user.username}` : "/dashboard"} className="flex items-center gap-3 p-3 rounded-xl hover:bg-surface-container transition-colors group cursor-pointer">
-                  <div className="w-8 h-8 bg-surface-container-high rounded-lg flex items-center justify-center shrink-0">
-                    <Bookmark className="w-4 h-4 text-on-surface-variant" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-primary group-hover:text-secondary transition-colors">View profile</p>
-                    <p className="text-xs text-on-surface-variant">See your public profile</p>
-                  </div>
-                </Link>
+              <div className="space-y-1.5">
+                {[
+                  { href: "/upload",   icon: Plus,     color: "bg-secondary-container", iconColor: "text-on-secondary-container", label: "Create a stack",   sub: "Share your academic knowledge" },
+                  { href: "/explore",  icon: Activity, color: "bg-surface-container-high", iconColor: "text-on-surface-variant",   label: "Explore stacks",  sub: "Discover community content" },
+                  { href: session?.user ? `/profile/${(session.user as any)?.username ?? ""}` : "/dashboard", icon: Bookmark, color: "bg-surface-container-high", iconColor: "text-on-surface-variant", label: "View profile", sub: "See your public profile" },
+                ].map(item => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-surface-container transition-colors group cursor-pointer"
+                  >
+                    <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center shrink-0", item.color)}>
+                      <item.icon className={cn("w-4 h-4", item.iconColor)} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-primary group-hover:text-secondary transition-colors">{item.label}</p>
+                      <p className="text-xs text-on-surface-variant">{item.sub}</p>
+                    </div>
+                  </Link>
+                ))}
               </div>
             </div>
           </div>
