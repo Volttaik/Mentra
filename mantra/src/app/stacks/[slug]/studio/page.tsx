@@ -86,10 +86,10 @@ export default function StackStudioPage() {
           readme: d.readme ?? "",
           tags: (d.tags ?? []).join(", "),
           banner: d.banner ?? "",
+          profile: d.profile ?? "",
         });
         if (d.banner) setBannerPreview(d.banner);
         if (d.profile) setProfilePreview(d.profile);
-        setForm(f => ({ ...f, profile: d.profile ?? "" }));
       })
       .catch(() => setError("Failed to load stack."))
       .finally(() => setLoading(false));
@@ -487,9 +487,8 @@ export default function StackStudioPage() {
                     <p className="text-xs text-on-surface-variant mt-1">Separate tags with commas. Used for discovery.</p>
                   </div>
                 </div>
-              </div>
 
-              {/* Tag Users */}
+                {/* Tag Users */}
               <div className="card p-6 space-y-4">
                 <div>
                   <h3 className="font-manrope font-semibold text-base text-primary mb-1">Tag People</h3>
