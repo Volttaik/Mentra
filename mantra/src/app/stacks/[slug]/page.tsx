@@ -478,12 +478,18 @@ export default function StackPage({ params }: { params: { slug: string } }) {
 
               {/* Owner actions */}
               {isOwner && (
-                <div className="flex items-center gap-2 mt-5 pt-5 border-t border-outline-variant/10">
+                <div className="flex items-center gap-2 mt-5 pt-5 border-t border-outline-variant/10 flex-wrap">
+                  <Link
+                    href={`/stacks/${slug}/studio`}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-secondary-container text-on-secondary-container hover:opacity-90 transition-all font-manrope font-semibold"
+                  >
+                    <Code2 className="w-3.5 h-3.5" />Stack Studio
+                  </Link>
                   <button
                     onClick={() => setShowEditModal(true)}
                     className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-surface-container hover:bg-surface-container-high transition-all text-primary"
                   >
-                    <Edit2 className="w-3.5 h-3.5" />Edit stack
+                    <Edit2 className="w-3.5 h-3.5" />Quick Edit
                   </button>
                   <button
                     onClick={() => setShowDeleteConfirm(true)}

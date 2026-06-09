@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import {
@@ -132,6 +134,15 @@ function InfiniteMarquee() {
 export default function HomePage() {
   const [wordIdx, setWordIdx] = useState(0);
   const [scrolled, setScrolled] = useState(false);
+  const router = useRouter();
+  const { status } = useSession();
+
+  // Redirect authenticated users straight to the feed
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.replace("/explore");
+    }
+  }, [status, router]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -159,8 +170,8 @@ export default function HomePage() {
           <DotGrid id="hero-dots" />
         </div>
 
-        {/* Warm radial glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[600px] rounded-full bg-secondary-container/50 blur-[140px] pointer-events-none" />
+        {/* Warm radial glow — lightweight, no blur */}
+        <div className="absolute top-0 left-0 w-full h-[500px] pointer-events-none" style={{ background: "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(var(--c-secondary-container), 0.18) 0%, transparent 70%)" }} />
 
         {/* Decorative arc */}
         <svg
@@ -402,7 +413,7 @@ export default function HomePage() {
                 <Image src="/home/library-grand.png" alt="Grand library" fill sizes="560px" className="object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-primary/40 via-primary/10 to-transparent" />
                 {/* Floating stat card */}
-                <div className="absolute bottom-6 left-6 right-6 bg-surface-container-lowest/90 backdrop-blur-sm border border-outline-variant/20 rounded-2xl p-4">
+                <div className="absolute bottom-6 left-6 right-6 bg-surface-container-lowest border border-outline-variant/20 rounded-2xl p-4">
                   <div className="grid grid-cols-3 gap-4 text-center">
                     {STATS_FALLBACK.map(s => (
                       <div key={s.label}>

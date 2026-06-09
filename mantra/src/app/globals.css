@@ -198,23 +198,18 @@ h1, h2, h3, h4, h5, h6 {
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
   .parchment-blur {
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    background: rgba(var(--c-background), 0.88);
+    background: rgba(var(--c-background), 0.96);
   }
 
   .glass {
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    background: rgba(var(--c-surface-container-lowest), 0.6);
+    background: rgba(var(--c-surface-container-lowest), 0.92);
     border: 1px solid rgba(var(--c-outline-variant), 0.3);
   }
 
   .organic-blob {
     position: absolute;
     z-index: 0;
-    filter: blur(60px);
-    opacity: 0.06;
+    opacity: 0;
     border-radius: 9999px;
     pointer-events: none;
   }

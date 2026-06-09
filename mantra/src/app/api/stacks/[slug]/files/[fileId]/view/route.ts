@@ -33,12 +33,15 @@ export async function GET(
 
   try {
     const bytes = await readFile(fileRecord.rawPath);
+    // Serve as octet-stream — prevents native browser PDF rendering.
+    // The client fetches this as an ArrayBuffer and renders via PDF.js canvas.
     return new Response(bytes, {
       headers: {
-        "Content-Type": "application/pdf",
-        "Content-Disposition": `inline; filename="${encodeURIComponent(fileRecord.name)}"`,
+        "Content-Type": "application/octet-stream",
+        "Content-Disposition": `attachment; filename="${encodeURIComponent(fileRecord.name)}"`,
         "Cache-Control": "private, no-cache, no-store",
-        "X-Frame-Options": "SAMEORIGIN",
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "DENY",
       },
     });
   } catch {
