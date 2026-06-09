@@ -105,6 +105,7 @@ export async function GET(
     updatedDaysAgo: daysAgo(stack.updatedAt),
     lastUpdated: stack.updatedAt.toISOString(),
     createdAt: stack.createdAt.toISOString(),
+    banner: stack.banner ?? null,
     isStarred: stack.stars.some(s => s.userId === userId),
     isBookmarked: stack.bookmarks.some(b => b.userId === userId),
     latestMt: latestMt ? {

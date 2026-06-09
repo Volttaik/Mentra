@@ -29,6 +29,7 @@ function formatStack(s: any, userId?: string) {
     isStarred: userId ? (s.stars?.some((st: any) => st.userId === userId) ?? false) : false,
     isBookmarked: userId ? (s.bookmarks?.some((b: any) => b.userId === userId) ?? false) : false,
     readme: s.readme ?? null,
+    banner: s.banner ?? null,
   };
 }
 

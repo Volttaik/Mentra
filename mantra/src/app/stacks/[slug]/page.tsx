@@ -42,6 +42,7 @@ interface StackData {
   contributors: { name: string; username: string; image: string | null }[];
   updatedDaysAgo: number; lastUpdated: string; createdAt: string;
   isStarred: boolean; isBookmarked: boolean;
+  banner?: string | null;
   latestMt: { id: string; summary: string; concepts: any; fileName: string; fileType: string } | null;
 }
 
@@ -434,7 +435,15 @@ export default function StackPage({ params }: { params: { slug: string } }) {
         </div>
 
         {/* Header */}
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="card p-8 mb-6">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="card overflow-hidden mb-6">
+          {/* Banner */}
+          {stack.banner && (
+            <div className="h-40 md:h-52 relative overflow-hidden">
+              <img src={stack.banner} alt="" className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-surface-container-lowest/90 via-surface-container-lowest/20 to-transparent" />
+            </div>
+          )}
+          <div className={cn("p-6 md:p-8", stack.banner && "-mt-10 relative z-10")}>
           <div className="flex flex-col md:flex-row md:items-start gap-6">
             <div className="flex-1 min-w-0">
               <div className="flex flex-wrap items-center gap-2 mb-4">
@@ -481,21 +490,21 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                 <div className="flex items-center gap-2 mt-5 pt-5 border-t border-outline-variant/10 flex-wrap">
                   <Link
                     href={`/stacks/${slug}/studio`}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-secondary-container text-on-secondary-container hover:opacity-90 transition-all font-manrope font-semibold"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-secondary-container text-on-secondary-container hover:opacity-90 transition-all font-manrope"
                   >
-                    <Code2 className="w-3.5 h-3.5" />Stack Studio
+                    <Code2 className="w-3 h-3" />Studio
                   </Link>
                   <button
                     onClick={() => setShowEditModal(true)}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-surface-container hover:bg-surface-container-high transition-all text-primary"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-surface-container hover:bg-surface-container-high transition-all text-primary"
                   >
-                    <Edit2 className="w-3.5 h-3.5" />Quick Edit
+                    <Edit2 className="w-3 h-3" />Edit
                   </button>
                   <button
                     onClick={() => setShowDeleteConfirm(true)}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border border-error/20 text-error hover:bg-error-container/20 transition-all"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border border-error/20 text-error hover:bg-error-container/20 transition-all"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />Delete
+                    <Trash2 className="w-3 h-3" />Delete
                   </button>
                 </div>
               )}
@@ -523,21 +532,21 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                     onClick={handleStar}
                     disabled={actionLoading === "star"}
                     className={cn(
-                      "w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold font-manrope transition-all",
+                      "w-full flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold font-manrope transition-all",
                       isStarred
                         ? "bg-secondary-container text-on-secondary-container"
                         : "bg-primary text-on-primary hover:opacity-90"
                     )}
                   >
-                    {actionLoading === "star" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Star className={cn("w-4 h-4", isStarred && "fill-current")} />}
+                    {actionLoading === "star" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Star className={cn("w-3.5 h-3.5", isStarred && "fill-current")} />}
                     {isStarred ? "Starred" : "Star"}
                   </button>
                   <button
                     onClick={handleFork}
                     disabled={actionLoading === "fork"}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold font-manrope bg-surface-container border border-outline-variant/30 text-primary hover:bg-surface-container-high transition-all"
+                    className="w-full flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold font-manrope bg-surface-container border border-outline-variant/30 text-primary hover:bg-surface-container-high transition-all"
                   >
-                    {actionLoading === "fork" ? <Loader2 className="w-4 h-4 animate-spin" /> : <GitFork className="w-4 h-4" />}
+                    {actionLoading === "fork" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <GitFork className="w-3.5 h-3.5" />}
                     Fork
                   </button>
                   <div className="flex gap-2">
@@ -564,7 +573,7 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                   </div>
                 </>
               ) : (
-                <Link href={`/login?callbackUrl=/stacks/${slug}`} className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold font-manrope bg-primary text-on-primary hover:opacity-90 transition-all">
+                <Link href={`/login?callbackUrl=/stacks/${slug}`} className="w-full flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold font-manrope bg-primary text-on-primary hover:opacity-90 transition-all">
                   Sign in to interact
                 </Link>
               )}
@@ -589,6 +598,7 @@ export default function StackPage({ params }: { params: { slug: string } }) {
               <span className="text-xs text-on-surface-variant">{1 + stack.contributors.length} contributors</span>
             </div>
           )}
+          </div>
         </motion.div>
 
         {/* Tabs — full-width wrapper so overflow-x-auto actually triggers */}
@@ -792,25 +802,25 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                             {f.mtContentId ? (
                               <button
                                 onClick={() => { setViewerContentId(f.mtContentId!); setViewerFileName(f.name); }}
-                                className="flex items-center gap-1.5 px-4 py-2 bg-secondary text-on-secondary rounded-xl text-sm font-semibold font-manrope hover:opacity-90 transition-all"
+                                className="flex items-center gap-1 px-3 py-1.5 bg-secondary text-on-secondary rounded-xl text-xs font-semibold font-manrope hover:opacity-90 transition-all"
                               >
-                                <BookOpen className="w-4 h-4" />Read
+                                <BookOpen className="w-3.5 h-3.5" />Read
                               </button>
                             ) : f.rawPath !== undefined && f.rawPath !== null ? (
                               <a
                                 href={`/pdf-view/${f.id}?stack=${slug}&name=${encodeURIComponent(f.name)}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-1.5 px-4 py-2 bg-secondary text-on-secondary rounded-xl text-sm font-semibold font-manrope hover:opacity-90 transition-all"
+                                className="flex items-center gap-1 px-3 py-1.5 bg-secondary text-on-secondary rounded-xl text-xs font-semibold font-manrope hover:opacity-90 transition-all"
                               >
-                                <Maximize2 className="w-4 h-4" />View
+                                <Maximize2 className="w-3.5 h-3.5" />View
                               </a>
                             ) : f.url ? (
-                              <span className="text-xs text-on-surface-variant px-3 py-2 bg-surface-container rounded-xl flex items-center gap-1.5">
-                                <Lock className="w-3.5 h-3.5" />Protected
+                              <span className="text-xs text-on-surface-variant px-3 py-1.5 bg-surface-container rounded-xl flex items-center gap-1">
+                                <Lock className="w-3 h-3" />Protected
                               </span>
                             ) : (
-                              <span className="text-xs text-on-surface-variant px-3 py-2 bg-surface-container rounded-xl">Stored</span>
+                              <span className="text-xs text-on-surface-variant px-3 py-1.5 bg-surface-container rounded-xl">Stored</span>
                             )}
                           </div>
                         </motion.div>

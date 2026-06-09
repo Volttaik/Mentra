@@ -258,10 +258,29 @@ export default function StackStudioPage() {
         </div>
       </div>
 
-      <div className="max-w-[1100px] mx-auto px-4 md:px-6 py-8">
+      <div className="max-w-[1100px] mx-auto px-4 md:px-6 py-6">
+        {/* Mobile tab strip */}
+        <div className="flex gap-1 bg-surface-container rounded-2xl p-1 mb-6 lg:hidden overflow-x-auto no-scrollbar">
+          {SECTIONS.map(section => (
+            <button
+              key={section.id}
+              onClick={() => setActiveSection(section.id)}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-colors shrink-0",
+                activeSection === section.id
+                  ? "bg-surface-container-lowest text-primary shadow-card"
+                  : "text-on-surface-variant hover:text-primary"
+              )}
+            >
+              <section.icon className="w-3.5 h-3.5 shrink-0" />
+              {section.label}
+            </button>
+          ))}
+        </div>
+
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar nav */}
-          <aside className="lg:w-52 shrink-0">
+          {/* Sidebar nav — desktop only */}
+          <aside className="hidden lg:block lg:w-52 shrink-0">
             <nav className="space-y-1 sticky top-24">
               {SECTIONS.map(section => (
                 <button
