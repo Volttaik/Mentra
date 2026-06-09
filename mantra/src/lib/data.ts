@@ -256,12 +256,21 @@ export const TRENDING_TAGS = [
 ];
 
 export const UNIVERSITIES = [
-  { name: "MIT", count: 124, country: "USA" },
-  { name: "University of Lagos", count: 89, country: "Nigeria" },
-  { name: "Universidad Nacional", count: 67, country: "Colombia" },
-  { name: "University of Cambridge", count: 203, country: "UK" },
-  { name: "ETH Zurich", count: 145, country: "Switzerland" },
-  { name: "University of Cape Town", count: 78, country: "South Africa" },
+  { name: "University of Lagos (UNILAG)", count: 0, country: "Nigeria" },
+  { name: "University of Ibadan (UI)", count: 0, country: "Nigeria" },
+  { name: "University of Nigeria, Nsukka (UNN)", count: 0, country: "Nigeria" },
+  { name: "Obafemi Awolowo University (OAU)", count: 0, country: "Nigeria" },
+  { name: "Ahmadu Bello University, Zaria (ABU)", count: 0, country: "Nigeria" },
+  { name: "University of Benin (UNIBEN)", count: 0, country: "Nigeria" },
+  { name: "University of Port Harcourt (UNIPORT)", count: 0, country: "Nigeria" },
+  { name: "Nnamdi Azikiwe University, Awka (UNIZIK)", count: 0, country: "Nigeria" },
+  { name: "Bayero University, Kano (BUK)", count: 0, country: "Nigeria" },
+  { name: "University of Ilorin (UNILORIN)", count: 0, country: "Nigeria" },
+  { name: "Covenant University, Ota", count: 0, country: "Nigeria" },
+  { name: "Lagos State University (LASU)", count: 0, country: "Nigeria" },
+  { name: "Ladoke Akintola University of Technology (LAUTECH)", count: 0, country: "Nigeria" },
+  { name: "Federal University of Technology, Akure (FUTA)", count: 0, country: "Nigeria" },
+  { name: "Federal University of Technology, Owerri (FUTO)", count: 0, country: "Nigeria" },
 ];
 
 export const STATS = [

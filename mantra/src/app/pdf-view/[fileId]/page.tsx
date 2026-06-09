@@ -32,7 +32,7 @@ export default function PdfViewPage() {
   const [error,       setError]         = useState("");
   const [numPages,    setNumPages]      = useState(0);
   const [currentPage, setCurrentPage]  = useState(1);
-  const [scale,       setScale]         = useState(1.3);
+  const [scale,       setScale]         = useState(0.8);
   const [showSearch,  setShowSearch]    = useState(false);
   const [pageInput,   setPageInput]     = useState("1");
   const [fullscreen,  setFullscreen]    = useState(false);
@@ -58,13 +58,15 @@ export default function PdfViewPage() {
     try {
       const page     = await pdfDocRef.current.getPage(pageNum);
       const viewport = page.getViewport({ scale });
+      const dpr      = window.devicePixelRatio || 1;
       const ctx      = canvas.getContext("2d");
       if (!ctx) return;
 
-      canvas.width  = viewport.width;
-      canvas.height = viewport.height;
+      canvas.width  = Math.floor(viewport.width  * dpr);
+      canvas.height = Math.floor(viewport.height * dpr);
       canvas.style.width  = `${viewport.width}px`;
       canvas.style.height = `${viewport.height}px`;
+      ctx.scale(dpr, dpr);
 
       await page.render({ canvasContext: ctx, viewport }).promise;
       setRenderedPages(prev => new Set([...prev, pageNum]));
@@ -328,7 +330,7 @@ export default function PdfViewPage() {
         )}
 
         {/* ── Canvas scroll area ── */}
-        <div ref={scrollAreaRef} className="flex-1 overflow-auto bg-[#1c1c1c]">
+        <div ref={scrollAreaRef} className="flex-1 bg-[#1c1c1c]" style={{ overflow: "auto", overflowX: "auto" }}>
           {loading && (
             <div className="flex flex-col items-center justify-center h-full min-h-[60vh] gap-4">
               <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
@@ -357,7 +359,7 @@ export default function PdfViewPage() {
           )}
 
           {!loading && !error && numPages > 0 && (
-            <div className="flex flex-col items-center py-8 gap-6 px-4">
+            <div className="flex flex-col items-center py-8 gap-6" style={{ minWidth: "min-content" }}>
               {Array.from({ length: numPages }, (_, i) => i + 1).map(pageNum => {
                 const size = pageSizes.current.get(pageNum);
                 return (
@@ -383,7 +385,6 @@ export default function PdfViewPage() {
                           else canvasRefs.current.delete(pageNum);
                         }}
                         className="block"
-                        style={{ maxWidth: "100%", display: "block" }}
                       />
                     </div>
                   </div>

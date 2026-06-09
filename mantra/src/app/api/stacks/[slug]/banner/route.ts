@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { put } from "@vercel/blob";
 import { randomBytes } from "crypto";
 
 export async function POST(
@@ -35,22 +34,31 @@ export async function POST(
       return NextResponse.json({ error: "File too large (max 5MB)" }, { status: 400 });
     }
 
-    const ext = file.name.split(".").pop() ?? "jpg";
-    const id = randomBytes(8).toString("hex");
-    const filename = `banner-${id}.${ext}`;
+    let url: string;
 
-    const bytes = await file.arrayBuffer();
-    const blob = await put(`uploads/banners/${filename}`, bytes, {
-      access: "public",
-      contentType: file.type,
-    });
+    if (process.env.BLOB_READ_WRITE_TOKEN) {
+      const { put } = await import("@vercel/blob");
+      const ext = file.name.split(".").pop() ?? "jpg";
+      const id = randomBytes(8).toString("hex");
+      const filename = `banner-${id}.${ext}`;
+      const bytes = await file.arrayBuffer();
+      const blob = await put(`uploads/banners/${filename}`, bytes, {
+        access: "public",
+        contentType: file.type,
+      });
+      url = blob.url;
+    } else {
+      const bytes = await file.arrayBuffer();
+      const base64 = Buffer.from(bytes).toString("base64");
+      url = `data:${file.type};base64,${base64}`;
+    }
 
     await prisma.stack.update({
       where: { id: stack.id },
-      data: { banner: blob.url },
+      data: { banner: url },
     });
 
-    return NextResponse.json({ url: blob.url });
+    return NextResponse.json({ url });
   } catch (err) {
     console.error("Banner upload error:", err);
     return NextResponse.json({ error: "Upload failed" }, { status: 500 });
