@@ -27,16 +27,12 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd mantra && npm install && ./node_modules/.bin/prisma db push --accept-data-loss && npm run dev -- --port 5000"
+args = "cd mantra && npm run dev -- --port 5000"
 waitForPort = 5000
 
 [[ports]]
 localPort = 5000
 externalPort = 80
-
-[[ports]]
-localPort = 5001
-externalPort = 3001
 
 [[ports]]
 localPort = 5002
