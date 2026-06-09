@@ -90,3 +90,4 @@ externalPort = 9000
 
 [userenv.shared]
 NEXTAUTH_SECRET = "hN3IoQ7/EptZZf2hm7W9jK1POw96+qPef5ubwiZYdx8="
+AUTH_URL = "https://8ad8e6ad-058a-4270-b0cb-de220c2f2077-00-2q9i6zuztdghb.worf.replit.dev"
