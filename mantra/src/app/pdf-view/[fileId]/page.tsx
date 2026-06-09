@@ -306,11 +306,6 @@ export default function PdfViewPage() {
 
             <div className="w-px h-5 bg-white/10" />
 
-            {/* Protected badge — NO download button */}
-            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-medium">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">Protected</span>
-            </div>
           </div>
         </div>
 
@@ -332,14 +327,8 @@ export default function PdfViewPage() {
         {/* ── Canvas scroll area ── */}
         <div ref={scrollAreaRef} className="flex-1 bg-[#1c1c1c]" style={{ overflow: "auto", overflowX: "auto" }}>
           {loading && (
-            <div className="flex flex-col items-center justify-center h-full min-h-[60vh] gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
-                <Loader2 className="w-7 h-7 text-amber-400 animate-spin" />
-              </div>
-              <div className="text-center">
-                <p className="text-white/80 font-semibold">Rendering…</p>
-                <p className="text-white/30 text-sm mt-1">Please wait</p>
-              </div>
+            <div className="flex items-center justify-center h-full min-h-[60vh]">
+              <Loader2 className="w-8 h-8 text-amber-400 animate-spin" />
             </div>
           )}
 
@@ -396,12 +385,8 @@ export default function PdfViewPage() {
 
         {/* ── Status bar ── */}
         {numPages > 0 && (
-          <div className="flex items-center justify-between px-4 py-1.5 bg-[#161616] border-t border-white/10 text-[11px] text-white/25 shrink-0">
+          <div className="flex items-center px-4 py-1.5 bg-[#161616] border-t border-white/10 text-[11px] text-white/25 shrink-0">
             <span>Page {currentPage} of {numPages}</span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400/60" />
-              Secured via Mentra — download disabled, content encrypted at rest
-            </span>
           </div>
         )}
       </div>

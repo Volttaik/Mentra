@@ -438,6 +438,29 @@ export default function MtViewer({ contentId, fileName, onClose, preview = false
                     )}
                   </div>
 
+                  {/* Search bar — normal mode */}
+                  {activeTab === "content" && data.sections.length > 0 && (
+                    <div className="px-6 pt-2 pb-1 shrink-0">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant pointer-events-none" />
+                        <input
+                          value={searchQuery}
+                          onChange={e => setSearchQuery(e.target.value)}
+                          placeholder="Search within content…"
+                          className="w-full pl-8 pr-8 py-1.5 bg-surface-container border border-outline-variant/20 rounded-lg text-xs text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-1 focus:ring-secondary/30"
+                        />
+                        {searchQuery && (
+                          <button
+                            onClick={() => setSearchQuery("")}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors"
+                          >
+                            <XCircle className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex-1 overflow-y-auto px-6 py-4 relative" ref={scrollContainerRef}>
                     {activeTab === "content" && (
                       <div>

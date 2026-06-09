@@ -56,9 +56,7 @@ export default function Navbar() {
       <nav className="max-w-[1200px] mx-auto px-4 md:px-6 h-16 flex items-center justify-between gap-4">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 shrink-0">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <BookOpen className="w-4 h-4 text-on-primary" />
-          </div>
+          <img src="/icons/icon-192.png" alt="Mentra" className="w-8 h-8 rounded-lg object-cover" />
           <span className="font-manrope font-bold text-lg text-primary tracking-tight">Mentra</span>
         </Link>
 
