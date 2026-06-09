@@ -15,7 +15,7 @@ import ContributionGraph from "@/components/ui/ContributionGraph";
 import { formatNumber, timeAgo } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 
-const TABS = ["Stacks", "Starred", "Contributions"];
+const TABS = ["Stacks", "Starred", "Contributions", "Purchased"];
 
 interface ProfileUser {
   id: string; name: string; username: string; image: string | null; banner: string | null;
@@ -45,6 +45,8 @@ export default function ProfilePage({ params }: { params: { username: string } }
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
   const [isOwnProfile, setIsOwnProfile] = useState(false);
+  const [purchasedStacks, setPurchasedStacks] = useState<Stack[]>([]);
+  const [revenue, setRevenue] = useState<number | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -60,6 +62,10 @@ export default function ProfilePage({ params }: { params: { username: string } }
         setContributedStacks(d.contributedStacks ?? []);
         setIsFollowing(d.isFollowing ?? false);
         setIsOwnProfile(d.isOwnProfile ?? false);
+        if (d.isOwnProfile) {
+          setPurchasedStacks(d.purchasedStacks ?? []);
+          if (d.revenue != null) setRevenue(d.revenue);
+        }
       })
       .catch(() => setError("Failed to load profile."))
       .finally(() => setLoading(false));
@@ -112,6 +118,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
     Stacks: stacks,
     Starred: starredStacks,
     Contributions: contributedStacks,
+    Purchased: purchasedStacks,
   };
 
   return (
@@ -243,9 +250,14 @@ export default function ProfilePage({ params }: { params: { username: string } }
               )}
             >
               {tab}
-              <span className="ml-1.5 text-xs text-on-surface-variant/60">
-                {tab === "Stacks" ? stacks.length : tab === "Starred" ? starredStacks.length : contributedStacks.length}
-              </span>
+              {tab !== "Purchased" && (
+                <span className="ml-1.5 text-xs text-on-surface-variant/60">
+                  {tab === "Stacks" ? stacks.length : tab === "Starred" ? starredStacks.length : contributedStacks.length}
+                </span>
+              )}
+              {tab === "Purchased" && isOwnProfile && (
+                <span className="ml-1.5 text-xs text-on-surface-variant/60">{purchasedStacks.length}</span>
+              )}
             </button>
           ))}
         </div>
@@ -257,12 +269,15 @@ export default function ProfilePage({ params }: { params: { username: string } }
                 <BookOpen className="w-10 h-10 text-outline-variant mx-auto mb-3" />
                 <p className="font-manrope font-semibold text-primary mb-1">
                   {activeTab === "Stacks" ? "No public stacks yet" :
-                   activeTab === "Starred" ? "No starred stacks yet" : "No contributions yet"}
+                   activeTab === "Starred" ? "No starred stacks yet" :
+                   activeTab === "Purchased" ? "No purchased stacks yet" : "No contributions yet"}
                 </p>
                 <p className="text-sm text-on-surface-variant">
-                  {isOwnProfile
-                    ? activeTab === "Stacks" ? "Create your first stack to share your knowledge." : "Explore stacks to star and contribute to."
-                    : `${user.name} hasn't ${activeTab === "Stacks" ? "published any stacks" : activeTab === "Starred" ? "starred anything" : "contributed"} yet.`
+                  {activeTab === "Purchased"
+                    ? "Stacks you've purchased will appear here."
+                    : isOwnProfile
+                      ? activeTab === "Stacks" ? "Create your first stack to share your knowledge." : "Explore stacks to star and contribute to."
+                      : `${user.name} hasn't ${activeTab === "Stacks" ? "published any stacks" : activeTab === "Starred" ? "starred anything" : "contributed"} yet.`
                   }
                 </p>
               </div>
@@ -304,6 +319,22 @@ export default function ProfilePage({ params }: { params: { username: string } }
                 </Link>
                 <Link href="/settings" className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-on-surface-variant hover:bg-surface-container hover:text-primary transition-colors">
                   <ChevronRight className="w-4 h-4" /> Edit profile
+                </Link>
+                <Link href="/creator" className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-on-surface-variant hover:bg-surface-container hover:text-primary transition-colors">
+                  <ChevronRight className="w-4 h-4" /> Creator dashboard
+                </Link>
+              </div>
+            )}
+
+            {isOwnProfile && revenue !== null && (
+              <div className="card p-5 space-y-3">
+                <h3 className="font-manrope font-semibold text-sm text-primary">Revenue</h3>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="font-manrope font-bold text-2xl text-primary">₦{formatNumber(Math.round(revenue))}</span>
+                  <span className="text-xs text-on-surface-variant">total earned</span>
+                </div>
+                <Link href="/creator" className="flex items-center gap-1.5 text-xs text-secondary hover:underline">
+                  View full breakdown <ChevronRight className="w-3 h-3" />
                 </Link>
               </div>
             )}

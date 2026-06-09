@@ -53,7 +53,6 @@ function FeedCard({ stack, index }: { stack: Stack; index: number }) {
           {stack.banner ? (
             <div className="h-32 relative overflow-hidden">
               <img src={stack.banner} alt="" className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" />
-              <div className="absolute inset-0 bg-gradient-to-t from-surface-container-lowest/80 to-transparent" />
               {stack.isVerified && (
                 <span className="absolute top-3 right-3 flex items-center gap-1 text-[10px] font-semibold text-secondary bg-secondary-container/90 px-2 py-0.5 rounded-full border border-secondary/20">
                   <Shield className="w-2.5 h-2.5" />Verified

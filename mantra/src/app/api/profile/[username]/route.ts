@@ -122,9 +122,43 @@ export async function GET(
     }),
   ]);
 
-  const totalStarsReceived = await prisma.stackStar.count({
-    where: { stack: { ownerId: user.id } },
-  });
+  const isOwnProfile = viewerId === user.id;
+
+  const [totalStarsReceived, ownProfileData] = await Promise.all([
+    prisma.stackStar.count({ where: { stack: { ownerId: user.id } } }),
+    isOwnProfile
+      ? Promise.all([
+          prisma.purchase.findMany({
+            where: { userId: user.id, status: "success" },
+            include: {
+              stack: {
+                include: {
+                  owner: { select: { id: true, name: true, username: true, image: true } },
+                  tags: { include: { tag: true } },
+                  modules: { orderBy: { order: "asc" }, take: 5 },
+                  _count: { select: { stars: true, forks: true, discussions: true } },
+                  stars: { where: { userId: viewerId }, select: { userId: true } },
+                  bookmarks: { where: { userId: viewerId }, select: { userId: true } },
+                },
+              },
+            },
+            orderBy: { createdAt: "desc" },
+            take: 20,
+          }),
+          prisma.purchase.aggregate({
+            where: { stack: { ownerId: user.id }, status: "success" },
+            _sum: { amount: true },
+          }),
+        ])
+      : Promise.resolve(null),
+  ]);
+
+  const purchasedStacks = isOwnProfile && ownProfileData
+    ? (ownProfileData[0] as any[]).map((p: any) => formatStack(p.stack, viewerId))
+    : undefined;
+  const revenue = isOwnProfile && ownProfileData
+    ? ((ownProfileData[1] as any)._sum?.amount ?? 0)
+    : undefined;
 
   return NextResponse.json({
     user: {
@@ -139,6 +173,7 @@ export async function GET(
     starredStacks: starredStacks.map(ss => formatStack(ss.stack, viewerId)),
     contributedStacks: contributedTo.map(f => formatStack(f.stack, viewerId)),
     isFollowing: !!isFollowing,
-    isOwnProfile: viewerId === user.id,
+    isOwnProfile,
+    ...(isOwnProfile && { purchasedStacks, revenue }),
   });
 }

@@ -49,7 +49,7 @@ const UNIVERSITIES_LIST = [
 const ACADEMIC_LEVELS = ["Undergraduate", "Graduate", "PhD Candidate", "Lecturer", "Professor", "Researcher"];
 
 function getStepCount(userType: UserType) {
-  return 4;
+  return 5;
 }
 
 export default function RegisterPage() {
@@ -58,6 +58,9 @@ export default function RegisterPage() {
   const [step, setStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [verificationCode, setVerificationCode] = useState("");
+  const [codeSending, setCodeSending] = useState(false);
+  const [codeSent, setCodeSent] = useState(false);
   const [error, setError] = useState("");
 
   const [userType, setUserType] = useState<UserType>("");
@@ -90,6 +93,29 @@ export default function RegisterPage() {
     return null;
   };
 
+  const handleSendCode = async () => {
+    setCodeSending(true);
+    setError("");
+    try {
+      const res = await fetch("/api/auth/send-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: form.email, purpose: "signup" }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Failed to send code.");
+      } else {
+        setCodeSent(true);
+        setStep(5);
+      }
+    } catch {
+      setError("Could not send verification code. Try again.");
+    } finally {
+      setCodeSending(false);
+    }
+  };
+
   const handleNext = () => {
     setError("");
     if (step === 1) {
@@ -102,6 +128,8 @@ export default function RegisterPage() {
       setStep(3);
     } else if (step === 3) {
       setStep(4);
+    } else if (step === 4) {
+      handleSendCode();
     } else {
       handleSubmit();
     }
@@ -154,6 +182,7 @@ export default function RegisterPage() {
           bio: form.bio || null,
           userType,
           imageBase64: imageBase64 || null,
+          verificationCode,
           ...extraDetails,
         }),
       });
@@ -180,8 +209,8 @@ export default function RegisterPage() {
     }
   };
 
-  const totalSteps = 4;
-  const stepLabels = ["Type", "Account", "Details", "Profile"];
+  const totalSteps = 5;
+  const stepLabels = ["Type", "Account", "Details", "Profile", "Verify"];
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -536,28 +565,74 @@ export default function RegisterPage() {
                 </div>
               </motion.div>
             )}
+            {/* Step 5 — Email Verification */}
+            {step === 5 && (
+              <motion.div
+                key="step5"
+                initial={{ opacity: 0, x: -16 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 16 }}
+                transition={{ duration: 0.28 }}
+                className="space-y-5"
+              >
+                <div className="flex flex-col items-center text-center gap-3 mb-2">
+                  <div className="w-14 h-14 bg-secondary-container rounded-2xl flex items-center justify-center">
+                    <Check className="w-7 h-7 text-on-secondary-container" />
+                  </div>
+                  <div>
+                    <h1 className="font-manrope font-bold text-2xl text-primary mb-1">Verify your email</h1>
+                    <p className="text-on-surface-variant text-sm">
+                      We sent a 6-digit code to <strong className="text-primary">{form.email}</strong>
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-primary mb-1.5">Verification code</label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={verificationCode}
+                    onChange={e => setVerificationCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    className="input-field text-center text-2xl font-bold font-manrope tracking-[0.4em]"
+                    placeholder="• • • • • •"
+                    maxLength={6}
+                    autoFocus
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleSendCode}
+                  disabled={codeSending}
+                  className="w-full text-center text-sm text-secondary hover:underline disabled:opacity-50"
+                >
+                  {codeSending ? "Sending…" : "Resend code"}
+                </button>
+              </motion.div>
+            )}
           </AnimatePresence>
 
           <button
             onClick={handleNext}
-            disabled={loading}
+            disabled={loading || codeSending}
             className="w-full flex items-center justify-center gap-2 bg-primary text-on-primary py-3.5 rounded-xl font-semibold font-manrope text-sm hover:opacity-90 disabled:opacity-60 transition-all shadow-card mt-6 active:scale-[0.99]"
           >
-            {loading ? (
+            {(loading || codeSending) ? (
               <div className="w-5 h-5 border-2 border-on-primary/30 border-t-on-primary rounded-full animate-spin" />
             ) : (
-              <>{step < 4 ? "Continue" : "Create account"} <ArrowRight className="w-4 h-4" /></>
+              <>{step < 4 ? "Continue" : step === 4 ? "Send verification code" : "Create account"} <ArrowRight className="w-4 h-4" /></>
             )}
           </button>
 
-          {step > 1 && (
+          {step > 1 && step < 5 && (
             <button onClick={() => { setError(""); setStep(s => s - 1); }} className="w-full text-center text-sm text-on-surface-variant hover:text-primary transition-colors mt-3">
               ← Back
             </button>
           )}
 
           {step === 4 && (
-            <button onClick={handleSubmit} disabled={loading} className="w-full text-center text-sm text-on-surface-variant hover:text-primary transition-colors mt-2">
+            <button onClick={handleSendCode} disabled={codeSending} className="w-full text-center text-sm text-on-surface-variant hover:text-primary transition-colors mt-2">
               Skip profile setup →
             </button>
           )}

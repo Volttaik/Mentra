@@ -13,10 +13,29 @@ export async function POST(req: Request) {
       university, department, level,
       niche, platform,
       field, experience, company,
+      verificationCode,
     } = body;
 
     if (!name || !email || !password) {
       return NextResponse.json({ error: "Name, email and password are required." }, { status: 400 });
+    }
+
+    if (!verificationCode) {
+      return NextResponse.json({ error: "Email verification code is required." }, { status: 400 });
+    }
+
+    const otp = await prisma.emailVerification.findFirst({
+      where: {
+        email,
+        code: verificationCode,
+        purpose: "signup",
+        used: false,
+        expiresAt: { gt: new Date() },
+      },
+    });
+
+    if (!otp) {
+      return NextResponse.json({ error: "Invalid or expired verification code." }, { status: 400 });
     }
 
     const existing = await prisma.user.findUnique({ where: { email } });
@@ -55,6 +74,8 @@ export async function POST(req: Request) {
     let resolvedDept = department || null;
     if (userType === "creator" && niche) resolvedDept = niche;
     if (userType === "freelancer" && field) resolvedDept = field;
+
+    await prisma.emailVerification.update({ where: { id: otp.id }, data: { used: true } });
 
     const user = await prisma.user.create({
       data: {

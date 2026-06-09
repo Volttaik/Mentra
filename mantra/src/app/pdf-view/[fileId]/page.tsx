@@ -335,8 +335,8 @@ export default function PdfViewPage() {
                 <Loader2 className="w-7 h-7 text-amber-400 animate-spin" />
               </div>
               <div className="text-center">
-                <p className="text-white/80 font-semibold">Loading document…</p>
-                <p className="text-white/30 text-sm mt-1">Rendering securely — content is never exposed as a raw PDF</p>
+                <p className="text-white/80 font-semibold">Rendering…</p>
+                <p className="text-white/30 text-sm mt-1">Please wait</p>
               </div>
             </div>
           )}

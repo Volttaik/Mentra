@@ -20,7 +20,6 @@ export function useTheme() {
 
 export default function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>("light");
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem("mentra-theme") as Theme | null;
@@ -28,7 +27,6 @@ export default function ThemeProvider({ children }: { children: React.ReactNode 
     const resolved = stored ?? (prefersDark ? "dark" : "light");
     setTheme(resolved);
     applyTheme(resolved);
-    setMounted(true);
   }, []);
 
   function applyTheme(t: Theme) {
@@ -47,8 +45,6 @@ export default function ThemeProvider({ children }: { children: React.ReactNode 
       return next;
     });
   }
-
-  if (!mounted) return <>{children}</>;
 
   return (
     <ThemeContext.Provider value={{ theme, toggle }}>

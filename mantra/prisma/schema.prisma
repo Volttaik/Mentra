@@ -43,6 +43,10 @@ model User {
   notifications Notification[]
   apiKeys       ApiKey[]
   progress      LearningProgress[]
+  taggedIn      StackTaggedUser[]  @relation("TaggedUser")
+  tagging       StackTaggedUser[]  @relation("Tagger")
+  purchases     Purchase[]
+  bankAccount   BankAccount?
 
   @@map("users")
 }
@@ -94,6 +98,7 @@ model Stack {
   isArchived  Boolean  @default(false)
   readme      String?
   banner      String?
+  profile     String?
   views       Int      @default(0)
   ownerId     String
   createdAt   DateTime @default(now())
@@ -110,6 +115,8 @@ model Stack {
   contributions Contribution[]
   progress      LearningProgress[]
   files         StackFile[]
+  taggedUsers   StackTaggedUser[]
+  purchases     Purchase[]
 
   @@map("stacks")
 }
@@ -349,4 +356,62 @@ enum NotificationType {
   COMMENT
   FOLLOW
   SYSTEM
+}
+
+model StackTaggedUser {
+  id        String   @id @default(cuid())
+  stackId   String
+  userId    String
+  taggedBy  String
+  createdAt DateTime @default(now())
+  stack     Stack    @relation(fields: [stackId], references: [id], onDelete: Cascade)
+  user      User     @relation("TaggedUser", fields: [userId], references: [id], onDelete: Cascade)
+  tagger    User     @relation("Tagger", fields: [taggedBy], references: [id], onDelete: Cascade)
+
+  @@unique([stackId, userId])
+  @@map("stack_tagged_users")
+}
+
+model Purchase {
+  id           String   @id @default(cuid())
+  userId       String
+  stackId      String
+  amount       Float
+  currency     String   @default("NGN")
+  paystackRef  String?  @unique
+  status       String   @default("pending")
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stack        Stack    @relation(fields: [stackId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, stackId])
+  @@map("purchases")
+}
+
+model EmailVerification {
+  id        String   @id @default(cuid())
+  email     String
+  code      String
+  purpose   String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([email, purpose])
+  @@map("email_verifications")
+}
+
+model BankAccount {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  accountNumber String
+  bankCode      String
+  bankName      String
+  accountName   String
+  recipientCode String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("bank_accounts")
 }

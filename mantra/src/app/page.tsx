@@ -206,26 +206,27 @@ export default function HomePage() {
               The collaborative academic OS
             </motion.div>
 
-            {/* Headline — fixed height prevents layout shift */}
+            {/* Headline — grid-stack prevents layout shift on word swap */}
             <h1 className="font-manrope font-bold text-5xl md:text-[3.6rem] text-primary leading-[1.06] tracking-tight mb-6">
               Where Academic
               <br />
-              <span className="relative">
-                {/* Fixed-height slot so the headline never reflows */}
-                <span className="inline-block h-[1.15em] overflow-hidden align-bottom">
-                  <AnimatePresence mode="wait">
-                    <motion.span
-                      key={wordIdx}
-                      initial={{ y: "100%", opacity: 0 }}
-                      animate={{ y: "0%", opacity: 1 }}
-                      exit={{ y: "-100%", opacity: 0 }}
-                      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-                      className="text-secondary inline-block"
-                    >
-                      {ROTATING_WORDS[wordIdx]}
-                    </motion.span>
-                  </AnimatePresence>
+              <span className="inline-grid align-bottom">
+                {/* Invisible spacer holds width of longest word */}
+                <span className="col-start-1 row-start-1 invisible select-none" aria-hidden>
+                  Knowledge
                 </span>
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={wordIdx}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.55 }}
+                    className="text-secondary col-start-1 row-start-1"
+                  >
+                    {ROTATING_WORDS[wordIdx]}
+                  </motion.span>
+                </AnimatePresence>
               </span>
               {" "}Lives & Grows
             </h1>

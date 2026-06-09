@@ -136,7 +136,7 @@ export async function PATCH(
   }
 
   const body = await req.json();
-  const { title, description, courseCode, university, department, semester, language, isPublic, readme, tags } = body;
+  const { title, description, courseCode, university, department, semester, language, isPublic, readme, tags, banner, profile, isPaid, price } = body;
 
   let newSlug = stack.slug;
   if (title && title !== stack.title) {
@@ -162,6 +162,10 @@ export async function PATCH(
       ...(language !== undefined && { language }),
       ...(isPublic !== undefined && { isPublic }),
       ...(readme !== undefined && { readme }),
+      ...(banner !== undefined && { banner }),
+      ...(profile !== undefined && { profile }),
+      ...(isPaid !== undefined && { isPaid }),
+      ...(price !== undefined && { price }),
     },
   });
 

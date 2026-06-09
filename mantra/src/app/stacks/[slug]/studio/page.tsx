@@ -16,8 +16,14 @@ interface StackData {
   courseCode: string; university: string; department: string;
   semester: string; language: string; isPublic: boolean;
   isPaid: boolean; price: number | null; readme: string | null;
-  banner: string | null; tags: string[];
+  banner: string | null; profile: string | null; tags: string[];
   owner: { id: string; name: string; username: string };
+}
+interface TaggedUser {
+  id: string; userId: string; name: string; username: string; image: string | null;
+}
+interface UserSearchResult {
+  id: string; name: string; username: string; image: string | null;
 }
 
 const SEMESTERS = ["Fall 2024", "Spring 2025", "Summer 2025", "Fall 2025", "Year-Round"];
@@ -43,12 +49,22 @@ export default function StackStudioPage() {
     title: "", description: "", courseCode: "", university: "",
     department: "", semester: "", language: "PDF",
     isPublic: true, isPaid: false, price: "",
-    readme: "", tags: "", banner: "",
+    readme: "", tags: "", banner: "", profile: "",
   });
 
   const [bannerUploading, setBannerUploading] = useState(false);
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
+
+  const [profileUploading, setProfileUploading] = useState(false);
+  const [profilePreview, setProfilePreview] = useState<string | null>(null);
+  const profileInputRef = useRef<HTMLInputElement>(null);
+
+  const [taggedUsers, setTaggedUsers] = useState<TaggedUser[]>([]);
+  const [tagInput, setTagInput] = useState("");
+  const [tagResults, setTagResults] = useState<UserSearchResult[]>([]);
+  const [tagSearching, setTagSearching] = useState(false);
+  const [tagMsg, setTagMsg] = useState("");
 
   useEffect(() => {
     fetch(`/api/stacks/${slug}`)
@@ -72,9 +88,16 @@ export default function StackStudioPage() {
           banner: d.banner ?? "",
         });
         if (d.banner) setBannerPreview(d.banner);
+        if (d.profile) setProfilePreview(d.profile);
+        setForm(f => ({ ...f, profile: d.profile ?? "" }));
       })
       .catch(() => setError("Failed to load stack."))
       .finally(() => setLoading(false));
+
+    fetch(`/api/stacks/${slug}/tagged-users`)
+      .then(r => r.json())
+      .then(d => { if (Array.isArray(d)) setTaggedUsers(d); })
+      .catch(() => {});
   }, [slug]);
 
   const isOwner = session?.user?.id === stack?.owner?.id;
@@ -119,6 +142,74 @@ export default function StackStudioPage() {
     }
   };
 
+  const handleProfileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !file.type.startsWith("image/")) return;
+
+    setProfileUploading(true);
+    setProfilePreview(URL.createObjectURL(file));
+
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch(`/api/stacks/${slug}/profile`, { method: "POST", body: fd });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        setForm(f => ({ ...f, profile: data.url }));
+        setProfilePreview(data.url);
+      } else {
+        setProfilePreview(form.profile || null);
+      }
+    } catch {
+      setProfilePreview(form.profile || null);
+    } finally {
+      setProfileUploading(false);
+      if (profileInputRef.current) profileInputRef.current.value = "";
+    }
+  };
+
+  const handleTagSearch = async (q: string) => {
+    setTagInput(q);
+    if (q.length < 2) { setTagResults([]); return; }
+    setTagSearching(true);
+    try {
+      const res = await fetch(`/api/stacks/${slug}/tagged-users`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: q }),
+      });
+      const data = await res.json();
+      setTagResults(Array.isArray(data) ? data : []);
+    } catch {
+      setTagResults([]);
+    } finally {
+      setTagSearching(false);
+    }
+  };
+
+  const handleTagUser = async (username: string) => {
+    setTagMsg("");
+    const res = await fetch(`/api/stacks/${slug}/tagged-users`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setTaggedUsers(prev => [...prev.filter(u => u.userId !== data.userId), data]);
+      setTagInput("");
+      setTagResults([]);
+    } else {
+      setTagMsg(data.error ?? "Failed to tag user.");
+      setTimeout(() => setTagMsg(""), 3000);
+    }
+  };
+
+  const handleUntagUser = async (userId: string) => {
+    await fetch(`/api/stacks/${slug}/tagged-users?userId=${userId}`, { method: "DELETE" });
+    setTaggedUsers(prev => prev.filter(u => u.userId !== userId));
+  };
+
   const handleSave = async () => {
     if (!stack) return;
     setSaving(true);
@@ -136,6 +227,7 @@ export default function StackStudioPage() {
         readme: form.readme,
         tags: tagsArr,
         banner: form.banner,
+        profile: form.profile,
       };
       if (form.isPaid) {
         body.isPaid = true;
@@ -258,7 +350,7 @@ export default function StackStudioPage() {
         </div>
       </div>
 
-      <div className="max-w-[1100px] mx-auto px-4 md:px-6 py-6">
+      <div className="max-w-[1100px] mx-auto px-4 md:px-6 py-6 pb-20">
         {/* Mobile tab strip */}
         <div className="flex gap-1 bg-surface-container rounded-2xl p-1 mb-6 lg:hidden overflow-x-auto no-scrollbar">
           {SECTIONS.map(section => (
@@ -396,6 +488,71 @@ export default function StackStudioPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Tag Users */}
+              <div className="card p-6 space-y-4">
+                <div>
+                  <h3 className="font-manrope font-semibold text-base text-primary mb-1">Tag People</h3>
+                  <p className="text-xs text-on-surface-variant">Tag collaborators, contributors, or co-authors on this stack.</p>
+                </div>
+
+                <div className="relative">
+                  <input
+                    value={tagInput}
+                    onChange={e => handleTagSearch(e.target.value)}
+                    className="input-field pr-8"
+                    placeholder="Search by username or name…"
+                  />
+                  {tagSearching && (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-on-surface-variant absolute right-3 top-1/2 -translate-y-1/2" />
+                  )}
+                  {tagResults.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-surface-container-lowest border border-outline-variant/20 rounded-xl shadow-lg z-20 overflow-hidden">
+                      {tagResults.map(u => (
+                        <button
+                          key={u.id}
+                          onClick={() => handleTagUser(u.username)}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-surface-container text-left transition-colors"
+                        >
+                          <div className="w-7 h-7 rounded-full bg-secondary-container overflow-hidden shrink-0">
+                            {u.image
+                              ? <img src={u.image} alt="" className="w-full h-full object-cover" />
+                              : <span className="w-full h-full flex items-center justify-center text-xs font-bold text-on-secondary-container">{u.name[0]}</span>}
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-primary">{u.name}</p>
+                            <p className="text-xs text-on-surface-variant">@{u.username}</p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {tagMsg && <p className="text-xs text-error">{tagMsg}</p>}
+
+                {taggedUsers.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {taggedUsers.map(u => (
+                      <div key={u.id} className="flex items-center gap-2 bg-surface-container px-3 py-1.5 rounded-full border border-outline-variant/20">
+                        <div className="w-5 h-5 rounded-full bg-secondary-container overflow-hidden shrink-0">
+                          {u.image
+                            ? <img src={u.image} alt="" className="w-full h-full object-cover" />
+                            : <span className="w-full h-full flex items-center justify-center text-[10px] font-bold text-on-secondary-container">{u.name[0]}</span>}
+                        </div>
+                        <span className="text-xs font-medium text-primary">@{u.username}</span>
+                        <button
+                          onClick={() => handleUntagUser(u.userId)}
+                          className="text-on-surface-variant hover:text-error transition-colors ml-0.5"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
             )}
 
             {/* ── APPEARANCE ── */}
@@ -404,6 +561,60 @@ export default function StackStudioPage() {
                 <div>
                   <h2 className="font-manrope font-bold text-xl text-primary mb-1">Appearance</h2>
                   <p className="text-sm text-on-surface-variant">Customize how your stack looks to others.</p>
+                </div>
+
+                {/* Stack Profile Picture */}
+                <div className="card p-6 space-y-4">
+                  <div>
+                    <h3 className="font-manrope font-semibold text-base text-primary mb-1">Stack Profile</h3>
+                    <p className="text-xs text-on-surface-variant">A small icon shown on stack cards and the explore feed. Recommended: 200×200px square.</p>
+                  </div>
+
+                  <div className="flex items-center gap-5">
+                    <div
+                      className="w-20 h-20 rounded-2xl border-2 border-dashed border-outline-variant/40 hover:border-secondary/40 overflow-hidden cursor-pointer relative group shrink-0 transition-all"
+                      onClick={() => profileInputRef.current?.click()}
+                    >
+                      {profilePreview ? (
+                        <>
+                          <img src={profilePreview} alt="Profile" className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                            <Upload className="w-4 h-4 text-white" />
+                          </div>
+                          {profileUploading && (
+                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                              <Loader2 className="w-5 h-5 text-white animate-spin" />
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 text-on-surface-variant">
+                          <ImageIcon className="w-6 h-6" />
+                          {profileUploading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                        </div>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <button
+                        onClick={() => profileInputRef.current?.click()}
+                        className="flex items-center gap-1.5 text-sm font-medium text-secondary hover:underline"
+                      >
+                        <Upload className="w-3.5 h-3.5" />
+                        {profilePreview ? "Change profile image" : "Upload profile image"}
+                      </button>
+                      {profilePreview && (
+                        <button
+                          onClick={() => { setProfilePreview(null); setForm(f => ({ ...f, profile: "" })); }}
+                          className="flex items-center gap-1.5 text-xs text-error hover:text-error/80 transition-colors"
+                        >
+                          <Trash2 className="w-3 h-3" />Remove
+                        </button>
+                      )}
+                      <p className="text-xs text-on-surface-variant">PNG, JPG, WebP · max 5MB</p>
+                    </div>
+                  </div>
+
+                  <input ref={profileInputRef} type="file" accept="image/*" className="hidden" onChange={handleProfileSelect} />
                 </div>
 
                 {/* Banner */}

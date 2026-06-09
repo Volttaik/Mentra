@@ -358,19 +358,21 @@ export default function SettingsPage() {
                     className="relative h-32 bg-gradient-to-r from-primary-container via-secondary-container to-primary-fixed overflow-hidden group cursor-pointer"
                     onClick={() => bannerInputRef.current?.click()}
                   >
-                    {bannerPreview ? (
+                    {bannerPreview && (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={bannerPreview} alt="Banner" className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-primary/10">
-                        <div className="flex items-center gap-2 bg-surface-container-lowest/90 px-4 py-2 rounded-xl text-sm font-medium text-primary">
+                    )}
+                    {/* Always-visible CTA when no banner; hover overlay when banner exists */}
+                    {!bannerPreview && !uploadingBanner && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="flex items-center gap-2 bg-surface-container-lowest/90 px-4 py-2 rounded-xl text-sm font-medium text-primary border border-outline-variant/20 shadow-sm">
                           <ImageIcon className="w-4 h-4" />
                           Upload banner
                         </div>
                       </div>
                     )}
                     {bannerPreview && (
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-primary/20">
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30">
                         <div className="flex items-center gap-2 bg-surface-container-lowest/90 px-4 py-2 rounded-xl text-sm font-medium text-primary">
                           <ImageIcon className="w-4 h-4" />
                           Change banner
@@ -378,8 +380,8 @@ export default function SettingsPage() {
                       </div>
                     )}
                     {uploadingBanner && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-primary/20">
-                        <Loader2 className="w-6 h-6 text-on-primary animate-spin" />
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                        <Loader2 className="w-6 h-6 text-white animate-spin" />
                       </div>
                     )}
                   </div>

@@ -440,7 +440,6 @@ export default function StackPage({ params }: { params: { slug: string } }) {
           {stack.banner && (
             <div className="h-40 md:h-52 relative overflow-hidden">
               <img src={stack.banner} alt="" className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-surface-container-lowest/90 via-surface-container-lowest/20 to-transparent" />
             </div>
           )}
           <div className={cn("p-6 md:p-8", stack.banner && "-mt-10 relative z-10")}>
