@@ -1,8 +1,9 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import SessionProvider from "@/components/providers/SessionProvider";
 import ThemeProvider from "@/components/providers/ThemeProvider";
 import MobileNav from "@/components/layout/MobileNav";
+import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 
 export const metadata: Metadata = {
   title: "Mentra — The Collaborative Academic OS",
@@ -21,7 +22,18 @@ export const metadata: Metadata = {
     title: "Mentra — The Collaborative Academic OS",
     description: "Where academic knowledge lives and grows.",
     type: "website",
+    siteName: "Mentra",
   },
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Mentra",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#735b25",
 };
 
 export default function RootLayout({
@@ -40,9 +52,16 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Be+Vietnam+Pro:wght@400;500;600&display=swap"
           rel="stylesheet"
         />
+        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+        <link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var t=localStorage.getItem('mentra-theme');var p=window.matchMedia('(prefers-color-scheme: dark)').matches;if(t==='dark'||(t===null&&p)){document.documentElement.classList.add('dark')}}catch(e){}})()`,
+          }}
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js').catch(function(){});})}`,
           }}
         />
       </head>
@@ -51,6 +70,7 @@ export default function RootLayout({
           <SessionProvider>
             {children}
             <MobileNav />
+            <PWAInstallPrompt />
           </SessionProvider>
         </ThemeProvider>
       </body>

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   X, Loader2, BookOpen, ChevronRight, ChevronDown,
   List, FileText, AlertCircle, Lock, Maximize2,
-  Minimize2, Search, XCircle,
+  Minimize2, Search, XCircle, ShoppingCart,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -23,12 +23,15 @@ interface MtContentData {
   references: string[];
   fileName?: string;
   fileType?: string;
+  isPreview?: boolean;
 }
 
 interface MtViewerProps {
   contentId: string;
   fileName: string;
   onClose: () => void;
+  preview?: boolean;
+  onBuy?: () => void;
 }
 
 function highlight(text: string, query: string): string {
@@ -36,7 +39,7 @@ function highlight(text: string, query: string): string {
   const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   return text.replace(
     new RegExp(`(${escaped})`, "gi"),
-    '<mark class="bg-yellow-200/80 text-primary rounded px-0.5">$1</mark>'
+    '<mark class="bg-yellow-200/80 text-primary rounded px-0.5 mentra-search-match">$1</mark>'
   );
 }
 
@@ -148,7 +151,7 @@ function stripExtension(name: string): string {
   return name.replace(/\.[^/.]+$/, "");
 }
 
-export default function MtViewer({ contentId, fileName, onClose }: MtViewerProps) {
+export default function MtViewer({ contentId, fileName, onClose, preview = false, onBuy }: MtViewerProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [data, setData] = useState<MtContentData | null>(null);
@@ -157,11 +160,13 @@ export default function MtViewer({ contentId, fileName, onClose }: MtViewerProps
   const [fullRead, setFullRead] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setLoading(true);
     setError("");
-    fetch(`/api/mt/${contentId}`)
+    const url = preview ? `/api/mt/${contentId}?preview=true` : `/api/mt/${contentId}`;
+    fetch(url)
       .then(r => r.json())
       .then(d => {
         if (d.error) {
@@ -172,7 +177,18 @@ export default function MtViewer({ contentId, fileName, onClose }: MtViewerProps
       })
       .catch(() => setError("Failed to load content."))
       .finally(() => setLoading(false));
-  }, [contentId]);
+  }, [contentId, preview]);
+
+  useEffect(() => {
+    if (!searchQuery.trim() || !scrollContainerRef.current) return;
+    const timeout = setTimeout(() => {
+      const firstMatch = scrollContainerRef.current?.querySelector(".mentra-search-match");
+      if (firstMatch) {
+        firstMatch.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, 120);
+    return () => clearTimeout(timeout);
+  }, [searchQuery]);
 
   const toggleFullRead = useCallback(() => {
     setFullRead(v => {
@@ -217,10 +233,9 @@ export default function MtViewer({ contentId, fileName, onClose }: MtViewerProps
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-manrope font-semibold text-sm text-primary truncate">{displayName}</p>
-            <p className="text-[11px] text-on-surface-variant flex items-center gap-1">
-              <Lock className="w-3 h-3" />
-              Secured
-            </p>
+            {preview && (
+              <p className="text-[11px] text-amber-600 font-medium">Preview mode</p>
+            )}
           </div>
           <div className="flex items-center gap-2">
             {!fullRead && (
@@ -237,7 +252,7 @@ export default function MtViewer({ contentId, fileName, onClose }: MtViewerProps
                 <List className="w-4 h-4" />
               </button>
             )}
-            {data && (
+            {data && !preview && (
               <button
                 onClick={toggleFullRead}
                 className={cn(
@@ -263,7 +278,6 @@ export default function MtViewer({ contentId, fileName, onClose }: MtViewerProps
         {loading && (
           <div className="flex-1 flex flex-col items-center justify-center gap-3 py-16">
             <Loader2 className="w-7 h-7 text-secondary animate-spin" />
-            <p className="text-sm text-on-surface-variant">Loading content…</p>
           </div>
         )}
 
@@ -322,7 +336,7 @@ export default function MtViewer({ contentId, fileName, onClose }: MtViewerProps
                   )}
                 </div>
 
-                <div className="flex-1 overflow-y-auto">
+                <div className="flex-1 overflow-y-auto" ref={scrollContainerRef}>
                   <div className="max-w-3xl mx-auto px-6 py-6">
                     {data.summary && !searchQuery && (
                       <div className="mb-8 p-4 bg-secondary-container/20 border border-secondary/10 rounded-2xl">
@@ -413,7 +427,7 @@ export default function MtViewer({ contentId, fileName, onClose }: MtViewerProps
                       </button>
                     ))}
 
-                    {data.sections.length > 0 && (
+                    {data.sections.length > 0 && !preview && (
                       <button
                         onClick={toggleFullRead}
                         className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-secondary hover:bg-secondary-container/30 transition-all"
@@ -424,7 +438,7 @@ export default function MtViewer({ contentId, fileName, onClose }: MtViewerProps
                     )}
                   </div>
 
-                  <div className="flex-1 overflow-y-auto px-6 py-4">
+                  <div className="flex-1 overflow-y-auto px-6 py-4 relative" ref={scrollContainerRef}>
                     {activeTab === "content" && (
                       <div>
                         {data.sections.length === 0 ? (
@@ -434,8 +448,31 @@ export default function MtViewer({ contentId, fileName, onClose }: MtViewerProps
                           </div>
                         ) : (
                           data.sections.map((section, i) => (
-                            <SectionRenderer key={i} section={section} depth={0} />
+                            <SectionRenderer key={i} section={section} depth={0} searchQuery={searchQuery} />
                           ))
+                        )}
+
+                        {/* Preview paywall overlay */}
+                        {preview && data.isPreview && (
+                          <div className="sticky bottom-0 left-0 right-0 mt-4">
+                            <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none" />
+                            <div className="relative z-10 flex flex-col items-center gap-3 py-6 text-center">
+                              <div className="w-10 h-10 bg-amber-50 rounded-2xl flex items-center justify-center">
+                                <Lock className="w-5 h-5 text-amber-600" />
+                              </div>
+                              <p className="font-manrope font-semibold text-primary text-sm">That&apos;s the preview</p>
+                              <p className="text-xs text-on-surface-variant max-w-xs">Purchase this stack to access the full content.</p>
+                              {onBuy && (
+                                <button
+                                  onClick={onBuy}
+                                  className="flex items-center gap-2 px-5 py-2.5 bg-primary text-on-primary rounded-xl text-sm font-semibold font-manrope hover:opacity-90 transition-all"
+                                >
+                                  <ShoppingCart className="w-4 h-4" />
+                                  Buy to read more
+                                </button>
+                              )}
+                            </div>
+                          </div>
                         )}
                       </div>
                     )}

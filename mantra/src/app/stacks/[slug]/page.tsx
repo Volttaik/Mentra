@@ -44,7 +44,7 @@ interface StackData {
   discussionsList: { id: string; title: string; body: string; resolved: boolean; createdAt: string; author: { name: string; username: string; image: string | null }; replies: number }[];
   contributors: { name: string; username: string; image: string | null }[];
   updatedDaysAgo: number; lastUpdated: string; createdAt: string;
-  isStarred: boolean; isBookmarked: boolean;
+  isStarred: boolean; isBookmarked: boolean; hasPurchased?: boolean;
   banner?: string | null;
   latestMt: { id: string; summary: string; concepts: any; fileName: string; fileType: string } | null;
 }
@@ -118,6 +118,7 @@ export default function StackPage({ params }: { params: { slug: string } }) {
   // MT Viewer
   const [viewerContentId, setViewerContentId] = useState<string | null>(null);
   const [viewerFileName, setViewerFileName] = useState<string>("");
+  const [viewerPreviewMode, setViewerPreviewMode] = useState(false);
 
   // AI Chat & Credits
   const [showAiChat, setShowAiChat] = useState(false);
@@ -781,16 +782,14 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                               ? "bg-secondary-container text-on-secondary-container"
                               : "bg-surface-container text-on-surface-variant"
                           )}>
-                            {f.mtContentId ? <Lock className="w-4 h-4" /> : ext.slice(0, 3)}
+                            {f.mtContentId ? <BookOpenCheck className="w-4 h-4" /> : ext.slice(0, 3)}
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-sm text-primary truncate">{f.name}</p>
                             <div className="flex items-center gap-2 mt-1">
                               <span className="text-xs text-on-surface-variant">{formatFileSize(f.size)}</span>
                               {f.mtContentId ? (
-                                <span className="flex items-center gap-1 text-xs text-secondary font-medium">
-                                  <Lock className="w-2.5 h-2.5" />Secured
-                                </span>
+                                <span className="text-xs text-secondary font-medium">Readable</span>
                               ) : (
                                 <span className="text-xs text-on-surface-variant">{ext}</span>
                               )}
@@ -798,12 +797,21 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
                             {f.mtContentId ? (
-                              <button
-                                onClick={() => { setViewerContentId(f.mtContentId!); setViewerFileName(f.name); }}
-                                className="flex items-center gap-1 px-3 py-1.5 bg-secondary text-on-secondary rounded-xl text-xs font-semibold font-manrope hover:opacity-90 transition-all"
-                              >
-                                <BookOpen className="w-3.5 h-3.5" />Read
-                              </button>
+                              stack.isPaid && !isOwner && !stack.hasPurchased ? (
+                                <button
+                                  onClick={() => { setViewerContentId(f.mtContentId!); setViewerFileName(f.name); setViewerPreviewMode(true); }}
+                                  className="flex items-center gap-1 px-3 py-1.5 bg-surface-container border border-secondary/30 text-secondary rounded-xl text-xs font-semibold font-manrope hover:bg-secondary-container/30 transition-all"
+                                >
+                                  <BookOpen className="w-3.5 h-3.5" />Preview
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => { setViewerContentId(f.mtContentId!); setViewerFileName(f.name); setViewerPreviewMode(false); }}
+                                  className="flex items-center gap-1 px-3 py-1.5 bg-secondary text-on-secondary rounded-xl text-xs font-semibold font-manrope hover:opacity-90 transition-all"
+                                >
+                                  <BookOpen className="w-3.5 h-3.5" />Read
+                                </button>
+                              )
                             ) : f.rawPath !== undefined && f.rawPath !== null ? (
                               <a
                                 href={`/pdf-view/${f.id}?stack=${slug}&name=${encodeURIComponent(f.name)}`}
@@ -814,9 +822,7 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                                 <Maximize2 className="w-3.5 h-3.5" />View
                               </a>
                             ) : f.url ? (
-                              <span className="text-xs text-on-surface-variant px-3 py-1.5 bg-surface-container rounded-xl flex items-center gap-1">
-                                <Lock className="w-3 h-3" />Protected
-                              </span>
+                              <span className="text-xs text-on-surface-variant px-3 py-1.5 bg-surface-container rounded-xl">Available</span>
                             ) : (
                               <span className="text-xs text-on-surface-variant px-3 py-1.5 bg-surface-container rounded-xl">Stored</span>
                             )}
@@ -903,24 +909,26 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                                   <p className="text-sm text-primary truncate">{f.name}</p>
                                   <p className="text-xs text-on-surface-variant flex items-center gap-1">
                                     {formatFileSize(f.size)}
-                                    {f.mtContentId && (
-                                      <span className="flex items-center gap-0.5 text-secondary ml-1">
-                                        <Lock className="w-2.5 h-2.5" />Secured
-                                      </span>
-                                    )}
                                   </p>
                                 </div>
                                 {f.mtContentId ? (
-                                  <button
-                                    onClick={() => {
-                                      setViewerContentId(f.mtContentId!);
-                                      setViewerFileName(f.name);
-                                    }}
-                                    className="flex items-center gap-1.5 text-xs font-medium text-secondary bg-secondary-container/40 hover:bg-secondary-container px-3 py-1.5 rounded-lg transition-all"
-                                  >
-                                    <BookOpen className="w-3.5 h-3.5" />
-                                    Read
-                                  </button>
+                                  stack.isPaid && !isOwner && !stack.hasPurchased ? (
+                                    <button
+                                      onClick={() => { setViewerContentId(f.mtContentId!); setViewerFileName(f.name); setViewerPreviewMode(true); }}
+                                      className="flex items-center gap-1.5 text-xs font-medium text-secondary border border-secondary/30 bg-surface-container hover:bg-secondary-container/30 px-3 py-1.5 rounded-lg transition-all"
+                                    >
+                                      <BookOpen className="w-3.5 h-3.5" />
+                                      Preview
+                                    </button>
+                                  ) : (
+                                    <button
+                                      onClick={() => { setViewerContentId(f.mtContentId!); setViewerFileName(f.name); setViewerPreviewMode(false); }}
+                                      className="flex items-center gap-1.5 text-xs font-medium text-secondary bg-secondary-container/40 hover:bg-secondary-container px-3 py-1.5 rounded-lg transition-all"
+                                    >
+                                      <BookOpen className="w-3.5 h-3.5" />
+                                      Read
+                                    </button>
+                                  )
                                 ) : f.rawPath !== undefined && f.rawPath !== null ? (
                                   <a
                                     href={`/pdf-view/${f.id}?stack=${slug}&name=${encodeURIComponent(f.name)}`}
@@ -931,10 +939,6 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                                     <Maximize2 className="w-3.5 h-3.5" />
                                     View
                                   </a>
-                                ) : f.url ? (
-                                  <span className="flex items-center gap-1 text-xs text-on-surface-variant px-2 py-1.5 bg-surface-container rounded-lg">
-                                    <Lock className="w-3 h-3" />Protected
-                                  </span>
                                 ) : null}
                               </div>
                             ))
@@ -1324,7 +1328,9 @@ export default function StackPage({ params }: { params: { slug: string } }) {
           <MtViewer
             contentId={viewerContentId}
             fileName={viewerFileName}
-            onClose={() => { setViewerContentId(null); setViewerFileName(""); }}
+            onClose={() => { setViewerContentId(null); setViewerFileName(""); setViewerPreviewMode(false); }}
+            preview={viewerPreviewMode}
+            onBuy={viewerPreviewMode ? () => { setViewerContentId(null); router.push(`/stacks/${slug}#buy`); } : undefined}
           />
         )}
       </AnimatePresence>

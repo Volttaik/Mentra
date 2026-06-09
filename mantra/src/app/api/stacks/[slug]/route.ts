@@ -108,6 +108,9 @@ export async function GET(
     banner: stack.banner ?? null,
     isStarred: stack.stars.some(s => s.userId === userId),
     isBookmarked: stack.bookmarks.some(b => b.userId === userId),
+    hasPurchased: userId !== "__none__"
+      ? (await prisma.purchase.findFirst({ where: { userId, stackId: stack.id, status: "completed" } })) !== null
+      : false,
     latestMt: latestMt ? {
       id: latestMt.id,
       summary: latestMt.summary,
