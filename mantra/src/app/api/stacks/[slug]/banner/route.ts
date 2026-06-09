@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
+import { put } from "@vercel/blob";
 import { randomBytes } from "crypto";
 
 export async function POST(
@@ -39,21 +38,19 @@ export async function POST(
     const ext = file.name.split(".").pop() ?? "jpg";
     const id = randomBytes(8).toString("hex");
     const filename = `banner-${id}.${ext}`;
-    const uploadDir = path.join(process.cwd(), "public", "uploads", "banners");
-    await mkdir(uploadDir, { recursive: true });
 
     const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    await writeFile(path.join(uploadDir, filename), buffer);
-
-    const url = `/uploads/banners/${filename}`;
+    const blob = await put(`uploads/banners/${filename}`, bytes, {
+      access: "public",
+      contentType: file.type,
+    });
 
     await prisma.stack.update({
       where: { id: stack.id },
-      data: { banner: url },
+      data: { banner: blob.url },
     });
 
-    return NextResponse.json({ url });
+    return NextResponse.json({ url: blob.url });
   } catch (err) {
     console.error("Banner upload error:", err);
     return NextResponse.json({ error: "Upload failed" }, { status: 500 });

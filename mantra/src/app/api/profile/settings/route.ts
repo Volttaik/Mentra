@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { mkdir, writeFile } from "fs/promises";
-import path from "path";
+import { put } from "@vercel/blob";
 
 export async function GET() {
   const session = await auth();
@@ -44,20 +43,21 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Image too large (max 5 MB)" }, { status: 413 });
     }
 
-    const buffer = Buffer.from(await file.arrayBuffer());
     const ext = file.type.split("/")[1]?.replace("jpeg", "jpg") ?? "jpg";
     const safeName = `${session.user.id}_${type}_${Date.now()}.${ext}`;
-    const uploadDir = path.join(process.cwd(), "public", "avatars");
-    await mkdir(uploadDir, { recursive: true });
-    await writeFile(path.join(uploadDir, safeName), buffer);
-    const url = `/avatars/${safeName}`;
+    const bytes = await file.arrayBuffer();
+
+    const blob = await put(`avatars/${safeName}`, bytes, {
+      access: "public",
+      contentType: file.type,
+    });
 
     if (type === "avatar") {
-      await prisma.user.update({ where: { id: session.user.id }, data: { image: url } });
-      return NextResponse.json({ image: url });
+      await prisma.user.update({ where: { id: session.user.id }, data: { image: blob.url } });
+      return NextResponse.json({ image: blob.url });
     } else {
-      await prisma.user.update({ where: { id: session.user.id }, data: { banner: url } });
-      return NextResponse.json({ banner: url });
+      await prisma.user.update({ where: { id: session.user.id }, data: { banner: blob.url } });
+      return NextResponse.json({ banner: blob.url });
     }
   }
 

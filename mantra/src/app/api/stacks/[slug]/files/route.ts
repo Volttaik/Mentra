@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { mkdir, writeFile, unlink } from "fs/promises";
-import path from "path";
+import { put, del } from "@vercel/blob";
 import { extractTextFromFile, isTextExtractable } from "@/lib/mt-extractor";
 import { buildAndEncryptMt } from "@/lib/mt-engine";
 import { randomBytes } from "crypto";
@@ -155,22 +154,26 @@ export async function POST(
   let rawPath: string | null = null;
   let mtContentId: string | null = null;
 
-  const storageDir = path.join(process.cwd(), ".mt-storage", stack.id);
-  await mkdir(storageDir, { recursive: true });
+  const safeName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
 
   if (isMedia) {
-    const safeName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
-    const uploadDir = path.join(process.cwd(), "public", "uploads", stack.id);
-    await mkdir(uploadDir, { recursive: true });
-    await writeFile(path.join(uploadDir, safeName), buffer);
-    fileUrl = `/uploads/${stack.id}/${safeName}`;
+    const blob = await put(`uploads/${stack.id}/${safeName}`, buffer, {
+      access: "public",
+      contentType: mimeType,
+    });
+    fileUrl = blob.url;
   } else if (isPdf) {
-    const safeName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
-    const rawFilePath = path.join(storageDir, safeName);
-    await writeFile(rawFilePath, buffer);
-    rawPath = rawFilePath;
+    const blob = await put(`mt-storage/${stack.id}/${safeName}`, buffer, {
+      access: "public",
+      contentType: "application/octet-stream",
+    });
+    rawPath = blob.url;
+
     const decoy = generateDecoy();
-    await writeFile(rawFilePath + ".decoy", decoy);
+    await put(`mt-storage/${stack.id}/${safeName}.decoy`, decoy, {
+      access: "public",
+      contentType: "application/octet-stream",
+    });
     fileUrl = "";
   } else if (isDocx || isText) {
     let extractionError: string | null = null;
@@ -232,8 +235,10 @@ export async function POST(
       return NextResponse.json({ error: extractionError }, { status: 422 });
     }
   } else {
-    const safeName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
-    await writeFile(path.join(storageDir, safeName), buffer);
+    await put(`mt-storage/${stack.id}/${safeName}`, buffer, {
+      access: "public",
+      contentType: "application/octet-stream",
+    });
   }
 
   const record = await prisma.stackFile.create({
@@ -289,13 +294,12 @@ export async function DELETE(
   });
   if (fileRecord) {
     await prisma.stackFile.delete({ where: { id: fileId } }).catch(() => {});
-    if (fileRecord.url?.startsWith("/uploads/")) {
-      const diskPath = path.join(process.cwd(), "public", fileRecord.url);
-      await unlink(diskPath).catch(() => {});
+    if (fileRecord.url && fileRecord.url.startsWith("https://")) {
+      await del(fileRecord.url).catch(() => {});
     }
-    if (fileRecord.rawPath) {
-      await unlink(fileRecord.rawPath).catch(() => {});
-      await unlink(fileRecord.rawPath + ".decoy").catch(() => {});
+    if (fileRecord.rawPath && fileRecord.rawPath.startsWith("https://")) {
+      await del(fileRecord.rawPath).catch(() => {});
+      await del(fileRecord.rawPath + ".decoy").catch(() => {});
     }
   }
   return NextResponse.json({ success: true });

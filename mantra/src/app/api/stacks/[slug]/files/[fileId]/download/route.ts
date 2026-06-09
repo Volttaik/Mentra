@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { readFile } from "fs/promises";
 
 export async function GET(
   req: NextRequest,
@@ -31,9 +30,13 @@ export async function GET(
     return NextResponse.json({ error: "Not downloadable" }, { status: 400 });
   }
 
-  const decoyPath = fileRecord.rawPath + ".decoy";
+  const decoyUrl = fileRecord.rawPath + ".decoy";
   try {
-    const bytes = await readFile(decoyPath);
+    const blobRes = await fetch(decoyUrl);
+    if (!blobRes.ok) {
+      return NextResponse.json({ error: "File not available" }, { status: 404 });
+    }
+    const bytes = await blobRes.arrayBuffer();
     const decoyName = fileRecord.name.replace(/\.[^/.]+$/, "") + ".bin";
     return new Response(bytes, {
       headers: {

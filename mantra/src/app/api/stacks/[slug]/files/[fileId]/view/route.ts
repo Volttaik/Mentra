@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { readFile } from "fs/promises";
 
 export async function GET(
   req: NextRequest,
@@ -32,9 +31,11 @@ export async function GET(
   }
 
   try {
-    const bytes = await readFile(fileRecord.rawPath);
-    // Serve as octet-stream — prevents native browser PDF rendering.
-    // The client fetches this as an ArrayBuffer and renders via PDF.js canvas.
+    const blobRes = await fetch(fileRecord.rawPath);
+    if (!blobRes.ok) {
+      return NextResponse.json({ error: "File not available" }, { status: 404 });
+    }
+    const bytes = await blobRes.arrayBuffer();
     return new Response(bytes, {
       headers: {
         "Content-Type": "application/octet-stream",
