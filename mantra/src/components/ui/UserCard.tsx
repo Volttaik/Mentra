@@ -20,12 +20,12 @@ interface UserCardProps {
 }
 
 const ACHIEVEMENT_LABELS: Record<string, string> = {
-  "top-contributor": "🏆 Top Contributor",
-  "verified-educator": "✅ Educator",
-  "hall-of-fame": "⭐ Hall of Fame",
-  "rising-star": "🌟 Rising Star",
-  "100-commits": "💫 100 Commits",
-  "top-professor": "🎓 Professor",
+  "top-contributor": "Top Contributor",
+  "verified-educator": "Educator",
+  "hall-of-fame": "Hall of Fame",
+  "rising-star": "Rising Star",
+  "100-commits": "100 Commits",
+  "top-professor": "Professor",
 };
 
 export default function UserCard({ user, className }: UserCardProps) {

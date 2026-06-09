@@ -94,7 +94,7 @@ export default function DashboardPage() {
         <div className="mb-10 flex items-start justify-between animate-fade-in">
           <div>
             <h1 className="font-manrope font-bold text-2xl md:text-3xl text-primary mb-1">
-              {greeting}, {displayName} ✨
+              {greeting}, {displayName}
             </h1>
             <p className="text-on-surface-variant text-sm">
               {loading ? "Loading your dashboard…" :

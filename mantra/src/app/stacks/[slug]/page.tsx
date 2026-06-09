@@ -11,13 +11,16 @@ import {
   Music, HelpCircle, ChevronRight, Tag, Plus,
   Code2, ArrowLeft, Loader2, X, Edit2, Trash2,
   AlertTriangle, Send, Upload, File as FileIcon, Check,
-  BookOpenCheck, Lock, Maximize2,
+  BookOpenCheck, Lock, Maximize2, Bot, BrainCircuit, Info, Coins,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { formatNumber, timeAgo } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import MtViewer from "@/components/MtViewer";
+import AiChatModal from "@/components/AiChatModal";
+import BuyCreditsModal from "@/components/BuyCreditsModal";
+import QuizSection from "@/components/QuizSection";
 
 const MODULE_ICONS: Record<string, React.ReactNode> = {
   lecture: <BookOpen className="w-4 h-4" />,
@@ -27,7 +30,7 @@ const MODULE_ICONS: Record<string, React.ReactNode> = {
   flashcard: <HelpCircle className="w-4 h-4" />,
 };
 
-const TABS = ["Overview", "Content", "Modules", "Discussions", "Contributors"];
+const TABS = ["Overview", "Content", "Modules", "Discussions", "Contributors", "Quiz"];
 
 interface StackData {
   id: string; title: string; slug: string; description: string; courseCode: string;
@@ -115,6 +118,20 @@ export default function StackPage({ params }: { params: { slug: string } }) {
   // MT Viewer
   const [viewerContentId, setViewerContentId] = useState<string | null>(null);
   const [viewerFileName, setViewerFileName] = useState<string>("");
+
+  // AI Chat & Credits
+  const [showAiChat, setShowAiChat] = useState(false);
+  const [showBuyCredits, setShowBuyCredits] = useState(false);
+  const [aiCredits, setAiCredits] = useState(0);
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      fetch("/api/credits")
+        .then(r => r.json())
+        .then(d => { if (typeof d.credits === "number") setAiCredits(d.credits); })
+        .catch(() => {});
+    }
+  }, [session?.user?.id]);
 
   useEffect(() => {
     setLoading(true);
@@ -548,6 +565,16 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                     {actionLoading === "fork" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <GitFork className="w-3.5 h-3.5" />}
                     Fork
                   </button>
+                  <button
+                    onClick={() => setShowAiChat(true)}
+                    className="w-full flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold font-manrope bg-secondary-container/40 border border-secondary/20 text-secondary hover:bg-secondary-container/60 hover:border-secondary/40 transition-all"
+                  >
+                    <Bot className="w-3.5 h-3.5" />
+                    Ask AI
+                    <span className="ml-auto flex items-center gap-0.5 text-[10px] text-on-surface-variant font-normal">
+                      <Coins className="w-2.5 h-2.5" />{aiCredits}
+                    </span>
+                  </button>
                   <div className="flex gap-2">
                     <button
                       onClick={handleBookmark}
@@ -634,36 +661,7 @@ export default function StackPage({ params }: { params: { slug: string } }) {
           <div className="lg:col-span-2 space-y-6">
             {activeTab === "Overview" && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-                {/* Content Summary */}
-                {stack.latestMt && (
-                  <div className="card p-6 space-y-4">
-                    <div className="flex items-center gap-2 pb-3 border-b border-outline-variant/10">
-                      <BookOpenCheck className="w-5 h-5 text-secondary" />
-                      <h2 className="font-manrope font-semibold text-base text-primary">Content Summary</h2>
-                      <span className="ml-auto text-xs text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-full">{stack.latestMt.fileName.replace(/\.[^/.]+$/, "")}</span>
-                    </div>
-                    {stack.latestMt.summary && (
-                      <p className="text-sm text-on-surface-variant leading-relaxed">{stack.latestMt.summary}</p>
-                    )}
-                    {Array.isArray(stack.latestMt.concepts) && stack.latestMt.concepts.length > 0 && (
-                      <div>
-                        <p className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">Key Concepts</p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {(stack.latestMt.concepts as string[]).slice(0, 12).map((c, i) => (
-                            <span key={i} className="tag-accent text-xs">{c}</span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    <button
-                      onClick={() => { setViewerContentId(stack.latestMt!.id); setViewerFileName(stack.latestMt!.fileName); }}
-                      className="flex items-center gap-2 text-sm font-medium text-secondary hover:text-primary transition-colors"
-                    >
-                      <BookOpen className="w-4 h-4" />Read full content
-                    </button>
-                  </div>
-                )}
-
+  
                 <div className="card p-8">
                   <div className="flex items-center gap-2 mb-6 pb-4 border-b border-outline-variant/10">
                     <Code2 className="w-5 h-5 text-on-surface-variant" />
@@ -692,7 +690,7 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                             <ul className="space-y-2">
                               {stack.modules.map(m => (
                                 <li key={m.id} className="flex items-center gap-2 text-sm text-on-surface-variant">
-                                  <span className="w-4 h-4 text-secondary">✓</span>
+                                  <Check className="w-4 h-4 text-secondary shrink-0" />
                                   <span>{m.title}</span>
                                   {m.duration && <span className="text-xs text-outline">({m.duration})</span>}
                                 </li>
@@ -709,9 +707,10 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                             </div>
                           </div>
                         )}
-                        <div className="bg-secondary-container/30 border border-secondary/10 rounded-xl p-4 mt-4">
+                        <div className="bg-secondary-container/30 border border-secondary/10 rounded-xl p-4 mt-4 flex items-start gap-2">
+                          <Info className="w-4 h-4 text-secondary shrink-0 mt-0.5" />
                           <p className="text-sm text-on-secondary-container font-medium">
-                            ℹ️ This stack follows the Mentra Academic Integrity Guidelines.
+                            This stack follows the Mentra Academic Integrity Guidelines.
                           </p>
                         </div>
                       </>
@@ -1078,26 +1077,54 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                 ))}
               </motion.div>
             )}
+
+            {activeTab === "Quiz" && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                {session?.user ? (
+                  <QuizSection
+                    slug={slug}
+                    isOwner={isOwner}
+                    credits={aiCredits}
+                    onBuyCredits={() => setShowBuyCredits(true)}
+                    onCreditsUpdate={setAiCredits}
+                  />
+                ) : (
+                  <div className="card p-12 text-center">
+                    <BrainCircuit className="w-10 h-10 text-outline-variant mx-auto mb-3" />
+                    <p className="font-manrope font-semibold text-primary mb-1">Sign in to access quizzes</p>
+                    <p className="text-sm text-on-surface-variant mb-5">Sign in to take quizzes and track your progress.</p>
+                    <Link href={`/login?callbackUrl=/stacks/${slug}`} className="inline-flex items-center gap-2 bg-primary text-on-primary px-5 py-2.5 rounded-xl text-sm font-semibold font-manrope hover:opacity-90 transition-all">
+                      Sign in
+                    </Link>
+                  </div>
+                )}
+              </motion.div>
+            )}
           </div>
 
           {/* Sidebar */}
           <aside className="space-y-5">
-            <div className="card p-5 bg-gradient-to-br from-secondary-container/30 to-surface-container border border-secondary/10">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-7 h-7 bg-secondary rounded-xl flex items-center justify-center">
-                  <span className="text-on-secondary text-xs font-bold">AI</span>
+            {session?.user && (
+              <div className="card p-5 space-y-3 bg-gradient-to-br from-secondary-container/20 to-surface-container border border-secondary/10">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 bg-secondary-container rounded-xl flex items-center justify-center">
+                    <Bot className="w-4 h-4 text-secondary" />
+                  </div>
+                  <h3 className="font-manrope font-semibold text-sm text-primary">AI Study Assistant</h3>
                 </div>
-                <h3 className="font-manrope font-semibold text-sm text-primary">AI Tools</h3>
-                <span className="text-[10px] bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded-full">Coming soon</span>
+                <p className="text-xs text-on-surface-variant leading-relaxed">Ask questions, get explanations, and get study help based on this stack&apos;s content.</p>
+                <div className="flex items-center justify-between text-xs text-on-surface-variant">
+                  <span className="flex items-center gap-1"><Coins className="w-3 h-3" />{aiCredits} credits left</span>
+                  <button onClick={() => setShowBuyCredits(true)} className="text-secondary hover:underline">Buy more</button>
+                </div>
+                <button
+                  onClick={() => setShowAiChat(true)}
+                  className="w-full flex items-center justify-center gap-2 bg-secondary text-on-secondary py-2.5 rounded-xl text-xs font-semibold font-manrope hover:opacity-90 transition-all"
+                >
+                  <Bot className="w-3.5 h-3.5" />Ask AI
+                </button>
               </div>
-              <div className="space-y-2">
-                {["Generate Summary", "Create Flashcards", "Build Quiz", "Explain Concept"].map(action => (
-                  <button key={action} className="w-full text-left px-3 py-2.5 text-sm text-on-surface-variant rounded-xl bg-surface-container hover:bg-surface-container-high transition-all opacity-60 cursor-not-allowed">
-                    {action}
-                  </button>
-                ))}
-              </div>
-            </div>
+            )}
 
             <div className="card p-5 space-y-4">
               <h3 className="font-manrope font-semibold text-sm text-primary">About</h3>
@@ -1298,6 +1325,28 @@ export default function StackPage({ params }: { params: { slug: string } }) {
             contentId={viewerContentId}
             fileName={viewerFileName}
             onClose={() => { setViewerContentId(null); setViewerFileName(""); }}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showAiChat && stack && (
+          <AiChatModal
+            stack={{ title: stack.title, slug: stack.slug, courseCode: stack.courseCode, description: stack.description }}
+            credits={aiCredits}
+            onClose={() => setShowAiChat(false)}
+            onBuyCredits={() => { setShowAiChat(false); setShowBuyCredits(true); }}
+            onCreditsUpdate={setAiCredits}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showBuyCredits && (
+          <BuyCreditsModal
+            currentCredits={aiCredits}
+            onClose={() => setShowBuyCredits(false)}
+            onSuccess={setAiCredits}
           />
         )}
       </AnimatePresence>
