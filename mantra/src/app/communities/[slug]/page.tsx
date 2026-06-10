@@ -8,7 +8,7 @@ import {
   Users, BookOpen, Shield, Loader2, Trash2,
   LogOut, Settings, Search, X, UserPlus, Crown, AlertCircle,
   MessageCircle, Send, MoreVertical, Image as ImageIcon, Check,
-  UserMinus, Star, ChevronRight,
+  UserMinus, Star,
 } from "lucide-react";
 import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
@@ -386,7 +386,7 @@ export default function CommunityPage() {
                           <>
                             <div className="border-t border-outline-variant/10 mx-3 my-1" />
                             <button
-                              onClick={() => { session?.user?.id && removeMember(session.user.id); setShowOptionsMenu(false); }}
+                              onClick={() => { if (session?.user?.id) { removeMember(session.user.id); } setShowOptionsMenu(false); }}
                               className="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-error hover:bg-error-container/20 transition-colors"
                             >
                               <LogOut className="w-4 h-4" />Leave Community

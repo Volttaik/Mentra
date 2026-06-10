@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Users, Search, Plus, Loader2, BookOpen, Crown } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
-import { cn } from "@/lib/utils";
 
 interface Community {
   id: string; slug: string; name: string; description: string | null;

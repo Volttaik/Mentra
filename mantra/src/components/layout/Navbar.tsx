@@ -7,7 +7,7 @@ import { useSession, signOut } from "next-auth/react";
 import {
   Bell, Search, Menu, X, ChevronDown,
   Upload, Settings, LogOut, User, LayoutDashboard, Moon, Sun,
-  Sparkles, Users, Zap, Compass, Bot, Palette, Plus,
+  Sparkles, Users, Zap, Compass, Bot, Palette,
   MessageSquarePlus, Coins,
 } from "lucide-react";
 import { cn } from "@/lib/utils";

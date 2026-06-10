@@ -26,7 +26,7 @@ interface Conversation {
   messages: { content: string; role: string }[];
 }
 
-function StatCard({ data }: { data: Record<string, number> }) {
+function _StatCard({ data }: { data: Record<string, number> }) {
   if (!data) return null;
   return (
     <div className="grid grid-cols-2 gap-2 mt-3">
