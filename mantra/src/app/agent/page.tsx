@@ -44,7 +44,7 @@ const QUICK_ACTIONS = [
 ];
 
 export default function AgentPage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -94,7 +94,7 @@ export default function AgentPage() {
     setLoading(true);
 
     try {
-      let body: any = { message: msg || "What's in this image?" };
+      const body: Record<string, string> = { message: msg || "What's in this image?" };
       if (imgPreview) body.image = imgPreview;
 
       const res = await fetch("/api/agent", {
