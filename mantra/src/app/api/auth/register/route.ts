@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { mkdir, writeFile } from "fs/promises";
-import path from "path";
 
 export async function POST(req: Request) {
   try {
@@ -58,13 +56,20 @@ export async function POST(req: Request) {
       try {
         const matches = imageBase64.match(/^data:([^;]+);base64,(.+)$/);
         if (matches) {
-          const ext = matches[1].split("/")[1]?.replace("jpeg", "jpg") ?? "jpg";
+          const mimeType = matches[1];
+          const ext = mimeType.split("/")[1]?.replace("jpeg", "jpg") ?? "jpg";
           const buffer = Buffer.from(matches[2], "base64");
           const safeName = `avatar_${Date.now()}.${ext}`;
-          const uploadDir = path.join(process.cwd(), "public", "avatars");
-          await mkdir(uploadDir, { recursive: true });
-          await writeFile(path.join(uploadDir, safeName), buffer);
-          imageUrl = `/avatars/${safeName}`;
+          if (process.env.BLOB_READ_WRITE_TOKEN) {
+            const { put } = await import("@vercel/blob");
+            const blob = await put(`avatars/${safeName}`, buffer, {
+              access: "public",
+              contentType: mimeType,
+            });
+            imageUrl = blob.url;
+          } else {
+            imageUrl = imageBase64;
+          }
         }
       } catch {
         imageUrl = null;

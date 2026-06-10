@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import Groq from "groq-sdk";
 
 const CHAT_CREDIT_COST = 1;
 
 function getGroq() {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const Groq = require("groq-sdk");
   return new Groq({ apiKey: process.env.GROQ_API_KEY ?? "" });
 }
 
