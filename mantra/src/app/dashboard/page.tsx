@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 interface Stack {
   id: string; title: string; slug: string; courseCode: string;
   university: string; stars: number; forks: number; modules: { id: string }[];
-  updatedDaysAgo: number; tags: string[];
+  updatedDaysAgo: number; tags: string[]; banner?: string | null; profile?: string | null;
 }
 interface Notification {
   id: string; type: string; title: string; body: string; read: boolean; createdAt: string; link?: string;
@@ -31,7 +31,7 @@ interface Flow {
 }
 interface Community {
   id: string; slug: string; name: string; myRole: string;
-  _count: { members: number; stacks: number };
+  _count: { members: number; stacks: number }; profile?: string | null;
 }
 
 const NOTIF_ICONS: Record<string, React.ReactNode> = {
@@ -96,7 +96,7 @@ export default function DashboardPage() {
       body: JSON.stringify({ name: flowName.trim(), emoji: "📚" }),
     });
     const data = await res.json();
-    if (!data.error) { setFlows(prev => [data, ...prev]); setShowCreateFlow(false); setFlowName(""); }
+    if (!data.error) { setFlows(prev => [{ ...data, _count: { items: 0 }, items: [] }, ...prev]); setShowCreateFlow(false); setFlowName(""); }
     setCreating(false);
   };
 
@@ -294,9 +294,13 @@ export default function DashboardPage() {
                   {communities.slice(0, 5).map(comm => (
                     <Link key={comm.id} href={`/communities/${comm.slug}`}>
                       <div className="card-sm p-4 flex items-center gap-3 cursor-pointer hover:-translate-y-0.5 transition-transform duration-150">
-                        <div className="w-9 h-9 bg-secondary-container rounded-xl flex items-center justify-center shrink-0">
-                          <Users className="w-4 h-4 text-on-secondary-container" />
-                        </div>
+                        {comm.profile ? (
+                          <img src={comm.profile} alt="" className="w-9 h-9 rounded-xl object-cover shrink-0 border border-outline-variant/20" />
+                        ) : (
+                          <div className="w-9 h-9 bg-secondary-container rounded-xl flex items-center justify-center shrink-0">
+                            <Users className="w-4 h-4 text-on-secondary-container" />
+                          </div>
+                        )}
                         <div className="flex-1 min-w-0">
                           <p className="font-manrope font-semibold text-sm text-primary truncate">{comm.name}</p>
                           <p className="text-xs text-on-surface-variant">{comm._count.members} members · {comm._count.stacks} stacks</p>
@@ -356,9 +360,13 @@ export default function DashboardPage() {
                       style={{ animationDelay: `${200 + i * 50}ms`, animationFillMode: "both" }}
                     >
                       <div className="card-sm p-4 flex items-center gap-4 cursor-pointer group hover:-translate-y-0.5 transition-transform duration-150">
-                        <div className="w-10 h-10 bg-secondary-container rounded-xl flex items-center justify-center shrink-0">
-                          <BookOpen className="w-5 h-5 text-on-secondary-container" />
-                        </div>
+                        {(stack.profile || stack.banner) ? (
+                          <img src={stack.profile ?? stack.banner ?? ""} alt="" className="w-10 h-10 rounded-xl object-cover shrink-0 border border-outline-variant/20" />
+                        ) : (
+                          <div className="w-10 h-10 bg-secondary-container rounded-xl flex items-center justify-center shrink-0">
+                            <BookOpen className="w-5 h-5 text-on-secondary-container" />
+                          </div>
+                        )}
                         <div className="flex-1 min-w-0">
                           <p className="font-manrope font-semibold text-sm text-primary group-hover:text-secondary transition-colors truncate">
                             {stack.title}

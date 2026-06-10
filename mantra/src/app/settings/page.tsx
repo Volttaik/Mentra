@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 import {
   User, Key, Bell, Shield, Save, Plus, Trash2,
   Copy, Check, Loader2, ArrowLeft, AlertTriangle, Eye, EyeOff,
-  Camera, ImageIcon, Sparkles,
+  Camera, ImageIcon, Sparkles, Palette,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Link from "next/link";
@@ -66,6 +66,187 @@ function NotificationsTab() {
   );
 }
 
+const PALETTES_META = [
+  { id: "parchment", name: "Parchment", colors: ["#8B6914", "#D4A84B", "#FFF8E7"] },
+  { id: "ocean", name: "Ocean", colors: ["#1964C8", "#4A9FE0", "#EDF4FF"] },
+  { id: "forest", name: "Forest", colors: ["#1E7338", "#4BAF6A", "#F0FFF4"] },
+  { id: "lavender", name: "Lavender", colors: ["#5A3CC8", "#9F85E0", "#F5F2FF"] },
+  { id: "rose", name: "Rose", colors: ["#B93250", "#E07A8A", "#FFF2F4"] },
+  { id: "slate", name: "Slate", colors: ["#3C506E", "#7B96BE", "#F5F7FA"] },
+];
+const STYLES_META = [
+  { id: "default", name: "Default", desc: "Balanced shadows" },
+  { id: "elevated", name: "Elevated", desc: "Deeper shadows" },
+  { id: "flat", name: "Flat", desc: "No shadows, border-based" },
+];
+const FONTS_META = [
+  { id: "default", name: "Be Vietnam Pro", desc: "Current default" },
+  { id: "manrope", name: "Manrope", desc: "Rounded & geometric" },
+  { id: "inter", name: "Inter", desc: "Classic readable UI font" },
+];
+const RADII_META = [
+  { id: "default", name: "Default", desc: "Comfortable rounding" },
+  { id: "compact", name: "Compact", desc: "Tighter corners" },
+  { id: "rounded", name: "Rounded", desc: "Extra-rounded bubbles" },
+];
+
+function StudioTab() {
+  const [config, setConfig] = useState({ palette: "parchment", style: "default", font: "default", radius: "default" });
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("mentra-studio-config");
+      if (stored) setConfig(c => ({ ...c, ...JSON.parse(stored) }));
+    } catch { /* ignore */ }
+  }, []);
+
+  const applyAndSave = async () => {
+    setSaving(true);
+    localStorage.setItem("mentra-studio-config", JSON.stringify(config));
+    try {
+      await fetch("/api/theme", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ themeConfig: JSON.stringify(config) }),
+      });
+    } catch { /* ignore */ }
+    setSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2500);
+    window.location.reload();
+  };
+
+  const reset = () => {
+    const def = { palette: "parchment", style: "default", font: "default", radius: "default" };
+    setConfig(def);
+    localStorage.removeItem("mentra-studio-config");
+    fetch("/api/theme", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ themeConfig: JSON.stringify(def) }) });
+    window.location.reload();
+  };
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+      <div className="card p-6">
+        <div className="flex items-center gap-3 mb-1">
+          <Palette className="w-5 h-5 text-secondary" />
+          <h2 className="font-manrope font-semibold text-lg text-primary">Mentra Studio</h2>
+        </div>
+        <p className="text-sm text-on-surface-variant mb-6">Customise Mentra&apos;s look and feel.</p>
+
+        {/* Palette */}
+        <div className="mb-6">
+          <p className="text-xs font-bold text-on-surface-variant/60 uppercase tracking-widest mb-3">Color Palette</p>
+          <div className="grid grid-cols-3 gap-3">
+            {PALETTES_META.map(p => (
+              <button
+                key={p.id}
+                onClick={() => setConfig(c => ({ ...c, palette: p.id }))}
+                className={cn(
+                  "rounded-2xl p-3 border-2 transition-all hover:scale-105",
+                  config.palette === p.id
+                    ? "border-secondary shadow-md"
+                    : "border-outline-variant/20 hover:border-outline/40"
+                )}
+              >
+                <div className="flex gap-1 mb-2 justify-center">
+                  {p.colors.map((c, i) => (
+                    <div key={i} className="w-6 h-6 rounded-full border border-white/30 shadow-sm" style={{ backgroundColor: c }} />
+                  ))}
+                </div>
+                <p className="text-xs font-medium text-primary text-center">{p.name}</p>
+                {config.palette === p.id && <p className="text-[10px] text-secondary text-center mt-0.5">Active</p>}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Style */}
+        <div className="mb-6">
+          <p className="text-xs font-bold text-on-surface-variant/60 uppercase tracking-widest mb-3">Surface Style</p>
+          <div className="grid grid-cols-3 gap-3">
+            {STYLES_META.map(s => (
+              <button
+                key={s.id}
+                onClick={() => setConfig(c => ({ ...c, style: s.id }))}
+                className={cn(
+                  "rounded-2xl p-3 border-2 text-left transition-all",
+                  config.style === s.id
+                    ? "border-secondary bg-secondary-container/20"
+                    : "border-outline-variant/20 hover:border-outline/40"
+                )}
+              >
+                <p className="text-xs font-semibold text-primary">{s.name}</p>
+                <p className="text-[11px] text-on-surface-variant mt-0.5">{s.desc}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Font */}
+        <div className="mb-6">
+          <p className="text-xs font-bold text-on-surface-variant/60 uppercase tracking-widest mb-3">Typography</p>
+          <div className="grid grid-cols-3 gap-3">
+            {FONTS_META.map(f => (
+              <button
+                key={f.id}
+                onClick={() => setConfig(c => ({ ...c, font: f.id }))}
+                className={cn(
+                  "rounded-2xl p-3 border-2 text-left transition-all",
+                  config.font === f.id
+                    ? "border-secondary bg-secondary-container/20"
+                    : "border-outline-variant/20 hover:border-outline/40"
+                )}
+              >
+                <p className="text-xs font-semibold text-primary">{f.name}</p>
+                <p className="text-[11px] text-on-surface-variant mt-0.5">{f.desc}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Radius */}
+        <div className="mb-8">
+          <p className="text-xs font-bold text-on-surface-variant/60 uppercase tracking-widest mb-3">Corner Radius</p>
+          <div className="grid grid-cols-3 gap-3">
+            {RADII_META.map(r => (
+              <button
+                key={r.id}
+                onClick={() => setConfig(c => ({ ...c, radius: r.id }))}
+                className={cn(
+                  "border-2 p-3 text-left transition-all",
+                  r.id === "compact" ? "rounded-lg" : r.id === "rounded" ? "rounded-3xl" : "rounded-2xl",
+                  config.radius === r.id
+                    ? "border-secondary bg-secondary-container/20"
+                    : "border-outline-variant/20 hover:border-outline/40"
+                )}
+              >
+                <p className="text-xs font-semibold text-primary">{r.name}</p>
+                <p className="text-[11px] text-on-surface-variant mt-0.5">{r.desc}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={applyAndSave}
+            disabled={saving}
+            className="flex items-center gap-2 bg-secondary text-on-secondary px-6 py-2.5 rounded-xl text-sm font-semibold font-manrope hover:opacity-90 disabled:opacity-60 transition-all"
+          >
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? <Check className="w-4 h-4" /> : <Palette className="w-4 h-4" />}
+            {saved ? "Applied!" : "Apply Theme"}
+          </button>
+          <button onClick={reset} className="text-sm text-on-surface-variant hover:text-primary transition-colors hover:underline">
+            Reset to default
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 interface ApiKey {
   id: string;
   name: string;
@@ -82,6 +263,12 @@ export default function SettingsPage() {
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
   const [tab, setTab] = useState("Profile");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlTab = params.get("tab");
+    if (urlTab) setTab(urlTab);
+  }, []);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [agentName, setAgentName] = useState("");
@@ -328,6 +515,7 @@ export default function SettingsPage() {
                 { label: "API Keys", icon: Key },
                 { label: "Notifications", icon: Bell },
                 { label: "Security", icon: Shield },
+                { label: "Mentra Studio", icon: Palette },
               ].map(({ label, icon: Icon }) => (
                 <button
                   key={label}
@@ -634,6 +822,7 @@ export default function SettingsPage() {
             )}
 
             {tab === "Notifications" && <NotificationsTab />}
+            {tab === "Mentra Studio" && <StudioTab />}
 
             {tab === "Security" && (
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">

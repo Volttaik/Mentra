@@ -7,6 +7,8 @@ import { useSession, signOut } from "next-auth/react";
 import {
   Bell, Search, Menu, X, ChevronDown,
   Upload, Settings, LogOut, User, LayoutDashboard, Moon, Sun,
+  Sparkles, Users, Zap, Compass, Bot, Palette, Plus,
+  MessageSquarePlus, Coins,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/providers/ThemeProvider";
@@ -21,6 +23,7 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [notifCount, setNotifCount] = useState(0);
+  const [aiCredits, setAiCredits] = useState<number | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -28,6 +31,10 @@ export default function Navbar() {
     fetch("/api/notifications?unreadOnly=true")
       .then(r => r.json())
       .then(d => setNotifCount(d.count ?? 0))
+      .catch(() => {});
+    fetch("/api/credits")
+      .then(r => r.json())
+      .then(d => typeof d.credits === "number" && setAiCredits(d.credits))
       .catch(() => {});
   }, [isAuth]);
 
@@ -50,6 +57,42 @@ export default function Navbar() {
     await signOut({ callbackUrl: "/" });
   };
 
+  const username = (session?.user as any)?.username ?? "";
+
+  const SECTIONS = [
+    {
+      label: "Discover",
+      items: [
+        { href: "/explore", label: "Explore", icon: Compass, desc: "Find public stacks" },
+        { href: "/communities", label: "Communities", icon: Users, desc: "Join knowledge groups" },
+      ],
+    },
+    {
+      label: "Create",
+      items: [
+        { href: "/upload", label: "New Stack", icon: Upload, desc: "Publish a stack" },
+        { href: "/dashboard#community", label: "New Community", icon: MessageSquarePlus, desc: "Start a community" },
+        { href: "/dashboard#flows", label: "Stack Flows", icon: Zap, desc: "Organise collections" },
+      ],
+    },
+    {
+      label: "AI",
+      items: [
+        { href: "/agent", label: "AI Chat", icon: Sparkles, desc: "Chat with your agent" },
+        { href: "/settings?tab=AI+Agent", label: "AI Management", icon: Bot, desc: "Manage & customise AI" },
+      ],
+    },
+    {
+      label: "Account",
+      items: [
+        { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, desc: "Your home base" },
+        { href: username ? `/profile/${username}` : "/dashboard", label: "Profile", icon: User, desc: "Your public page" },
+        { href: "/settings", label: "Settings", icon: Settings, desc: "Account preferences" },
+        { href: "/settings?tab=Mentra+Studio", label: "Mentra Studio", icon: Palette, desc: "Customise your theme" },
+      ],
+    },
+  ];
+
   return (
     <header className="sticky top-0 z-50 parchment-blur border-b border-outline-variant/20">
       <nav className="max-w-[1200px] mx-auto px-4 md:px-6 h-16 flex items-center justify-between gap-4">
@@ -64,16 +107,21 @@ export default function Navbar() {
           <Link href="/explore" className={cn("text-sm font-medium transition-colors", pathname === "/explore" ? "text-primary font-semibold" : "text-on-surface-variant hover:text-primary")}>
             Explore
           </Link>
+          {isAuth && (
+            <>
+              <Link href="/communities" className={cn("text-sm font-medium transition-colors", pathname?.startsWith("/communities") ? "text-primary font-semibold" : "text-on-surface-variant hover:text-primary")}>
+                Communities
+              </Link>
+              <Link href="/dashboard" className={cn("text-sm font-medium transition-colors", pathname === "/dashboard" ? "text-primary font-semibold" : "text-on-surface-variant hover:text-primary")}>
+                Dashboard
+              </Link>
+            </>
+          )}
           {!isAuth && !isLoading && (
             <>
               <Link href="/#about" className="text-sm font-medium text-on-surface-variant hover:text-primary transition-colors">About</Link>
               <Link href="/privacy" className="text-sm font-medium text-on-surface-variant hover:text-primary transition-colors">Privacy</Link>
             </>
-          )}
-          {isAuth && (
-            <Link href="/dashboard" className={cn("text-sm font-medium transition-colors", pathname === "/dashboard" ? "text-primary font-semibold" : "text-on-surface-variant hover:text-primary")}>
-              Dashboard
-            </Link>
           )}
         </div>
 
@@ -88,7 +136,6 @@ export default function Navbar() {
             <span className="ml-auto text-xs bg-surface-container-high px-1.5 py-0.5 rounded text-on-surface-variant/60">⌘K</span>
           </Link>
 
-          {/* Dark mode toggle */}
           <button
             onClick={toggle}
             className="p-2 rounded-xl text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all"
@@ -127,33 +174,65 @@ export default function Navbar() {
                 </button>
 
                 {userMenuOpen && (
-                  <div className="absolute right-0 top-12 w-56 bg-surface-container-lowest rounded-2xl shadow-modal border border-outline-variant/20 py-2 z-50">
+                  <div className="absolute right-0 top-12 w-72 bg-surface-container-lowest rounded-2xl shadow-modal border border-outline-variant/20 py-2 z-50 max-h-[80vh] overflow-y-auto">
+                    {/* User header */}
                     <div className="px-4 py-3 border-b border-outline-variant/10">
-                      <p className="font-semibold text-sm text-primary font-manrope truncate">{session?.user?.name}</p>
-                      <p className="text-xs text-on-surface-variant">@{(session?.user as any)?.username}</p>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center overflow-hidden border-2 border-outline-variant/20 shrink-0">
+                          {session?.user?.image ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={session.user.image} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-sm font-bold text-on-secondary-container font-manrope">{initials}</span>
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-sm text-primary font-manrope truncate">{session?.user?.name}</p>
+                          <p className="text-xs text-on-surface-variant">@{username}</p>
+                        </div>
+                        {aiCredits !== null && (
+                          <div className="flex items-center gap-1 bg-secondary-container/60 px-2 py-1 rounded-full shrink-0">
+                            <Coins className="w-3 h-3 text-on-secondary-container" />
+                            <span className="text-[11px] font-semibold text-on-secondary-container">{aiCredits}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    {[
-                      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-                      { href: (session?.user as any)?.username ? `/profile/${(session?.user as any).username}` : "/dashboard", label: "Profile", icon: User },
-                      { href: "/upload", label: "New Stack", icon: Upload },
-                      { href: "/settings", label: "Settings", icon: Settings },
-                    ].map(item => (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={() => setUserMenuOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors"
-                      >
-                        <item.icon className="w-4 h-4" />
-                        {item.label}
-                      </Link>
+
+                    {/* Sections */}
+                    {SECTIONS.map((section, si) => (
+                      <div key={section.label}>
+                        <p className="px-4 pt-3 pb-1 text-[10px] font-bold text-on-surface-variant/50 uppercase tracking-widest">
+                          {section.label}
+                        </p>
+                        {section.items.map(item => (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            onClick={() => setUserMenuOpen(false)}
+                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-surface-container transition-colors group"
+                          >
+                            <div className="w-7 h-7 bg-surface-container group-hover:bg-surface-container-high rounded-lg flex items-center justify-center shrink-0 transition-colors">
+                              <item.icon className="w-3.5 h-3.5 text-on-surface-variant group-hover:text-primary transition-colors" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium text-on-surface group-hover:text-primary transition-colors leading-none">{item.label}</p>
+                              <p className="text-[11px] text-on-surface-variant/60 mt-0.5">{item.desc}</p>
+                            </div>
+                          </Link>
+                        ))}
+                        {si < SECTIONS.length - 1 && <div className="border-b border-outline-variant/10 mx-4 mt-1 mb-0" />}
+                      </div>
                     ))}
+
                     <div className="border-t border-outline-variant/10 mt-1 pt-1">
                       <button
                         onClick={handleSignOut}
                         className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-error hover:bg-error-container/30 transition-colors"
                       >
-                        <LogOut className="w-4 h-4" />
+                        <div className="w-7 h-7 flex items-center justify-center shrink-0">
+                          <LogOut className="w-3.5 h-3.5" />
+                        </div>
                         Sign out
                       </button>
                     </div>
@@ -173,18 +252,12 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Mobile right: theme toggle + menu */}
+        {/* Mobile right */}
         <div className="md:hidden flex items-center gap-1">
-          <button
-            onClick={toggle}
-            className="p-2 rounded-xl text-on-surface-variant hover:bg-surface-container transition-all"
-          >
+          <button onClick={toggle} className="p-2 rounded-xl text-on-surface-variant hover:bg-surface-container transition-all">
             {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
-          <button
-            className="p-2 text-on-surface-variant"
-            onClick={() => setMobileOpen(!mobileOpen)}
-          >
+          <button className="p-2 text-on-surface-variant" onClick={() => setMobileOpen(!mobileOpen)}>
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
@@ -192,33 +265,56 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-outline-variant/20 bg-surface py-4 px-4 space-y-1">
-          <Link href="/explore" onClick={() => setMobileOpen(false)} className={cn("flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-colors", pathname === "/explore" ? "bg-secondary-container text-on-secondary-container" : "text-on-surface-variant hover:bg-surface-container")}>
-            Explore
+        <div className="md:hidden border-t border-outline-variant/20 bg-surface py-4 px-4 space-y-1 max-h-[80vh] overflow-y-auto">
+          <Link href="/explore" onClick={() => setMobileOpen(false)} className={cn("flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors", pathname === "/explore" ? "bg-secondary-container text-on-secondary-container" : "text-on-surface-variant hover:bg-surface-container")}>
+            <Compass className="w-4 h-4" />Explore
           </Link>
           {isAuth && (
-            <Link href="/dashboard" onClick={() => setMobileOpen(false)} className={cn("flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-colors", pathname === "/dashboard" ? "bg-secondary-container text-on-secondary-container" : "text-on-surface-variant hover:bg-surface-container")}>
-              Dashboard
-            </Link>
+            <>
+              <Link href="/communities" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-on-surface-variant hover:bg-surface-container transition-colors">
+                <Users className="w-4 h-4" />Communities
+              </Link>
+              <Link href="/dashboard" onClick={() => setMobileOpen(false)} className={cn("flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors", pathname === "/dashboard" ? "bg-secondary-container text-on-secondary-container" : "text-on-surface-variant hover:bg-surface-container")}>
+                <LayoutDashboard className="w-4 h-4" />Dashboard
+              </Link>
+            </>
           )}
           <div className="border-t border-outline-variant/10 mt-2 pt-2 space-y-1">
             {isAuth ? (
               <>
-                <div className="px-4 py-2">
-                  <p className="font-semibold text-sm text-primary">{session?.user?.name}</p>
-                  <p className="text-xs text-on-surface-variant">@{(session?.user as any)?.username}</p>
+                <div className="flex items-center gap-3 px-4 py-2 mb-1">
+                  <div className="w-9 h-9 rounded-full bg-secondary-container overflow-hidden flex items-center justify-center shrink-0">
+                    {session?.user?.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={session.user.image} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-sm font-bold text-on-secondary-container">{initials}</span>
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm text-primary">{session?.user?.name}</p>
+                    <p className="text-xs text-on-surface-variant">@{username}</p>
+                  </div>
+                  {aiCredits !== null && (
+                    <div className="ml-auto flex items-center gap-1 bg-secondary-container/60 px-2 py-1 rounded-full">
+                      <Coins className="w-3 h-3 text-on-secondary-container" />
+                      <span className="text-[11px] font-semibold text-on-secondary-container">{aiCredits}</span>
+                    </div>
+                  )}
                 </div>
-                <Link href={`/profile/${(session?.user as any)?.username}`} onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-on-surface-variant hover:bg-surface-container transition-colors">
-                  <User className="w-4 h-4" /> Profile
-                </Link>
-                <Link href="/upload" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-on-surface-variant hover:bg-surface-container transition-colors">
-                  <Upload className="w-4 h-4" /> New Stack
-                </Link>
-                <Link href="/settings" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-on-surface-variant hover:bg-surface-container transition-colors">
-                  <Settings className="w-4 h-4" /> Settings
-                </Link>
+                {[
+                  { href: username ? `/profile/${username}` : "/dashboard", icon: User, label: "Profile" },
+                  { href: "/upload", icon: Upload, label: "New Stack" },
+                  { href: "/agent", icon: Sparkles, label: "AI Chat" },
+                  { href: "/settings", icon: Settings, label: "Settings" },
+                  { href: "/settings?tab=Mentra+Studio", icon: Palette, label: "Mentra Studio" },
+                ].map(item => (
+                  <Link key={item.href} href={item.href} onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-on-surface-variant hover:bg-surface-container transition-colors">
+                    <item.icon className="w-4 h-4" />{item.label}
+                  </Link>
+                ))}
                 <button onClick={handleSignOut} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-error hover:bg-error-container/30 transition-colors">
-                  <LogOut className="w-4 h-4" /> Sign out
+                  <LogOut className="w-4 h-4" />Sign out
                 </button>
               </>
             ) : (

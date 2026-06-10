@@ -12,7 +12,7 @@ import {
   Code2, ArrowLeft, Loader2, X, Edit2, Trash2,
   AlertTriangle, Send, Upload, File as FileIcon, Check,
   BookOpenCheck, Lock, Maximize2, Bot, BrainCircuit, Info, Coins,
-  Zap,
+  Zap, MoreHorizontal, Building2, Users,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -133,6 +133,15 @@ export default function StackPage({ params }: { params: { slug: string } }) {
   const [addingToFlow, setAddingToFlow] = useState<string | null>(null);
   const [addedFlows, setAddedFlows] = useState<Set<string>>(new Set());
 
+  // Options menu + Add to Community
+  const [showOptionsMenu, setShowOptionsMenu] = useState(false);
+  const optionsMenuRef = useRef<HTMLDivElement>(null);
+  const [showCommunityModal, setShowCommunityModal] = useState(false);
+  const [myCommunities, setMyCommunities] = useState<{ id: string; slug: string; name: string; profile: string | null }[]>([]);
+  const [commModalLoading, setCommModalLoading] = useState(false);
+  const [addingToCommunity, setAddingToCommunity] = useState<string | null>(null);
+  const [addedCommunities, setAddedCommunities] = useState<Set<string>>(new Set());
+
   useEffect(() => {
     if (session?.user?.id) {
       fetch("/api/credits")
@@ -171,6 +180,43 @@ export default function StackPage({ params }: { params: { slug: string } }) {
   }, [slug]);
 
   const isOwner = session?.user?.id === stack?.owner?.id;
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (optionsMenuRef.current && !optionsMenuRef.current.contains(e.target as Node)) {
+        setShowOptionsMenu(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const openCommunityModal = () => {
+    setShowOptionsMenu(false);
+    setShowCommunityModal(true);
+    setCommModalLoading(true);
+    fetch("/api/communities")
+      .then(r => r.json())
+      .then(d => { if (!d.error) setMyCommunities(d ?? []); })
+      .catch(() => {})
+      .finally(() => setCommModalLoading(false));
+  };
+
+  const addToCommunity = async (communitySlug: string) => {
+    if (!stack) return;
+    setAddingToCommunity(communitySlug);
+    try {
+      const res = await fetch(`/api/communities/${communitySlug}/stacks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ stackId: stack.id }),
+      });
+      if (res.ok || res.status === 409) {
+        setAddedCommunities(prev => new Set([...prev, communitySlug]));
+      }
+    } catch { /* ignore */ }
+    finally { setAddingToCommunity(null); }
+  };
 
   const handleStar = async () => {
     if (!session?.user) return;
@@ -631,6 +677,57 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                   >
                     <Zap className="w-3.5 h-3.5" />Add to Flow
                   </button>
+                  <button
+                    onClick={openCommunityModal}
+                    className="w-full flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold font-manrope border border-outline-variant/30 text-on-surface-variant hover:bg-surface-container hover:border-secondary/30 hover:text-secondary transition-all"
+                  >
+                    <Building2 className="w-3.5 h-3.5" />Add to Community
+                  </button>
+
+                  {/* Options menu */}
+                  <div className="relative" ref={optionsMenuRef}>
+                    <button
+                      onClick={() => setShowOptionsMenu(!showOptionsMenu)}
+                      className="w-full flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium font-manrope border border-outline-variant/30 text-on-surface-variant hover:bg-surface-container transition-all"
+                    >
+                      <MoreHorizontal className="w-3.5 h-3.5" />More options
+                    </button>
+                    <AnimatePresence>
+                      {showOptionsMenu && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                          transition={{ duration: 0.12 }}
+                          className="absolute bottom-10 left-0 right-0 bg-surface-container-lowest rounded-2xl shadow-modal border border-outline-variant/20 py-1.5 z-30"
+                        >
+                          <button onClick={() => { handleShare(); setShowOptionsMenu(false); }} className="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-on-surface hover:bg-surface-container transition-colors">
+                            <Share2 className="w-4 h-4 text-on-surface-variant" />{copied ? "Link copied!" : "Copy link"}
+                          </button>
+                          <button onClick={() => { handleBookmark(); setShowOptionsMenu(false); }} className="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-on-surface hover:bg-surface-container transition-colors">
+                            <Bookmark className={cn("w-4 h-4 text-on-surface-variant", isBookmarked && "fill-current text-secondary")} />{isBookmarked ? "Remove bookmark" : "Bookmark"}
+                          </button>
+                          <button onClick={() => { openFlowModal(); setShowOptionsMenu(false); }} className="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-on-surface hover:bg-surface-container transition-colors">
+                            <Zap className="w-4 h-4 text-on-surface-variant" />Add to Flow
+                          </button>
+                          <button onClick={openCommunityModal} className="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-on-surface hover:bg-surface-container transition-colors">
+                            <Building2 className="w-4 h-4 text-on-surface-variant" />Add to Community
+                          </button>
+                          {isOwner && (
+                            <>
+                              <div className="border-t border-outline-variant/10 mx-3 my-1" />
+                              <button onClick={() => { setShowEditModal(true); setShowOptionsMenu(false); }} className="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-on-surface hover:bg-surface-container transition-colors">
+                                <Edit2 className="w-4 h-4 text-on-surface-variant" />Edit stack
+                              </button>
+                              <button onClick={() => { setShowDeleteConfirm(true); setShowOptionsMenu(false); }} className="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-error hover:bg-error-container/20 transition-colors">
+                                <Trash2 className="w-4 h-4" />Delete stack
+                              </button>
+                            </>
+                          )}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 </>
               ) : (
                 <Link href={`/login?callbackUrl=/stacks/${slug}`} className="w-full flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold font-manrope bg-primary text-on-primary hover:opacity-90 transition-all">
@@ -1441,6 +1538,73 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                       {addingToFlow === flow.id ? (
                         <Loader2 className="w-4 h-4 animate-spin text-secondary shrink-0" />
                       ) : addedFlows.has(flow.id) ? (
+                        <Check className="w-4 h-4 text-secondary shrink-0" />
+                      ) : (
+                        <Plus className="w-4 h-4 text-on-surface-variant shrink-0" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+
+        {/* Add to Community Modal */}
+        {showCommunityModal && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={e => e.target === e.currentTarget && setShowCommunityModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-background border border-outline-variant/20 rounded-2xl shadow-2xl w-full max-w-sm p-5"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-manrope font-bold text-primary flex items-center gap-2">
+                  <Building2 className="w-4 h-4 text-secondary" /> Add to Community
+                </h3>
+                <button onClick={() => setShowCommunityModal(false)} className="p-1.5 rounded-xl hover:bg-surface-container text-on-surface-variant">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <p className="text-xs text-on-surface-variant mb-4">Share this stack with one of your communities.</p>
+              {commModalLoading ? (
+                <div className="flex items-center justify-center py-8"><Loader2 className="w-6 h-6 text-secondary animate-spin" /></div>
+              ) : myCommunities.length === 0 ? (
+                <div className="text-center py-8">
+                  <Users className="w-8 h-8 text-outline-variant mx-auto mb-3" />
+                  <p className="text-sm text-on-surface-variant mb-3">You&apos;re not in any communities yet.</p>
+                  <a href="/communities" className="text-sm text-secondary font-medium hover:underline">Find communities →</a>
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-72 overflow-y-auto">
+                  {myCommunities.map(comm => (
+                    <button
+                      key={comm.id}
+                      onClick={() => addToCommunity(comm.slug)}
+                      disabled={addingToCommunity === comm.slug || addedCommunities.has(comm.slug)}
+                      className={cn(
+                        "w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm transition-all text-left",
+                        addedCommunities.has(comm.slug)
+                          ? "bg-secondary-container/30 text-on-secondary-container cursor-default"
+                          : "hover:bg-surface-container text-on-surface"
+                      )}
+                    >
+                      {comm.profile ? (
+                        <img src={comm.profile} alt="" className="w-8 h-8 rounded-lg object-cover shrink-0" />
+                      ) : (
+                        <div className="w-8 h-8 rounded-lg bg-secondary-container flex items-center justify-center shrink-0">
+                          <Users className="w-4 h-4 text-on-secondary-container" />
+                        </div>
+                      )}
+                      <p className="font-medium truncate flex-1">{comm.name}</p>
+                      {addingToCommunity === comm.slug ? (
+                        <Loader2 className="w-4 h-4 animate-spin text-secondary shrink-0" />
+                      ) : addedCommunities.has(comm.slug) ? (
                         <Check className="w-4 h-4 text-secondary shrink-0" />
                       ) : (
                         <Plus className="w-4 h-4 text-on-surface-variant shrink-0" />

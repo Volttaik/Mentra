@@ -49,10 +49,10 @@ export async function PATCH(req: Request, { params }: { params: { slug: string }
   if (!community || community.adminId !== session.user.id)
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const { name, description, banner, rules } = await req.json();
+  const { name, description, banner, profile, rules } = await req.json();
   const updated = await prisma.community.update({
     where: { slug: params.slug },
-    data: { name, description, banner, rules },
+    data: { name, description, banner, profile, rules },
   });
 
   return NextResponse.json(updated);

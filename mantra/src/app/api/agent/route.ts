@@ -128,6 +128,16 @@ export async function POST(req: Request) {
   const user = await resolveUser(req);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  if ((user.aiCredits ?? 0) <= 0) {
+    return NextResponse.json({
+      reply: "You've run out of AI credits. Head to Settings → AI Agent to top up.",
+      intent: "general",
+      data: null,
+      agentName: user.agentName ?? "Mia",
+      creditsEmpty: true,
+    }, { status: 402 });
+  }
+
   const { message, context } = await req.json();
   if (!message) return NextResponse.json({ error: "message required" }, { status: 400 });
 
@@ -177,11 +187,17 @@ Context: ${context ? JSON.stringify(context) : "none"}`;
       actionResult = await handleIntent(parsed.intent, parsed.args ?? {}, user);
     }
 
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { aiCredits: { decrement: 1 } },
+    });
+
     return NextResponse.json({
       reply: parsed.reply ?? raw,
       intent: parsed.intent,
       data: actionResult,
       agentName,
+      creditsRemaining: Math.max(0, (user.aiCredits ?? 1) - 1),
     });
   } catch (e: any) {
     return NextResponse.json({ error: "Agent error", detail: e?.message }, { status: 500 });

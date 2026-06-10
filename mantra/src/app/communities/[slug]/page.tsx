@@ -7,27 +7,35 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Users, BookOpen, Shield, Loader2, Trash2,
   LogOut, Settings, Search, X, UserPlus, Crown, AlertCircle,
+  MessageCircle, Send, MoreVertical, Image as ImageIcon, Check,
+  UserMinus, Star, ChevronRight,
 } from "lucide-react";
 import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
 import { cn } from "@/lib/utils";
+import { timeAgo } from "@/lib/utils";
 
 interface Member { id: string; userId: string; role: "ADMIN" | "MEMBER"; joinedAt: string; user: { id: string; name: string; username: string; image: string | null }; }
 interface ContribStack {
   id: string; stackId: string; addedAt: string;
-  stack: { id: string; title: string; slug: string; description: string; banner: string | null; isPaid: boolean; _count: { stars: number }; owner: { name: string; username: string; image: string | null }; };
+  stack: { id: string; title: string; slug: string; description: string; banner: string | null; profile?: string | null; isPaid: boolean; _count: { stars: number }; owner: { name: string; username: string; image: string | null }; };
   contributor: { name: string; username: string; image: string | null };
 }
 interface CommunityData {
-  id: string; slug: string; name: string; description: string | null; banner: string | null;
+  id: string; slug: string; name: string; description: string | null; banner: string | null; profile: string | null;
   rules: string | null; adminId: string; createdAt: string;
   admin: { id: string; name: string; username: string; image: string | null };
   members: Member[]; stacks: ContribStack[];
   _count: { members: number; stacks: number };
   myRole: "ADMIN" | "MEMBER" | null;
 }
-
+interface ChatMessage {
+  id: string; content: string; createdAt: string;
+  user: { id: string; name: string; username: string; image: string | null };
+}
 interface InviteUser { id: string; name: string; username: string; image: string | null; isFollower: boolean; }
+
+type Panel = "feed" | "members" | "chat" | "rules" | "settings";
 
 export default function CommunityPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -40,7 +48,7 @@ export default function CommunityPage() {
   const [loading, setLoading] = useState(true);
   const [respondingInvite, setRespondingInvite] = useState(false);
   const [inviteHandled, setInviteHandled] = useState(false);
-  const [activePanel, setActivePanel] = useState<"feed" | "members" | "rules" | "settings">("feed");
+  const [activePanel, setActivePanel] = useState<Panel>("feed");
   const [showInvite, setShowInvite] = useState(false);
   const [inviteQuery, setInviteQuery] = useState("");
   const [inviteResults, setInviteResults] = useState<InviteUser[]>([]);
@@ -50,6 +58,23 @@ export default function CommunityPage() {
   const [removingMember, setRemovingMember] = useState<string | null>(null);
   const [settingsForm, setSettingsForm] = useState({ name: "", description: "", rules: "" });
   const [saving, setSaving] = useState(false);
+  const [showOptionsMenu, setShowOptionsMenu] = useState(false);
+  const optionsRef = useRef<HTMLDivElement>(null);
+
+  // Chat state
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [chatLoading, setChatLoading] = useState(false);
+  const [chatInput, setChatInput] = useState("");
+  const [sendingMsg, setSendingMsg] = useState(false);
+  const chatBottomRef = useRef<HTMLDivElement>(null);
+  const chatPollRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Profile pic state
+  const [profilePreview, setProfilePreview] = useState<string | null>(null);
+  const [uploadingProfile, setUploadingProfile] = useState(false);
+  const profileInputRef = useRef<HTMLInputElement>(null);
+  const [profileSavedMsg, setProfileSavedMsg] = useState(false);
+
   const searchDebounce = useRef<NodeJS.Timeout | null>(null);
 
   const load = () => {
@@ -60,12 +85,23 @@ export default function CommunityPage() {
         if (!d.error) {
           setCommunity(d);
           setSettingsForm({ name: d.name, description: d.description ?? "", rules: d.rules ?? "" });
+          setProfilePreview(d.profile ?? null);
         }
       })
       .finally(() => setLoading(false));
   };
 
   useEffect(load, [slug]);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (optionsRef.current && !optionsRef.current.contains(e.target as Node)) {
+        setShowOptionsMenu(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (!showInvite) return;
@@ -77,6 +113,46 @@ export default function CommunityPage() {
     }, 300);
     return () => { if (searchDebounce.current) clearTimeout(searchDebounce.current); };
   }, [inviteQuery, showInvite, slug]);
+
+  const loadChat = () => {
+    fetch(`/api/communities/${slug}/chat`)
+      .then(r => r.json())
+      .then(d => { if (!d.error) setMessages(d.messages ?? []); })
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    if (activePanel === "chat" && community?.myRole) {
+      setChatLoading(true);
+      fetch(`/api/communities/${slug}/chat`)
+        .then(r => r.json())
+        .then(d => { if (!d.error) setMessages(d.messages ?? []); })
+        .finally(() => setChatLoading(false));
+      chatPollRef.current = setInterval(loadChat, 10000);
+    }
+    return () => { if (chatPollRef.current) clearInterval(chatPollRef.current); };
+  }, [activePanel, slug, community?.myRole]);
+
+  useEffect(() => {
+    chatBottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const sendMessage = async () => {
+    if (!chatInput.trim() || sendingMsg) return;
+    setSendingMsg(true);
+    const content = chatInput.trim();
+    setChatInput("");
+    try {
+      const res = await fetch(`/api/communities/${slug}/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content }),
+      });
+      const d = await res.json();
+      if (!d.error) setMessages(prev => [...prev, d.message]);
+    } catch { /* ignore */ }
+    finally { setSendingMsg(false); }
+  };
 
   const sendInvite = async (userId: string) => {
     setInviting(userId);
@@ -110,10 +186,31 @@ export default function CommunityPage() {
     setSaving(true);
     await fetch(`/api/communities/${slug}`, {
       method: "PATCH", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(settingsForm),
+      body: JSON.stringify({ ...settingsForm }),
     });
     setSaving(false);
     load();
+  };
+
+  const handleProfileUpload = async (file: File) => {
+    setUploadingProfile(true);
+    const reader = new FileReader();
+    reader.onload = ev => setProfilePreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("type", "profile");
+      const res = await fetch(`/api/communities/${slug}/upload`, { method: "POST", body: formData });
+      const data = await res.json();
+      if (!data.error) {
+        setCommunity(prev => prev ? { ...prev, profile: data.profile } : null);
+        setProfilePreview(data.profile);
+        setProfileSavedMsg(true);
+        setTimeout(() => setProfileSavedMsg(false), 2500);
+      }
+    } catch { /* ignore */ }
+    finally { setUploadingProfile(false); }
   };
 
   const respondInvite = async (action: "accept" | "decline") => {
@@ -147,8 +244,16 @@ export default function CommunityPage() {
   const isAdmin = community.myRole === "ADMIN";
   const isMember = !!community.myRole;
 
+  const PANELS: { id: Panel; label: string; icon: any; memberOnly?: boolean; adminOnly?: boolean }[] = [
+    { id: "feed", label: "Stacks", icon: BookOpen },
+    { id: "members", label: "Members", icon: Users },
+    ...(isMember ? [{ id: "chat" as Panel, label: "Chat", icon: MessageCircle, memberOnly: true }] : []),
+    ...(community.rules ? [{ id: "rules" as Panel, label: "Rules", icon: Shield }] : []),
+    ...(isAdmin ? [{ id: "settings" as Panel, label: "Settings", icon: Settings, adminOnly: true }] : []),
+  ];
+
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col pb-20 md:pb-0">
       <Navbar />
 
       {/* Banner */}
@@ -170,18 +275,10 @@ export default function CommunityPage() {
               <p className="text-xs text-indigo-600 dark:text-indigo-400 mt-0.5">Accept to become a member and contribute stacks.</p>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <button
-                onClick={() => respondInvite("accept")}
-                disabled={respondingInvite}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-semibold hover:bg-indigo-700 transition-all disabled:opacity-60"
-              >
+              <button onClick={() => respondInvite("accept")} disabled={respondingInvite} className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-semibold hover:bg-indigo-700 transition-all disabled:opacity-60">
                 {respondingInvite ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Accept"}
               </button>
-              <button
-                onClick={() => respondInvite("decline")}
-                disabled={respondingInvite}
-                className="px-4 py-2 border border-indigo-200 dark:border-indigo-700/50 text-indigo-600 dark:text-indigo-400 rounded-xl text-xs font-semibold hover:bg-indigo-50 transition-all disabled:opacity-60"
-              >
+              <button onClick={() => respondInvite("decline")} disabled={respondingInvite} className="px-4 py-2 border border-indigo-200 dark:border-indigo-700/50 text-indigo-600 dark:text-indigo-400 rounded-xl text-xs font-semibold hover:bg-indigo-50 transition-all disabled:opacity-60">
                 Decline
               </button>
             </div>
@@ -191,9 +288,19 @@ export default function CommunityPage() {
         {/* Header */}
         <div className="bg-surface-container-low border border-outline-variant/15 rounded-2xl p-5 mb-4 shadow-sm">
           <div className="flex items-start gap-4">
-            <div className="w-14 h-14 bg-secondary-container rounded-2xl flex items-center justify-center shrink-0">
-              <Users className="w-7 h-7 text-on-secondary-container" />
-            </div>
+            {/* Community profile pic */}
+            {(profilePreview || community.profile) ? (
+              <img
+                src={profilePreview ?? community.profile ?? ""}
+                alt={community.name}
+                className="w-14 h-14 rounded-2xl object-cover shrink-0 border-2 border-outline-variant/20 shadow-sm"
+              />
+            ) : (
+              <div className="w-14 h-14 bg-secondary-container rounded-2xl flex items-center justify-center shrink-0">
+                <Users className="w-7 h-7 text-on-secondary-container" />
+              </div>
+            )}
+
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="font-manrope font-bold text-xl text-primary">{community.name}</h1>
@@ -203,13 +310,17 @@ export default function CommunityPage() {
                   </span>
                 )}
               </div>
-              {community.description && <p className="text-sm text-on-surface-variant mt-1">{community.description}</p>}
+              {community.description && <p className="text-sm text-on-surface-variant mt-1 line-clamp-2">{community.description}</p>}
               <div className="flex items-center gap-4 mt-2">
                 <span className="text-xs text-on-surface-variant">{community._count.members} members</span>
                 <span className="text-xs text-on-surface-variant">{community._count.stacks} stacks</span>
-                <span className="text-xs text-on-surface-variant">Admin: {community.admin.name}</span>
+                <Link href={`/profile/${community.admin.username}`} className="text-xs text-on-surface-variant hover:text-secondary transition-colors">
+                  Admin: {community.admin.name}
+                </Link>
               </div>
             </div>
+
+            {/* Right actions */}
             <div className="flex items-center gap-2 shrink-0">
               {isMember && !isAdmin && (
                 <button
@@ -221,268 +332,457 @@ export default function CommunityPage() {
               )}
               {isAdmin && (
                 <button
-                  onClick={() => setShowInvite(true)}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-secondary text-on-secondary rounded-xl text-xs font-semibold hover:opacity-90 transition-all"
+                  onClick={() => { setShowInvite(true); }}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-secondary text-on-secondary text-xs font-semibold hover:opacity-90 transition-all"
                 >
                   <UserPlus className="w-3.5 h-3.5" /> Invite
                 </button>
               )}
+
+              {/* Options menu */}
+              {isMember && (
+                <div className="relative" ref={optionsRef}>
+                  <button
+                    onClick={() => setShowOptionsMenu(!showOptionsMenu)}
+                    className="p-2 rounded-xl border border-outline-variant/30 text-on-surface-variant hover:bg-surface-container hover:border-outline/50 transition-all"
+                    title="More options"
+                  >
+                    <MoreVertical className="w-4 h-4" />
+                  </button>
+                  <AnimatePresence>
+                    {showOptionsMenu && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                        transition={{ duration: 0.12 }}
+                        className="absolute right-0 top-10 w-52 bg-surface-container-lowest rounded-2xl shadow-modal border border-outline-variant/20 py-1.5 z-30"
+                      >
+                        {isMember && (
+                          <button
+                            onClick={() => { setActivePanel("chat"); setShowOptionsMenu(false); }}
+                            className="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-on-surface hover:bg-surface-container transition-colors"
+                          >
+                            <MessageCircle className="w-4 h-4 text-on-surface-variant" />Community Chat
+                          </button>
+                        )}
+                        {isAdmin && (
+                          <>
+                            <button
+                              onClick={() => { setShowInvite(true); setShowOptionsMenu(false); }}
+                              className="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-on-surface hover:bg-surface-container transition-colors"
+                            >
+                              <UserPlus className="w-4 h-4 text-on-surface-variant" />Invite Members
+                            </button>
+                            <button
+                              onClick={() => { setActivePanel("settings"); setShowOptionsMenu(false); }}
+                              className="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-on-surface hover:bg-surface-container transition-colors"
+                            >
+                              <Settings className="w-4 h-4 text-on-surface-variant" />Settings
+                            </button>
+                          </>
+                        )}
+                        {isMember && !isAdmin && (
+                          <>
+                            <div className="border-t border-outline-variant/10 mx-3 my-1" />
+                            <button
+                              onClick={() => { session?.user?.id && removeMember(session.user.id); setShowOptionsMenu(false); }}
+                              className="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-error hover:bg-error-container/20 transition-colors"
+                            >
+                              <LogOut className="w-4 h-4" />Leave Community
+                            </button>
+                          </>
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )}
             </div>
           </div>
-        </div>
 
-        <div className="flex gap-4">
-          {/* Left sidebar */}
-          <div className="hidden lg:flex flex-col gap-1 w-52 shrink-0">
-            {[
-              { key: "feed", icon: BookOpen, label: "Stacks" },
-              { key: "members", icon: Users, label: "Members" },
-              { key: "rules", icon: Shield, label: "Rules" },
-              ...(isAdmin ? [{ key: "settings", icon: Settings, label: "Settings" }] : []),
-            ].map(({ key, icon: Icon, label }) => (
+          {/* Mobile tab bar */}
+          <div className="flex gap-1 mt-4 pt-4 border-t border-outline-variant/10 overflow-x-auto no-scrollbar">
+            {PANELS.map(panel => (
               <button
-                key={key}
-                onClick={() => setActivePanel(key as any)}
+                key={panel.id}
+                onClick={() => setActivePanel(panel.id)}
                 className={cn(
-                  "flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left",
-                  activePanel === key
-                    ? "bg-secondary-container text-on-secondary-container"
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all",
+                  activePanel === panel.id
+                    ? "bg-secondary-container text-on-secondary-container font-semibold"
                     : "text-on-surface-variant hover:bg-surface-container"
                 )}
               >
-                <Icon className="w-4 h-4" /> {label}
+                <panel.icon className="w-3.5 h-3.5" />{panel.label}
               </button>
             ))}
           </div>
-
-          {/* Main content */}
-          <div className="flex-1 min-w-0 pb-8">
-            {/* Feed */}
-            {activePanel === "feed" && (
-              <div className="space-y-3">
-                {community.stacks.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-20 gap-4 text-center bg-surface-container-low border border-outline-variant/15 rounded-2xl">
-                    <BookOpen className="w-10 h-10 text-outline-variant" />
-                    <p className="font-manrope font-semibold text-primary">No stacks yet</p>
-                    <p className="text-sm text-on-surface-variant">Members can contribute their stacks to this community.</p>
-                  </div>
-                ) : (
-                  community.stacks.map(({ stack, contributor, addedAt, stackId }, i) => (
-                    <motion.div
-                      key={stackId}
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.04 }}
-                      className="flex gap-4 bg-surface-container-low border border-outline-variant/15 rounded-2xl p-4 hover:border-secondary/20 transition-all"
-                    >
-                      {stack.banner ? (
-                        <img src={stack.banner} alt="" className="w-20 h-20 rounded-xl object-cover shrink-0" />
-                      ) : (
-                        <div className="w-20 h-20 rounded-xl bg-secondary-container/30 flex items-center justify-center shrink-0">
-                          <BookOpen className="w-6 h-6 text-secondary/50" />
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <Link href={`/stacks/${stack.slug}`} className="font-manrope font-semibold text-primary hover:text-secondary transition-colors line-clamp-1">
-                          {stack.title}
-                        </Link>
-                        <p className="text-xs text-on-surface-variant mt-1 line-clamp-2">{stack.description}</p>
-                        <div className="flex items-center gap-3 mt-3">
-                          <div className="flex items-center gap-1.5">
-                            {contributor.image ? (
-                              <img src={contributor.image} alt="" className="w-5 h-5 rounded-full object-cover" />
-                            ) : (
-                              <div className="w-5 h-5 rounded-full bg-secondary-container flex items-center justify-center text-[9px] font-bold text-on-secondary-container">
-                                {contributor.name[0]}
-                              </div>
-                            )}
-                            <span className="text-xs text-on-surface-variant">{contributor.name}</span>
-                          </div>
-                          <span className="text-[10px] text-on-surface-variant">{new Date(addedAt).toLocaleDateString()}</span>
-                        </div>
-                      </div>
-                      {(isAdmin || contributor.username === session?.user?.name) && (
-                        <button
-                          onClick={() => removeStack(stack.id)}
-                          disabled={removingStack === stack.id}
-                          className="p-2 rounded-lg hover:bg-error-container/30 text-on-surface-variant hover:text-error transition-colors shrink-0 self-start"
-                        >
-                          {removingStack === stack.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                        </button>
-                      )}
-                    </motion.div>
-                  ))
-                )}
-              </div>
-            )}
-
-            {/* Members */}
-            {activePanel === "members" && (
-              <div className="bg-surface-container-low border border-outline-variant/15 rounded-2xl divide-y divide-outline-variant/10">
-                {community.members.map(m => (
-                  <div key={m.id} className="flex items-center gap-3 px-4 py-3">
-                    {m.user.image ? (
-                      <img src={m.user.image} alt="" className="w-9 h-9 rounded-full object-cover" />
-                    ) : (
-                      <div className="w-9 h-9 rounded-full bg-secondary-container flex items-center justify-center text-sm font-bold text-on-secondary-container">
-                        {m.user.name[0]}
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-primary truncate">{m.user.name}</p>
-                      <p className="text-xs text-on-surface-variant">@{m.user.username}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {m.role === "ADMIN" && (
-                        <span className="text-[10px] font-bold bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded-full flex items-center gap-1">
-                          <Crown className="w-2.5 h-2.5" /> Admin
-                        </span>
-                      )}
-                      {isAdmin && m.role !== "ADMIN" && (
-                        <button
-                          onClick={() => removeMember(m.userId)}
-                          disabled={removingMember === m.userId}
-                          className="p-1.5 rounded-lg hover:bg-error-container/30 text-on-surface-variant hover:text-error transition-colors"
-                        >
-                          {removingMember === m.userId ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <X className="w-3.5 h-3.5" />}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Rules */}
-            {activePanel === "rules" && (
-              <div className="bg-surface-container-low border border-outline-variant/15 rounded-2xl p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <Shield className="w-5 h-5 text-secondary" />
-                  <h2 className="font-manrope font-bold text-primary">Community Rules</h2>
-                </div>
-                {community.rules ? (
-                  <p className="text-sm text-on-surface-variant leading-relaxed whitespace-pre-wrap">{community.rules}</p>
-                ) : (
-                  <p className="text-sm text-on-surface-variant italic">No rules set for this community yet.</p>
-                )}
-              </div>
-            )}
-
-            {/* Settings (admin only) */}
-            {activePanel === "settings" && isAdmin && (
-              <div className="bg-surface-container-low border border-outline-variant/15 rounded-2xl p-6 space-y-5">
-                <h2 className="font-manrope font-bold text-primary">Community Settings</h2>
-                <div>
-                  <label className="block text-sm font-medium text-primary mb-1.5">Name</label>
-                  <input
-                    value={settingsForm.name}
-                    onChange={e => setSettingsForm(f => ({ ...f, name: e.target.value }))}
-                    className="w-full px-3 py-2.5 bg-background border border-outline-variant/30 rounded-xl text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-primary mb-1.5">Description</label>
-                  <textarea
-                    value={settingsForm.description}
-                    onChange={e => setSettingsForm(f => ({ ...f, description: e.target.value }))}
-                    rows={3}
-                    className="w-full px-3 py-2.5 bg-background border border-outline-variant/30 rounded-xl text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 resize-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-primary mb-1.5">Rules & Specifications</label>
-                  <p className="text-xs text-on-surface-variant mb-2">E.g. &quot;Stacks must be at least 1,000 words. No duplicate topics.&quot;</p>
-                  <textarea
-                    value={settingsForm.rules}
-                    onChange={e => setSettingsForm(f => ({ ...f, rules: e.target.value }))}
-                    rows={5}
-                    className="w-full px-3 py-2.5 bg-background border border-outline-variant/30 rounded-xl text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 resize-none"
-                    placeholder="Enter community rules..."
-                  />
-                </div>
-                <button
-                  onClick={saveSettings}
-                  disabled={saving}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-secondary text-on-secondary rounded-xl text-sm font-semibold hover:opacity-90 transition-all disabled:opacity-60"
-                >
-                  {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                  Save changes
-                </button>
-              </div>
-            )}
-          </div>
         </div>
-      </div>
 
-      {/* Invite modal */}
-      <AnimatePresence>
-        {showInvite && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
-            onClick={e => e.target === e.currentTarget && setShowInvite(false)}
-          >
+        {/* Invite panel */}
+        <AnimatePresence>
+          {showInvite && isAdmin && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-background border border-outline-variant/20 rounded-2xl shadow-2xl w-full max-w-md p-5"
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              className="bg-surface-container-low border border-outline-variant/15 rounded-2xl p-5 mb-4 shadow-sm"
             >
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-manrope font-bold text-primary">Invite Members</h3>
-                <button onClick={() => setShowInvite(false)} className="p-2 rounded-xl hover:bg-surface-container text-on-surface-variant transition-colors">
+                <h3 className="font-manrope font-semibold text-base text-primary">Invite members</h3>
+                <button onClick={() => setShowInvite(false)} className="p-1.5 text-on-surface-variant hover:text-primary rounded-lg hover:bg-surface-container transition-all">
                   <X className="w-4 h-4" />
                 </button>
               </div>
               <div className="relative mb-4">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant/50" />
                 <input
                   value={inviteQuery}
                   onChange={e => setInviteQuery(e.target.value)}
-                  placeholder="Search users… (followers shown first)"
-                  className="w-full pl-9 pr-4 py-2.5 bg-surface-container border border-outline-variant/20 rounded-xl text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-secondary/30"
+                  placeholder="Search by name or username…"
+                  className="w-full pl-10 pr-4 py-2.5 bg-surface-container border border-outline-variant/30 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-secondary/30"
                   autoFocus
                 />
               </div>
-              <div className="space-y-1 max-h-64 overflow-y-auto">
-                {inviteResults.length === 0 ? (
-                  <p className="text-sm text-on-surface-variant text-center py-8">
-                    {inviteQuery ? "No users found" : "Search to find users to invite"}
-                  </p>
-                ) : (
-                  inviteResults.map(user => (
-                    <div key={user.id} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-surface-container transition-colors">
-                      {user.image ? (
-                        <img src={user.image} alt="" className="w-8 h-8 rounded-full object-cover" />
-                      ) : (
-                        <div className="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center text-xs font-bold text-on-secondary-container">
-                          {user.name[0]}
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-primary truncate">{user.name}</p>
-                        <p className="text-xs text-on-surface-variant">@{user.username} {user.isFollower && "· follows you"}</p>
+              {inviteResults.length > 0 ? (
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {inviteResults.map(u => (
+                    <div key={u.id} className="flex items-center gap-3 px-3 py-2 rounded-xl bg-surface-container/50 hover:bg-surface-container transition-colors">
+                      <div className="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center overflow-hidden text-xs font-bold font-manrope text-on-secondary-container shrink-0">
+                        {u.image ? <img src={u.image} alt="" className="w-full h-full object-cover" /> : u.name.slice(0, 2).toUpperCase()}
                       </div>
-                      <button
-                        onClick={() => sendInvite(user.id)}
-                        disabled={inviting === user.id || invitedIds.has(user.id)}
-                        className={cn(
-                          "text-xs font-semibold px-3 py-1.5 rounded-lg transition-all",
-                          invitedIds.has(user.id)
-                            ? "bg-surface-container text-on-surface-variant cursor-default"
-                            : "bg-secondary text-on-secondary hover:opacity-90"
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-primary truncate">{u.name}</p>
+                        <p className="text-xs text-on-surface-variant">@{u.username}</p>
+                      </div>
+                      {invitedIds.has(u.id) ? (
+                        <span className="text-xs text-secondary flex items-center gap-1"><Check className="w-3.5 h-3.5" />Invited</span>
+                      ) : (
+                        <button
+                          onClick={() => sendInvite(u.id)}
+                          disabled={!!inviting}
+                          className="px-3 py-1.5 bg-secondary text-on-secondary rounded-xl text-xs font-semibold hover:opacity-90 transition-all disabled:opacity-60"
+                        >
+                          {inviting === u.id ? <Loader2 className="w-3 h-3 animate-spin" /> : "Invite"}
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : inviteQuery.length > 1 ? (
+                <p className="text-sm text-on-surface-variant text-center py-4">No users found.</p>
+              ) : (
+                <p className="text-xs text-on-surface-variant/60 text-center py-2">Start typing to search for users to invite.</p>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Main content */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Sidebar nav (desktop) */}
+          <div className="hidden lg:block space-y-1">
+            <div className="bg-surface-container-low border border-outline-variant/15 rounded-2xl p-3 shadow-sm">
+              {PANELS.map(panel => (
+                <button
+                  key={panel.id}
+                  onClick={() => setActivePanel(panel.id)}
+                  className={cn(
+                    "flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
+                    activePanel === panel.id
+                      ? "bg-secondary-container text-on-secondary-container font-semibold"
+                      : "text-on-surface-variant hover:bg-surface-container"
+                  )}
+                >
+                  <panel.icon className="w-4 h-4 shrink-0" />{panel.label}
+                  {panel.id === "chat" && messages.length > 0 && (
+                    <span className="ml-auto text-[10px] bg-secondary text-on-secondary px-1.5 py-0.5 rounded-full font-bold">
+                      {messages.length > 99 ? "99+" : messages.length}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* Admin info card */}
+            <div className="bg-surface-container-low border border-outline-variant/15 rounded-2xl p-4 shadow-sm mt-3">
+              <p className="text-[11px] text-on-surface-variant/60 uppercase font-bold tracking-wider mb-3">Created by</p>
+              <Link href={`/profile/${community.admin.username}`} className="flex items-center gap-3 group">
+                <div className="w-9 h-9 rounded-full bg-secondary-container overflow-hidden flex items-center justify-center text-xs font-bold font-manrope text-on-secondary-container shrink-0">
+                  {community.admin.image ? <img src={community.admin.image} alt="" className="w-full h-full object-cover" /> : community.admin.name.slice(0, 2).toUpperCase()}
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-primary group-hover:text-secondary transition-colors">{community.admin.name}</p>
+                  <p className="text-xs text-on-surface-variant">@{community.admin.username}</p>
+                </div>
+              </Link>
+            </div>
+          </div>
+
+          {/* Panel content */}
+          <div className="lg:col-span-3">
+
+            {/* STACKS FEED */}
+            {activePanel === "feed" && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+                {community.stacks.length === 0 ? (
+                  <div className="bg-surface-container-low border border-outline-variant/15 rounded-2xl p-12 text-center shadow-sm">
+                    <BookOpen className="w-12 h-12 text-outline-variant mx-auto mb-4" />
+                    <p className="font-manrope font-semibold text-primary mb-2">No stacks yet</p>
+                    <p className="text-sm text-on-surface-variant">Members can add stacks from the stack page.</p>
+                  </div>
+                ) : (
+                  community.stacks.map(cs => (
+                    <div key={cs.id} className="bg-surface-container-low border border-outline-variant/15 rounded-2xl p-5 hover:border-secondary/20 transition-all shadow-sm">
+                      <div className="flex items-start gap-4">
+                        {(cs.stack.profile || cs.stack.banner) ? (
+                          <img src={cs.stack.profile ?? cs.stack.banner ?? ""} alt="" className="w-12 h-12 rounded-xl object-cover shrink-0 border border-outline-variant/20" />
+                        ) : (
+                          <div className="w-12 h-12 bg-secondary-container rounded-xl flex items-center justify-center shrink-0">
+                            <BookOpen className="w-6 h-6 text-on-secondary-container" />
+                          </div>
                         )}
-                      >
-                        {inviting === user.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : invitedIds.has(user.id) ? "Invited" : "Invite"}
-                      </button>
+                        <div className="flex-1 min-w-0">
+                          <Link href={`/stacks/${cs.stack.slug}`} className="font-manrope font-semibold text-base text-primary hover:text-secondary transition-colors block truncate">
+                            {cs.stack.title}
+                          </Link>
+                          <p className="text-sm text-on-surface-variant mt-0.5 line-clamp-2">{cs.stack.description}</p>
+                          <div className="flex items-center gap-3 mt-2">
+                            <span className="flex items-center gap-1 text-xs text-on-surface-variant">
+                              <Star className="w-3.5 h-3.5" />{cs.stack._count.stars}
+                            </span>
+                            <span className="text-xs text-on-surface-variant">by {cs.stack.owner.name}</span>
+                            <span className="text-xs text-on-surface-variant/60">added by {cs.contributor.name}</span>
+                          </div>
+                        </div>
+                        {(isAdmin || cs.contributor.username === (session?.user as any)?.username) && (
+                          <button
+                            onClick={() => removeStack(cs.stack.id)}
+                            disabled={removingStack === cs.stack.id}
+                            className="p-2 text-on-surface-variant hover:text-error rounded-lg transition-colors shrink-0"
+                            title="Remove from community"
+                          >
+                            {removingStack === cs.stack.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   ))
                 )}
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              </motion.div>
+            )}
+
+            {/* MEMBERS */}
+            {activePanel === "members" && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
+                {community.members.map(m => (
+                  <div key={m.id} className="bg-surface-container-low border border-outline-variant/15 rounded-2xl p-4 flex items-center gap-4 shadow-sm">
+                    <div className="w-10 h-10 rounded-full bg-secondary-container overflow-hidden flex items-center justify-center text-sm font-bold font-manrope text-on-secondary-container shrink-0">
+                      {m.user.image ? <img src={m.user.image} alt="" className="w-full h-full object-cover" /> : m.user.name.slice(0, 2).toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <Link href={`/profile/${m.user.username}`} className="font-medium text-sm text-primary hover:text-secondary transition-colors">{m.user.name}</Link>
+                      <p className="text-xs text-on-surface-variant">@{m.user.username}</p>
+                    </div>
+                    {m.role === "ADMIN" ? (
+                      <span className="flex items-center gap-1 text-[10px] font-bold bg-secondary-container text-on-secondary-container px-2.5 py-1 rounded-full">
+                        <Crown className="w-3 h-3" /> Admin
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-on-surface-variant bg-surface-container px-2.5 py-1 rounded-full">Member</span>
+                    )}
+                    {isAdmin && m.userId !== session?.user?.id && m.role !== "ADMIN" && (
+                      <button
+                        onClick={() => removeMember(m.userId)}
+                        disabled={removingMember === m.userId}
+                        className="p-2 text-on-surface-variant hover:text-error rounded-lg transition-colors"
+                        title="Remove member"
+                      >
+                        {removingMember === m.userId ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UserMinus className="w-3.5 h-3.5" />}
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </motion.div>
+            )}
+
+            {/* CHAT */}
+            {activePanel === "chat" && isMember && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-surface-container-low border border-outline-variant/15 rounded-2xl shadow-sm overflow-hidden flex flex-col" style={{ height: "calc(100vh - 360px)", minHeight: "400px" }}>
+                <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
+                  <MessageCircle className="w-4 h-4 text-secondary" />
+                  <h3 className="font-manrope font-semibold text-sm text-primary">Community Chat</h3>
+                  <span className="ml-auto text-xs text-on-surface-variant">{community._count.members} members</span>
+                </div>
+                <div className="flex-1 overflow-y-auto p-5 space-y-4">
+                  {chatLoading ? (
+                    <div className="flex justify-center py-8">
+                      <Loader2 className="w-6 h-6 text-secondary animate-spin" />
+                    </div>
+                  ) : messages.length === 0 ? (
+                    <div className="text-center py-12">
+                      <MessageCircle className="w-10 h-10 text-outline-variant mx-auto mb-3" />
+                      <p className="text-on-surface-variant text-sm">No messages yet. Say hello!</p>
+                    </div>
+                  ) : (
+                    messages.map((msg, i) => {
+                      const isMe = msg.user.id === session?.user?.id;
+                      const showAvatar = i === 0 || messages[i - 1].user.id !== msg.user.id;
+                      return (
+                        <div key={msg.id} className={cn("flex items-end gap-3", isMe && "flex-row-reverse")}>
+                          {showAvatar ? (
+                            <Link href={`/profile/${msg.user.username}`}>
+                              <div className="w-7 h-7 rounded-full bg-secondary-container flex items-center justify-center overflow-hidden text-[10px] font-bold font-manrope text-on-secondary-container shrink-0">
+                                {msg.user.image ? <img src={msg.user.image} alt="" className="w-full h-full object-cover" /> : msg.user.name.slice(0, 2).toUpperCase()}
+                              </div>
+                            </Link>
+                          ) : (
+                            <div className="w-7 shrink-0" />
+                          )}
+                          <div className={cn("max-w-xs md:max-w-sm", isMe && "items-end flex flex-col")}>
+                            {showAvatar && (
+                              <p className={cn("text-[11px] text-on-surface-variant mb-1 font-medium", isMe && "text-right")}>
+                                {isMe ? "You" : msg.user.name}
+                              </p>
+                            )}
+                            <div className={cn(
+                              "px-4 py-2.5 rounded-2xl text-sm leading-relaxed",
+                              isMe
+                                ? "bg-secondary text-on-secondary rounded-br-md"
+                                : "bg-surface-container text-on-surface rounded-bl-md"
+                            )}>
+                              {msg.content}
+                            </div>
+                            <p className="text-[10px] text-on-surface-variant/50 mt-1 px-1">{timeAgo(msg.createdAt)}</p>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                  <div ref={chatBottomRef} />
+                </div>
+                <div className="p-4 border-t border-outline-variant/10">
+                  <form
+                    onSubmit={e => { e.preventDefault(); sendMessage(); }}
+                    className="flex items-center gap-3"
+                  >
+                    <input
+                      value={chatInput}
+                      onChange={e => setChatInput(e.target.value)}
+                      placeholder="Say something…"
+                      className="flex-1 bg-surface-container border border-outline-variant/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-secondary/30 placeholder:text-on-surface-variant/50"
+                    />
+                    <button
+                      type="submit"
+                      disabled={!chatInput.trim() || sendingMsg}
+                      className="p-2.5 bg-secondary text-on-secondary rounded-xl hover:opacity-90 transition-all disabled:opacity-50 shrink-0"
+                    >
+                      {sendingMsg ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                    </button>
+                  </form>
+                </div>
+              </motion.div>
+            )}
+
+            {/* RULES */}
+            {activePanel === "rules" && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <div className="bg-surface-container-low border border-outline-variant/15 rounded-2xl p-6 shadow-sm">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Shield className="w-4 h-4 text-secondary" />
+                    <h3 className="font-manrope font-semibold text-base text-primary">Community Rules</h3>
+                  </div>
+                  {community.rules ? (
+                    <div className="text-sm text-on-surface-variant leading-relaxed whitespace-pre-wrap">{community.rules}</div>
+                  ) : (
+                    <p className="text-sm text-on-surface-variant">No rules set yet.</p>
+                  )}
+                </div>
+              </motion.div>
+            )}
+
+            {/* SETTINGS (admin only) */}
+            {activePanel === "settings" && isAdmin && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
+
+                {/* Profile picture */}
+                <div className="bg-surface-container-low border border-outline-variant/15 rounded-2xl p-5 shadow-sm">
+                  <h3 className="font-manrope font-semibold text-base text-primary mb-4">Community Picture</h3>
+                  <div className="flex items-center gap-5">
+                    <div className="relative group cursor-pointer" onClick={() => profileInputRef.current?.click()}>
+                      {profilePreview ? (
+                        <img src={profilePreview} alt="" className="w-20 h-20 rounded-2xl object-cover border-2 border-outline-variant/20" />
+                      ) : (
+                        <div className="w-20 h-20 bg-secondary-container rounded-2xl flex items-center justify-center">
+                          <Users className="w-9 h-9 text-on-secondary-container" />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-black/40 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        {uploadingProfile ? <Loader2 className="w-5 h-5 text-white animate-spin" /> : <ImageIcon className="w-5 h-5 text-white" />}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-primary mb-1">Community profile image</p>
+                      <p className="text-xs text-on-surface-variant mb-2">Shown in search results, community header, and dashboards.</p>
+                      {profileSavedMsg && (
+                        <p className="text-xs text-secondary flex items-center gap-1"><Check className="w-3.5 h-3.5" />Saved!</p>
+                      )}
+                      <button
+                        onClick={() => profileInputRef.current?.click()}
+                        disabled={uploadingProfile}
+                        className="text-xs font-medium text-secondary hover:underline transition-all disabled:opacity-60"
+                      >
+                        {uploadingProfile ? "Uploading…" : "Change picture"}
+                      </button>
+                    </div>
+                    <input ref={profileInputRef} type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleProfileUpload(f); }} />
+                  </div>
+                </div>
+
+                {/* Name / description / rules */}
+                <div className="bg-surface-container-low border border-outline-variant/15 rounded-2xl p-5 shadow-sm space-y-4">
+                  <h3 className="font-manrope font-semibold text-base text-primary">Community Info</h3>
+                  <div>
+                    <label className="block text-xs font-semibold text-on-surface-variant mb-1.5">Name</label>
+                    <input
+                      value={settingsForm.name}
+                      onChange={e => setSettingsForm(p => ({ ...p, name: e.target.value }))}
+                      className="w-full bg-surface-container border border-outline-variant/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-secondary/30"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-on-surface-variant mb-1.5">Description</label>
+                    <textarea
+                      value={settingsForm.description}
+                      onChange={e => setSettingsForm(p => ({ ...p, description: e.target.value }))}
+                      rows={3}
+                      className="w-full bg-surface-container border border-outline-variant/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-secondary/30 resize-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-on-surface-variant mb-1.5">Rules</label>
+                    <textarea
+                      value={settingsForm.rules}
+                      onChange={e => setSettingsForm(p => ({ ...p, rules: e.target.value }))}
+                      rows={4}
+                      placeholder="Add community rules…"
+                      className="w-full bg-surface-container border border-outline-variant/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-secondary/30 resize-none placeholder:text-on-surface-variant/50"
+                    />
+                  </div>
+                  <button
+                    onClick={saveSettings}
+                    disabled={saving}
+                    className="w-full py-3 bg-secondary text-on-secondary rounded-xl text-sm font-semibold font-manrope hover:opacity-90 transition-all disabled:opacity-60"
+                  >
+                    {saving ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Save Changes"}
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

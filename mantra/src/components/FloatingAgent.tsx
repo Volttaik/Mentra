@@ -114,7 +114,7 @@ export default function FloatingAgent() {
     return (
       <button
         onClick={show}
-        className="fixed bottom-6 right-1 z-40 w-5 h-10 bg-secondary/20 border border-secondary/30 rounded-l-full flex items-center justify-center text-secondary hover:bg-secondary/30 transition-all"
+        className="fixed bottom-24 right-1 z-40 w-5 h-10 bg-secondary/20 border border-secondary/30 rounded-l-full flex items-center justify-center text-secondary hover:bg-secondary/30 transition-all"
         title="Show AI Agent"
       >
         <ChevronRight className="w-3 h-3" />
@@ -260,7 +260,7 @@ export default function FloatingAgent() {
         onTouchStart={handleStartPress}
         onTouchEnd={handleEndPress}
         className={cn(
-          "fixed bottom-6 right-5 z-50 w-10 h-10 rounded-full shadow-lg flex items-center justify-center transition-all select-none",
+          "fixed bottom-24 right-5 z-50 w-10 h-10 rounded-full shadow-lg flex items-center justify-center transition-all select-none",
           open ? "bg-primary text-on-primary" : "bg-secondary text-on-secondary hover:scale-105"
         )}
         whileTap={{ scale: 0.94 }}

@@ -88,6 +88,7 @@ export async function POST(req: Request) {
         university: university || (userType === "freelancer" && company ? company : null) || null,
         department: resolvedDept,
         level: level || experience || platform || null,
+        aiCredits: 50,
       },
     });
 
