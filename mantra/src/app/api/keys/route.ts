@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import crypto from "crypto";
+import { randomBytes } from "crypto";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   const session = await auth();
@@ -45,7 +47,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Maximum 10 API keys allowed" }, { status: 400 });
   }
 
-  const rawKey = `mnt_${crypto.randomBytes(32).toString("hex")}`;
+  const rawKey = `mnt_${randomBytes(32).toString("hex")}`;
 
   const key = await prisma.apiKey.create({
     data: {

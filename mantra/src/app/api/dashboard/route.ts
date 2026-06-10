@@ -3,6 +3,8 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { daysAgo } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 function formatStack(s: any, userId: string) {
   return {
     id: s.id,

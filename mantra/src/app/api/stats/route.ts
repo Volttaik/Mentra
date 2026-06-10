@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const [totalStacks, totalUsers, totalStars] = await Promise.all([
     prisma.stack.count({ where: { isPublic: true } }),

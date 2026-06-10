@@ -2,6 +2,8 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 function getGroq() {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const Groq = require("groq-sdk");
