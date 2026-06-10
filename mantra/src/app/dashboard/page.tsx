@@ -93,7 +93,7 @@ export default function DashboardPage() {
     const res = await fetch("/api/flows", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: flowName.trim(), emoji: "📚" }),
+      body: JSON.stringify({ name: flowName.trim(), emoji: "flow" }),
     });
     const data = await res.json();
     if (!data.error) { setFlows(prev => [{ ...data, _count: { items: 0 }, items: [] }, ...prev]); setShowCreateFlow(false); setFlowName(""); }
@@ -232,7 +232,7 @@ export default function DashboardPage() {
                   {flows.map(flow => (
                     <Link key={flow.id} href={`/flows/${flow.id}`} className="shrink-0">
                       <div className="w-44 bg-surface-container-low border border-outline-variant/15 rounded-2xl p-4 hover:border-secondary/30 hover:shadow-md transition-all cursor-pointer">
-                        <div className="text-xl mb-2">{flow.emoji}</div>
+                        <Zap className="w-5 h-5 text-secondary mb-2" />
                         <p className="font-manrope font-semibold text-sm text-primary truncate">{flow.name}</p>
                         <p className="text-xs text-on-surface-variant mt-1">{flow._count.items} stack{flow._count.items !== 1 ? "s" : ""}</p>
                         {flow.items.length > 0 && (

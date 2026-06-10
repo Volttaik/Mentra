@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
-import { randomBytes } from "crypto";
+import { put } from "@vercel/blob";
 
 export async function POST(
   req: NextRequest,
@@ -37,16 +35,14 @@ export async function POST(
     }
 
     const ext = file.name.split(".").pop() ?? "jpg";
-    const id = randomBytes(8).toString("hex");
-    const filename = `profile-${id}.${ext}`;
-    const uploadDir = path.join(process.cwd(), "public", "uploads", "profiles");
-    await mkdir(uploadDir, { recursive: true });
+    const filename = `uploads/profiles/profile-${stack.id}.${ext}`;
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    await writeFile(path.join(uploadDir, filename), buffer);
+    const blob = await put(filename, file, {
+      access: "public",
+      contentType: file.type,
+    });
 
-    const url = `/uploads/profiles/${filename}`;
+    const url = blob.url;
 
     await prisma.stack.update({
       where: { id: stack.id },

@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import {
   Sparkles, X, Send, BarChart2, Zap, MessageSquare,
-  ChevronRight, Loader2, Maximize2,
+  ChevronRight, Loader2, Maximize2, EyeOff, Coins,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -31,17 +31,20 @@ function StatCard({ data }: { data: any }) {
   );
 }
 
+type MenuMode = "actions" | "hide" | null;
+
 export default function FloatingAgent() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [visible, setVisible] = useState(true);
   const [open, setOpen] = useState(false);
-  const [showMenu, setShowMenu] = useState(false);
+  const [menuMode, setMenuMode] = useState<MenuMode>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [agentName, setAgentName] = useState("Mia");
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const didLongPress = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -58,7 +61,7 @@ export default function FloatingAgent() {
   const hide = () => {
     setVisible(false);
     setOpen(false);
-    setShowMenu(false);
+    setMenuMode(null);
     localStorage.setItem("mentra-agent-hidden", "true");
   };
 
@@ -67,18 +70,17 @@ export default function FloatingAgent() {
     localStorage.removeItem("mentra-agent-hidden");
   };
 
-  const sendMessage = useCallback(async () => {
-    if (!input.trim() || loading) return;
-    const msg = input.trim();
+  const sendMessage = useCallback(async (msg?: string) => {
+    const text = (msg ?? input).trim();
+    if (!text || loading) return;
     setInput("");
-    setMessages(prev => [...prev, { role: "user", content: msg }]);
+    setMessages(prev => [...prev, { role: "user", content: text }]);
     setLoading(true);
-
     try {
       const res = await fetch("/api/agent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: msg }),
+        body: JSON.stringify({ message: text }),
       });
       const data = await res.json();
       setAgentName(data.agentName ?? agentName);
@@ -91,7 +93,11 @@ export default function FloatingAgent() {
   }, [input, loading, agentName]);
 
   const handleStartPress = () => {
-    longPressTimer.current = setTimeout(() => setShowMenu(true), 500);
+    didLongPress.current = false;
+    longPressTimer.current = setTimeout(() => {
+      didLongPress.current = true;
+      setMenuMode("hide");
+    }, 500);
   };
 
   const handleEndPress = () => {
@@ -99,13 +105,17 @@ export default function FloatingAgent() {
       clearTimeout(longPressTimer.current);
       longPressTimer.current = null;
     }
-    if (!showMenu) setOpen(o => !o);
+    if (!didLongPress.current) {
+      setMenuMode(m => m === "actions" ? null : "actions");
+      setOpen(false);
+    }
   };
 
   const quickActions = [
-    { label: "My Stats", message: "Show me my stats", icon: BarChart2 },
-    { label: "My Flows", message: "List my Stack Flows", icon: Zap },
-    { label: "My Communities", message: "What communities am I in?", icon: MessageSquare },
+    { label: "Open Chat", icon: MessageSquare, onClick: () => { setOpen(true); setMenuMode(null); } },
+    { label: "Full Chat", icon: Maximize2, onClick: () => { router.push("/agent"); setMenuMode(null); } },
+    { label: "My Stats", icon: BarChart2, onClick: () => { setOpen(true); setMenuMode(null); setTimeout(() => sendMessage("Show me my stats"), 100); } },
+    { label: "My Flows", icon: Zap, onClick: () => { setOpen(true); setMenuMode(null); setTimeout(() => sendMessage("List my Stack Flows"), 100); } },
   ];
 
   if (status !== "authenticated" || !session) return null;
@@ -124,6 +134,7 @@ export default function FloatingAgent() {
 
   return (
     <>
+      {/* Floating chat window */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -133,7 +144,6 @@ export default function FloatingAgent() {
             transition={{ duration: 0.2 }}
             className="fixed bottom-20 right-4 z-50 bg-background border border-outline-variant/20 rounded-2xl shadow-2xl flex flex-col overflow-hidden w-80 h-[400px]"
           >
-            {/* Header */}
             <div className="flex items-center gap-2.5 px-4 py-3 border-b border-outline-variant/10 bg-surface-container-low shrink-0">
               <div className="w-7 h-7 bg-secondary-container rounded-lg flex items-center justify-center">
                 <Sparkles className="w-3.5 h-3.5 text-on-secondary-container" />
@@ -154,24 +164,11 @@ export default function FloatingAgent() {
               </button>
             </div>
 
-            {/* Messages */}
             <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
               {messages.length === 0 && (
                 <div className="space-y-3">
                   <div className="bg-secondary-container/20 rounded-2xl rounded-tl-sm p-3 max-w-[85%]">
-                    <p className="text-sm text-on-surface">Hi! I&apos;m {agentName}, your personal AI on Mentra. I can help you manage your stacks, view stats, explore communities, and more.</p>
-                  </div>
-                  <p className="text-[11px] text-on-surface-variant uppercase tracking-wider font-semibold mt-4 mb-2">Quick actions</p>
-                  <div className="flex flex-col gap-1.5">
-                    {quickActions.map(({ label, message, icon: Icon }) => (
-                      <button
-                        key={label}
-                        onClick={() => { setInput(message); }}
-                        className="flex items-center gap-2 px-3 py-2 bg-surface-container rounded-xl text-xs font-medium text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-all text-left"
-                      >
-                        <Icon className="w-3.5 h-3.5 shrink-0" /> {label}
-                      </button>
-                    ))}
+                    <p className="text-sm text-on-surface">Hi! I&apos;m {agentName}, your personal AI on Mentra. Ask me anything about your stacks, stats, or communities.</p>
                   </div>
                 </div>
               )}
@@ -199,7 +196,6 @@ export default function FloatingAgent() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input */}
             <div className="px-3 py-3 border-t border-outline-variant/10 shrink-0">
               <div className="flex items-center gap-2 bg-surface-container rounded-xl px-3 py-2">
                 <input
@@ -210,7 +206,7 @@ export default function FloatingAgent() {
                   className="flex-1 bg-transparent text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none"
                 />
                 <button
-                  onClick={sendMessage}
+                  onClick={() => sendMessage()}
                   disabled={!input.trim() || loading}
                   className="p-1.5 bg-secondary text-on-secondary rounded-lg disabled:opacity-40 transition-all hover:opacity-90"
                 >
@@ -222,32 +218,52 @@ export default function FloatingAgent() {
         )}
       </AnimatePresence>
 
-      {/* Long-press menu */}
+      {/* Actions menu (single click) */}
       <AnimatePresence>
-        {showMenu && (
+        {menuMode === "actions" && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className="fixed bottom-20 right-4 z-50 bg-background border border-outline-variant/20 rounded-2xl shadow-xl overflow-hidden min-w-[180px]"
+            initial={{ opacity: 0, scale: 0.9, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 8 }}
+            className="fixed bottom-36 right-4 z-[60] bg-background border border-outline-variant/20 rounded-2xl shadow-xl overflow-hidden min-w-[180px]"
           >
-            {[
-              { label: "Chat", onClick: () => { setOpen(true); setShowMenu(false); } },
-              { label: "Full Chat", onClick: () => { router.push("/agent"); setShowMenu(false); } },
-              { label: "My Stats", onClick: () => { setInput("Show me my stats"); setOpen(true); setShowMenu(false); } },
-              { label: "Hide agent", onClick: () => { hide(); setShowMenu(false); }, danger: true },
-            ].map(({ label, onClick, danger }) => (
+            {quickActions.map(({ label, icon: Icon, onClick }) => (
               <button
                 key={label}
                 onClick={onClick}
-                className={cn(
-                  "w-full text-left px-4 py-3 text-sm font-medium transition-colors border-b border-outline-variant/10 last:border-0",
-                  danger ? "text-error hover:bg-error-container/20" : "text-on-surface hover:bg-surface-container"
-                )}
+                className="w-full flex items-center gap-3 text-left px-4 py-3 text-sm font-medium text-on-surface hover:bg-surface-container transition-colors border-b border-outline-variant/10 last:border-0"
               >
+                <Icon className="w-4 h-4 text-secondary shrink-0" />
                 {label}
               </button>
             ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Hide menu (long press) */}
+      <AnimatePresence>
+        {menuMode === "hide" && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 8 }}
+            className="fixed bottom-36 right-4 z-[60] bg-background border border-outline-variant/20 rounded-2xl shadow-xl overflow-hidden min-w-[180px]"
+          >
+            <button
+              onClick={() => { router.push("/credits"); setMenuMode(null); }}
+              className="w-full flex items-center gap-3 text-left px-4 py-3 text-sm font-medium text-on-surface hover:bg-surface-container transition-colors border-b border-outline-variant/10"
+            >
+              <Coins className="w-4 h-4 text-secondary shrink-0" />
+              Buy Credits
+            </button>
+            <button
+              onClick={hide}
+              className="w-full flex items-center gap-3 text-left px-4 py-3 text-sm font-medium text-error hover:bg-error-container/20 transition-colors"
+            >
+              <EyeOff className="w-4 h-4 shrink-0" />
+              Hide agent
+            </button>
           </motion.div>
         )}
       </AnimatePresence>
@@ -261,17 +277,20 @@ export default function FloatingAgent() {
         onTouchEnd={handleEndPress}
         className={cn(
           "fixed bottom-24 right-5 z-50 w-10 h-10 rounded-full shadow-lg flex items-center justify-center transition-all select-none",
-          open ? "bg-primary text-on-primary" : "bg-secondary text-on-secondary hover:scale-105"
+          menuMode ? "bg-primary text-on-primary" : "bg-secondary text-on-secondary hover:scale-105"
         )}
         whileTap={{ scale: 0.94 }}
-        animate={{ rotate: open ? 45 : 0 }}
+        animate={{ rotate: menuMode ? 45 : 0 }}
       >
         <Sparkles className="w-4 h-4" />
       </motion.button>
 
-      {/* Backdrop for long-press menu */}
-      {showMenu && (
-        <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
+      {/* Backdrop */}
+      {(menuMode || open) && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => { setMenuMode(null); }}
+        />
       )}
     </>
   );

@@ -19,6 +19,7 @@ export async function POST(
     include: {
       tags: { include: { tag: true } },
       modules: { orderBy: { order: "asc" } },
+      files: true,
     },
   });
   if (!original) return NextResponse.json({ error: "Stack not found" }, { status: 404 });
@@ -50,18 +51,41 @@ export async function POST(
       language: original.language,
       isPublic: true,
       readme: original.readme,
+      banner: original.banner,
+      profile: original.profile,
       ownerId: userId,
-      modules: {
-        create: original.modules.map(m => ({
-          title: m.title,
-          type: m.type,
-          order: m.order,
-          duration: m.duration,
-          files: 0,
-        })),
-      },
     },
   });
+
+  const oldToNewModuleId = new Map<string, string>();
+
+  for (const m of original.modules) {
+    const newModule = await prisma.module.create({
+      data: {
+        title: m.title,
+        type: m.type,
+        order: m.order,
+        duration: m.duration,
+        files: m.files,
+        stackId: forkedStack.id,
+      },
+    });
+    oldToNewModuleId.set(m.id, newModule.id);
+  }
+
+  for (const file of original.files) {
+    await prisma.stackFile.create({
+      data: {
+        stackId: forkedStack.id,
+        moduleId: file.moduleId ? (oldToNewModuleId.get(file.moduleId) ?? null) : null,
+        name: file.name,
+        url: file.url,
+        rawPath: file.rawPath,
+        size: file.size,
+        mimeType: file.mimeType,
+      },
+    });
+  }
 
   for (const stackTag of original.tags) {
     await prisma.stackTag.create({

@@ -8,7 +8,7 @@ import {
   Users, BookOpen, Shield, Loader2, Trash2,
   LogOut, Settings, Search, X, UserPlus, Crown, AlertCircle,
   MessageCircle, Send, MoreVertical, Image as ImageIcon, Check,
-  UserMinus, Star,
+  UserMinus, Star, ArrowLeft,
 } from "lucide-react";
 import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
@@ -479,7 +479,102 @@ export default function CommunityPage() {
           )}
         </AnimatePresence>
 
-        {/* Main content */}
+        {/* Main content — full-width chat layout when chat is active */}
+        {activePanel === "chat" && isMember ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex flex-col bg-surface-container-low border border-outline-variant/15 rounded-2xl shadow-sm overflow-hidden"
+            style={{ height: "calc(100vh - 13rem)", minHeight: "520px" }}
+          >
+            {/* Chat header */}
+            <div className="px-5 py-3.5 border-b border-outline-variant/10 flex items-center gap-3 bg-surface-container-low shrink-0">
+              <button
+                onClick={() => setActivePanel("feed")}
+                className="p-1.5 rounded-lg hover:bg-surface-container text-on-surface-variant transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" />
+              </button>
+              <div className="w-8 h-8 bg-secondary-container rounded-xl flex items-center justify-center shrink-0">
+                <MessageCircle className="w-4 h-4 text-on-secondary-container" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-manrope font-semibold text-sm text-primary">Community Chat</p>
+                <p className="text-[11px] text-on-surface-variant">{community._count.members} members</p>
+              </div>
+            </div>
+
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-4">
+              {chatLoading ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="w-6 h-6 text-secondary animate-spin" />
+                </div>
+              ) : messages.length === 0 ? (
+                <div className="text-center py-16">
+                  <MessageCircle className="w-10 h-10 text-outline-variant mx-auto mb-3" />
+                  <p className="text-on-surface-variant text-sm font-medium">No messages yet</p>
+                  <p className="text-xs text-on-surface-variant/60 mt-1">Be the first to say hello!</p>
+                </div>
+              ) : (
+                messages.map((msg, i) => {
+                  const isMe = msg.user.id === session?.user?.id;
+                  const showAvatar = i === 0 || messages[i - 1].user.id !== msg.user.id;
+                  return (
+                    <div key={msg.id} className={cn("flex items-end gap-2.5", isMe && "flex-row-reverse")}>
+                      {showAvatar ? (
+                        <Link href={`/profile/${msg.user.username}`}>
+                          <div className="w-7 h-7 rounded-full bg-secondary-container flex items-center justify-center overflow-hidden text-[10px] font-bold font-manrope text-on-secondary-container shrink-0">
+                            {msg.user.image ? <img src={msg.user.image} alt="" className="w-full h-full object-cover" /> : msg.user.name.slice(0, 2).toUpperCase()}
+                          </div>
+                        </Link>
+                      ) : (
+                        <div className="w-7 shrink-0" />
+                      )}
+                      <div className={cn("max-w-xs md:max-w-md lg:max-w-lg", isMe && "items-end flex flex-col")}>
+                        {showAvatar && (
+                          <p className={cn("text-[11px] text-on-surface-variant mb-1 font-medium", isMe && "text-right")}>
+                            {isMe ? "You" : msg.user.name}
+                          </p>
+                        )}
+                        <div className={cn(
+                          "px-4 py-2.5 rounded-2xl text-sm leading-relaxed",
+                          isMe
+                            ? "bg-secondary text-on-secondary rounded-br-sm"
+                            : "bg-surface-container text-on-surface rounded-bl-sm"
+                        )}>
+                          {msg.content}
+                        </div>
+                        <p className="text-[10px] text-on-surface-variant/50 mt-1 px-1">{timeAgo(msg.createdAt)}</p>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+              <div ref={chatBottomRef} />
+            </div>
+
+            {/* Input */}
+            <div className="p-4 border-t border-outline-variant/10 shrink-0">
+              <form onSubmit={e => { e.preventDefault(); sendMessage(); }} className="flex items-center gap-3">
+                <input
+                  value={chatInput}
+                  onChange={e => setChatInput(e.target.value)}
+                  placeholder="Say something…"
+                  className="flex-1 bg-surface-container border border-outline-variant/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-secondary/30 placeholder:text-on-surface-variant/50"
+                />
+                <button
+                  type="submit"
+                  disabled={!chatInput.trim() || sendingMsg}
+                  className="p-2.5 bg-secondary text-on-secondary rounded-xl hover:opacity-90 transition-all disabled:opacity-50 shrink-0"
+                >
+                  {sendingMsg ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                </button>
+              </form>
+            </div>
+          </motion.div>
+        ) : (
+
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Sidebar nav (desktop) */}
           <div className="hidden lg:block space-y-1">
@@ -534,40 +629,37 @@ export default function CommunityPage() {
                   </div>
                 ) : (
                   community.stacks.map(cs => (
-                    <div key={cs.id} className="bg-surface-container-low border border-outline-variant/15 rounded-2xl p-5 hover:border-secondary/20 transition-all shadow-sm">
-                      <div className="flex items-start gap-4">
+                    <Link key={cs.id} href={`/stacks/${cs.stack.slug}`} className="block bg-surface-container-low border border-outline-variant/15 rounded-2xl p-4 hover:border-secondary/25 hover:shadow-sm transition-all shadow-sm cursor-pointer">
+                      <div className="flex items-center gap-3">
                         {(cs.stack.profile || cs.stack.banner) ? (
-                          <img src={cs.stack.profile ?? cs.stack.banner ?? ""} alt="" className="w-12 h-12 rounded-xl object-cover shrink-0 border border-outline-variant/20" />
+                          <img src={cs.stack.profile ?? cs.stack.banner ?? ""} alt="" className="w-10 h-10 rounded-xl object-cover shrink-0 border border-outline-variant/20" />
                         ) : (
-                          <div className="w-12 h-12 bg-secondary-container rounded-xl flex items-center justify-center shrink-0">
-                            <BookOpen className="w-6 h-6 text-on-secondary-container" />
+                          <div className="w-10 h-10 bg-secondary-container rounded-xl flex items-center justify-center shrink-0">
+                            <BookOpen className="w-5 h-5 text-on-secondary-container" />
                           </div>
                         )}
                         <div className="flex-1 min-w-0">
-                          <Link href={`/stacks/${cs.stack.slug}`} className="font-manrope font-semibold text-base text-primary hover:text-secondary transition-colors block truncate">
-                            {cs.stack.title}
-                          </Link>
-                          <p className="text-sm text-on-surface-variant mt-0.5 line-clamp-2">{cs.stack.description}</p>
-                          <div className="flex items-center gap-3 mt-2">
-                            <span className="flex items-center gap-1 text-xs text-on-surface-variant">
-                              <Star className="w-3.5 h-3.5" />{cs.stack._count.stars}
+                          <p className="font-manrope font-semibold text-sm text-primary truncate">{cs.stack.title}</p>
+                          <p className="text-xs text-on-surface-variant mt-0.5 line-clamp-1">{cs.stack.description}</p>
+                          <div className="flex items-center gap-2.5 mt-1">
+                            <span className="flex items-center gap-1 text-[11px] text-on-surface-variant">
+                              <Star className="w-3 h-3" />{cs.stack._count.stars}
                             </span>
-                            <span className="text-xs text-on-surface-variant">by {cs.stack.owner.name}</span>
-                            <span className="text-xs text-on-surface-variant/60">added by {cs.contributor.name}</span>
+                            <span className="text-[11px] text-on-surface-variant/70">by {cs.stack.owner.name}</span>
                           </div>
                         </div>
                         {(isAdmin || cs.contributor.username === (session?.user as any)?.username) && (
                           <button
-                            onClick={() => removeStack(cs.stack.id)}
+                            onClick={e => { e.preventDefault(); removeStack(cs.stack.id); }}
                             disabled={removingStack === cs.stack.id}
-                            className="p-2 text-on-surface-variant hover:text-error rounded-lg transition-colors shrink-0"
+                            className="p-1.5 text-on-surface-variant hover:text-error rounded-lg transition-colors shrink-0"
                             title="Remove from community"
                           >
-                            {removingStack === cs.stack.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                            {removingStack === cs.stack.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
                           </button>
                         )}
                       </div>
-                    </div>
+                    </Link>
                   ))
                 )}
               </motion.div>
@@ -607,83 +699,6 @@ export default function CommunityPage() {
               </motion.div>
             )}
 
-            {/* CHAT */}
-            {activePanel === "chat" && isMember && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-surface-container-low border border-outline-variant/15 rounded-2xl shadow-sm overflow-hidden flex flex-col" style={{ height: "calc(100vh - 360px)", minHeight: "400px" }}>
-                <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
-                  <MessageCircle className="w-4 h-4 text-secondary" />
-                  <h3 className="font-manrope font-semibold text-sm text-primary">Community Chat</h3>
-                  <span className="ml-auto text-xs text-on-surface-variant">{community._count.members} members</span>
-                </div>
-                <div className="flex-1 overflow-y-auto p-5 space-y-4">
-                  {chatLoading ? (
-                    <div className="flex justify-center py-8">
-                      <Loader2 className="w-6 h-6 text-secondary animate-spin" />
-                    </div>
-                  ) : messages.length === 0 ? (
-                    <div className="text-center py-12">
-                      <MessageCircle className="w-10 h-10 text-outline-variant mx-auto mb-3" />
-                      <p className="text-on-surface-variant text-sm">No messages yet. Say hello!</p>
-                    </div>
-                  ) : (
-                    messages.map((msg, i) => {
-                      const isMe = msg.user.id === session?.user?.id;
-                      const showAvatar = i === 0 || messages[i - 1].user.id !== msg.user.id;
-                      return (
-                        <div key={msg.id} className={cn("flex items-end gap-3", isMe && "flex-row-reverse")}>
-                          {showAvatar ? (
-                            <Link href={`/profile/${msg.user.username}`}>
-                              <div className="w-7 h-7 rounded-full bg-secondary-container flex items-center justify-center overflow-hidden text-[10px] font-bold font-manrope text-on-secondary-container shrink-0">
-                                {msg.user.image ? <img src={msg.user.image} alt="" className="w-full h-full object-cover" /> : msg.user.name.slice(0, 2).toUpperCase()}
-                              </div>
-                            </Link>
-                          ) : (
-                            <div className="w-7 shrink-0" />
-                          )}
-                          <div className={cn("max-w-xs md:max-w-sm", isMe && "items-end flex flex-col")}>
-                            {showAvatar && (
-                              <p className={cn("text-[11px] text-on-surface-variant mb-1 font-medium", isMe && "text-right")}>
-                                {isMe ? "You" : msg.user.name}
-                              </p>
-                            )}
-                            <div className={cn(
-                              "px-4 py-2.5 rounded-2xl text-sm leading-relaxed",
-                              isMe
-                                ? "bg-secondary text-on-secondary rounded-br-md"
-                                : "bg-surface-container text-on-surface rounded-bl-md"
-                            )}>
-                              {msg.content}
-                            </div>
-                            <p className="text-[10px] text-on-surface-variant/50 mt-1 px-1">{timeAgo(msg.createdAt)}</p>
-                          </div>
-                        </div>
-                      );
-                    })
-                  )}
-                  <div ref={chatBottomRef} />
-                </div>
-                <div className="p-4 border-t border-outline-variant/10">
-                  <form
-                    onSubmit={e => { e.preventDefault(); sendMessage(); }}
-                    className="flex items-center gap-3"
-                  >
-                    <input
-                      value={chatInput}
-                      onChange={e => setChatInput(e.target.value)}
-                      placeholder="Say something…"
-                      className="flex-1 bg-surface-container border border-outline-variant/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-secondary/30 placeholder:text-on-surface-variant/50"
-                    />
-                    <button
-                      type="submit"
-                      disabled={!chatInput.trim() || sendingMsg}
-                      className="p-2.5 bg-secondary text-on-secondary rounded-xl hover:opacity-90 transition-all disabled:opacity-50 shrink-0"
-                    >
-                      {sendingMsg ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                    </button>
-                  </form>
-                </div>
-              </motion.div>
-            )}
 
             {/* RULES */}
             {activePanel === "rules" && (
@@ -782,6 +797,8 @@ export default function CommunityPage() {
             )}
           </div>
         </div>
+
+        )} {/* end chat ternary */}
       </div>
     </div>
   );

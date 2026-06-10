@@ -8,6 +8,7 @@ import {
   ArrowLeft, Loader2, Save, Image as ImageIcon, Palette,
   FileText, Tag, Globe, Lock, Trash2, Upload, Check, AlertTriangle,
   Eye, BookOpen, GraduationCap, Building, Calendar, Languages, Users,
+  PanelLeft, LayoutPanelTop, Columns2, Pipette,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -44,6 +45,10 @@ export default function StackStudioPage() {
   const [error, setError] = useState("");
   const [savedMsg, setSavedMsg] = useState("");
   const [activeSection, setActiveSection] = useState<"identity" | "appearance" | "content" | "visibility" | "community">("identity");
+  const [studioLayout, setStudioLayout] = useState<"sidebar" | "top" | "wide">("sidebar");
+
+  const [customColors, setCustomColors] = useState({ primary: "", secondary: "", accent: "" });
+  const [colorsSaved, setColorsSaved] = useState(false);
   const [myCommunities, setMyCommunities] = useState<{ id: string; slug: string; name: string; myRole: string }[]>([]);
   const [communityLoading, setCommunityLoading] = useState(false);
   const [contributingTo, setContributingTo] = useState<string | null>(null);
@@ -69,6 +74,24 @@ export default function StackStudioPage() {
   const [tagResults, setTagResults] = useState<UserSearchResult[]>([]);
   const [tagSearching, setTagSearching] = useState(false);
   const [tagMsg, setTagMsg] = useState("");
+
+  useEffect(() => {
+    const savedLayout = localStorage.getItem("mentra-studio-layout") as "sidebar" | "top" | "wide" | null;
+    if (savedLayout) setStudioLayout(savedLayout);
+    const savedColors = localStorage.getItem(`mentra-stack-colors-${slug}`);
+    if (savedColors) { try { setCustomColors(JSON.parse(savedColors)); } catch { /* ignore */ } }
+  }, [slug]);
+
+  const changeLayout = (l: "sidebar" | "top" | "wide") => {
+    setStudioLayout(l);
+    localStorage.setItem("mentra-studio-layout", l);
+  };
+
+  const saveCustomColors = () => {
+    localStorage.setItem(`mentra-stack-colors-${slug}`, JSON.stringify(customColors));
+    setColorsSaved(true);
+    setTimeout(() => setColorsSaved(false), 2000);
+  };
 
   useEffect(() => {
     fetch(`/api/stacks/${slug}`)
@@ -354,6 +377,30 @@ export default function StackStudioPage() {
                 {savedMsg}
               </span>
             )}
+
+            {/* Layout switcher */}
+            <div className="hidden sm:flex items-center gap-0.5 bg-surface-container rounded-xl p-1 border border-outline-variant/20">
+              {([
+                { id: "sidebar", icon: PanelLeft, label: "Sidebar" },
+                { id: "top", icon: LayoutPanelTop, label: "Top tabs" },
+                { id: "wide", icon: Columns2, label: "Wide" },
+              ] as const).map(opt => (
+                <button
+                  key={opt.id}
+                  onClick={() => changeLayout(opt.id)}
+                  title={opt.label}
+                  className={cn(
+                    "p-1.5 rounded-lg transition-all",
+                    studioLayout === opt.id
+                      ? "bg-secondary-container text-on-secondary-container"
+                      : "text-on-surface-variant hover:text-primary hover:bg-surface-container-high"
+                  )}
+                >
+                  <opt.icon className="w-3.5 h-3.5" />
+                </button>
+              ))}
+            </div>
+
             <Link
               href={`/stacks/${slug}`}
               target="_blank"
@@ -393,9 +440,35 @@ export default function StackStudioPage() {
           ))}
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar nav — desktop only */}
-          <aside className="hidden lg:block lg:w-52 shrink-0">
+        {/* Top-tab strip (top/wide layout — desktop) */}
+        {(studioLayout === "top" || studioLayout === "wide") && (
+          <div className="hidden lg:flex gap-1 bg-surface-container rounded-2xl p-1 mb-2 overflow-x-auto no-scrollbar">
+            {SECTIONS.map(section => (
+              <button
+                key={section.id}
+                onClick={() => setActiveSection(section.id)}
+                className={cn(
+                  "flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors shrink-0",
+                  activeSection === section.id
+                    ? "bg-surface-container-lowest text-primary shadow-card"
+                    : "text-on-surface-variant hover:text-primary"
+                )}
+              >
+                <section.icon className="w-3.5 h-3.5 shrink-0" />
+                {section.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div className={cn(
+          "flex gap-8",
+          studioLayout === "top" || studioLayout === "wide" ? "flex-col" : "flex-col lg:flex-row"
+        )}>
+          {/* Sidebar nav — desktop only (hidden in top/wide mode) */}
+          <aside className={cn(
+            studioLayout === "sidebar" ? "hidden lg:block lg:w-52 shrink-0" : "hidden"
+          )}>
             <nav className="space-y-1 sticky top-24">
               {SECTIONS.map(section => (
                 <button
@@ -699,6 +772,64 @@ export default function StackStudioPage() {
                       Remove banner
                     </button>
                   )}
+                </div>
+
+                {/* Custom Colors */}
+                <div className="card p-6 space-y-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h3 className="font-manrope font-semibold text-base text-primary mb-1 flex items-center gap-2">
+                        <Pipette className="w-4 h-4 text-secondary" />
+                        Custom Colors
+                      </h3>
+                      <p className="text-xs text-on-surface-variant">Personalise your stack&apos;s visual identity. These colors apply across your stack page when viewed on this device.</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {([
+                      { key: "primary", label: "Primary", hint: "Headings & buttons" },
+                      { key: "secondary", label: "Accent", hint: "Highlights & links" },
+                      { key: "accent", label: "Tint", hint: "Cards & surfaces" },
+                    ] as const).map(c => (
+                      <div key={c.key} className="space-y-2">
+                        <label className="block text-xs font-semibold text-on-surface-variant">{c.label}</label>
+                        <div className="flex items-center gap-2.5">
+                          <div className="relative shrink-0">
+                            <input
+                              type="color"
+                              value={customColors[c.key] || "#6750A4"}
+                              onChange={e => setCustomColors(p => ({ ...p, [c.key]: e.target.value }))}
+                              className="w-10 h-10 rounded-xl border border-outline-variant/30 cursor-pointer p-0.5 bg-transparent"
+                            />
+                          </div>
+                          <div>
+                            <p className="text-xs font-mono text-primary">{customColors[c.key] || "default"}</p>
+                            <p className="text-[10px] text-on-surface-variant">{c.hint}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center gap-3 pt-1">
+                    <button
+                      onClick={saveCustomColors}
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold bg-secondary text-on-secondary hover:opacity-90 transition-all"
+                    >
+                      {colorsSaved ? <Check className="w-3.5 h-3.5" /> : <Pipette className="w-3.5 h-3.5" />}
+                      {colorsSaved ? "Saved!" : "Apply colors"}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setCustomColors({ primary: "", secondary: "", accent: "" });
+                        localStorage.removeItem(`mentra-stack-colors-${slug}`);
+                      }}
+                      className="text-xs text-on-surface-variant hover:text-error transition-colors"
+                    >
+                      Reset to default
+                    </button>
+                  </div>
                 </div>
 
                 {/* README */}

@@ -1530,7 +1530,7 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                           : "hover:bg-surface-container text-on-surface"
                       )}
                     >
-                      <span className="text-lg">{flow.emoji}</span>
+                      <Zap className="w-4 h-4 text-secondary shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className="font-medium truncate">{flow.name}</p>
                         <p className="text-xs text-on-surface-variant">{flow._count.items} stack{flow._count.items !== 1 ? "s" : ""}</p>

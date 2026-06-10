@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, BookOpen, Loader2, Trash2, Plus, PackageOpen } from "lucide-react";
+import { ArrowLeft, BookOpen, Loader2, Trash2, Plus, PackageOpen, Zap } from "lucide-react";
 import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
 
@@ -81,7 +81,9 @@ export default function FlowDetailPage() {
           </Link>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <span className="text-2xl">{flow.emoji}</span>
+              <div className="w-9 h-9 bg-secondary-container rounded-xl flex items-center justify-center shrink-0">
+                <Zap className="w-5 h-5 text-on-secondary-container" />
+              </div>
               <h1 className="font-manrope font-bold text-2xl text-primary truncate">{flow.name}</h1>
             </div>
             {flow.description && <p className="text-sm text-on-surface-variant mt-1">{flow.description}</p>}
