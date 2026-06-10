@@ -7,7 +7,7 @@ import Link from "next/link";
 import {
   ArrowLeft, Loader2, Save, Image as ImageIcon, Palette,
   FileText, Tag, Globe, Lock, Trash2, Upload, Check, AlertTriangle,
-  Eye, BookOpen, GraduationCap, Building, Calendar, Languages,
+  Eye, BookOpen, GraduationCap, Building, Calendar, Languages, Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -43,7 +43,11 @@ export default function StackStudioPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [savedMsg, setSavedMsg] = useState("");
-  const [activeSection, setActiveSection] = useState<"identity" | "appearance" | "content" | "visibility">("identity");
+  const [activeSection, setActiveSection] = useState<"identity" | "appearance" | "content" | "visibility" | "community">("identity");
+  const [myCommunities, setMyCommunities] = useState<{ id: string; slug: string; name: string; myRole: string }[]>([]);
+  const [communityLoading, setCommunityLoading] = useState(false);
+  const [contributingTo, setContributingTo] = useState<string | null>(null);
+  const [contributedTo, setContributedTo] = useState<Set<string>>(new Set());
 
   const [form, setForm] = useState({
     title: "", description: "", courseCode: "", university: "",
@@ -259,11 +263,30 @@ export default function StackStudioPage() {
 
   const set = (key: string, value: any) => setForm(f => ({ ...f, [key]: value }));
 
+  const loadCommunities = () => {
+    if (myCommunities.length > 0) return;
+    setCommunityLoading(true);
+    fetch("/api/communities").then(r => r.json()).then(d => { if (!d.error) setMyCommunities(d); }).finally(() => setCommunityLoading(false));
+  };
+
+  const contributeToComm = async (communitySlug: string) => {
+    if (!stack) return;
+    setContributingTo(communitySlug);
+    await fetch(`/api/communities/${communitySlug}/stacks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ stackId: stack.id }),
+    });
+    setContributedTo(prev => new Set([...prev, communitySlug]));
+    setContributingTo(null);
+  };
+
   const SECTIONS = [
     { id: "identity", label: "Identity", icon: BookOpen },
     { id: "appearance", label: "Appearance", icon: Palette },
     { id: "content", label: "Content", icon: FileText },
     { id: "visibility", label: "Visibility", icon: Eye },
+    { id: "community", label: "Community", icon: Users },
   ] as const;
 
   if (loading) {
@@ -820,7 +843,54 @@ export default function StackStudioPage() {
               </div>
             )}
 
+            {/* ── COMMUNITY ── */}
+            {activeSection === "community" && (
+              <div className="space-y-5" onClick={() => { if (myCommunities.length === 0) loadCommunities(); }}>
+                <div>
+                  <h2 className="font-manrope font-bold text-xl text-primary mb-1">Contribute to Community</h2>
+                  <p className="text-sm text-on-surface-variant">Share this stack with a Stack Community you're a member of.</p>
+                </div>
+                {communityLoading ? (
+                  <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 text-secondary animate-spin" /></div>
+                ) : myCommunities.length === 0 ? (
+                  <div className="card p-8 text-center">
+                    <Users className="w-10 h-10 text-outline-variant mx-auto mb-3" />
+                    <p className="font-manrope font-semibold text-primary mb-1">No communities yet</p>
+                    <p className="text-sm text-on-surface-variant mb-4">Join or create a community from your dashboard to contribute stacks.</p>
+                    <a href="/dashboard" className="text-sm text-secondary font-medium hover:underline">Go to Dashboard →</a>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {myCommunities.map(comm => (
+                      <div key={comm.id} className="card-sm flex items-center gap-3 px-4 py-3">
+                        <div className="w-9 h-9 bg-secondary-container rounded-xl flex items-center justify-center shrink-0">
+                          <Users className="w-4 h-4 text-on-secondary-container" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm text-primary truncate">{comm.name}</p>
+                          <p className="text-xs text-on-surface-variant capitalize">{comm.myRole.toLowerCase()}</p>
+                        </div>
+                        <button
+                          onClick={() => contributeToComm(comm.slug)}
+                          disabled={contributingTo === comm.slug || contributedTo.has(comm.slug)}
+                          className={cn(
+                            "text-xs font-semibold px-3 py-1.5 rounded-lg transition-all",
+                            contributedTo.has(comm.slug)
+                              ? "bg-surface-container text-on-surface-variant cursor-default"
+                              : "bg-secondary text-on-secondary hover:opacity-90"
+                          )}
+                        >
+                          {contributingTo === comm.slug ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : contributedTo.has(comm.slug) ? "Contributed ✓" : "Contribute"}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Save button (bottom) */}
+            {activeSection !== "community" && (
             <div className="flex justify-end pt-4 border-t border-outline-variant/10">
               <button
                 onClick={handleSave}
@@ -831,6 +901,7 @@ export default function StackStudioPage() {
                 Save changes
               </button>
             </div>
+            )}
           </div>
         </div>
       </div>

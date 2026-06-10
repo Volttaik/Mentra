@@ -1,3 +1,4 @@
 - [Next.js 14 on Replit - SWC SIGBUS fix](nextjs-swc-replit.md) — SWC native binary crashes with SIGBUS; must disable it and use Babel with specific plugins + @babel/runtime
 - [Mentra email OTP pattern](mentra-email-otp.md) — EmailVerification model + /api/auth/send-code; signup requires OTP before account creation
 - [Mentra AI features pattern](mentra-ai-features.md) — Groq must use lazy init (getGroq() fn) to avoid SIGBUS at module load; credits system fully wired
+- [Mentra four-feature build](mentra-features.md) — Stack Flows, Communities, AI Agent (FloatingAgent), WhatsApp Gateway (/connector pw: liquid4*) all built and compiling

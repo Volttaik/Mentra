@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "cockroachdb"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -27,6 +27,7 @@ model User {
   bannedAt      DateTime?
   banReason     String?
   aiCredits     Int       @default(0)
+  agentName     String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -50,6 +51,12 @@ model User {
   bankAccount   BankAccount?
   quizAttempts  QuizAttempt[]
   creditTxns    CreditTransaction[]
+  stackFlows    StackFlow[]
+  adminOfCommunities Community[]      @relation("CommunityAdmin")
+  communityMemberships CommunityMember[]
+  communityStacksAdded CommunityStack[] @relation("CommunityStackContributor")
+  communityInvitesReceived CommunityInvite[] @relation("CommunityInviteReceiver")
+  communityInvitesSent     CommunityInvite[] @relation("CommunityInviteSender")
 
   @@map("users")
 }
@@ -122,6 +129,8 @@ model Stack {
   purchases     Purchase[]
   quizzes       Quiz[]
   mtContents    MtContent[]
+  flowItems     StackFlowItem[]
+  communityStacks CommunityStack[]
 
   @@map("stacks")
 }
@@ -417,6 +426,19 @@ enum NotificationType {
   SYSTEM
   QUIZ
   CREDIT
+  COMMUNITY_INVITE
+  COMMUNITY_JOIN
+}
+
+enum CommunityRole {
+  ADMIN
+  MEMBER
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
 }
 
 model StackTaggedUser {
@@ -460,6 +482,105 @@ model EmailVerification {
 
   @@index([email, purpose])
   @@map("email_verifications")
+}
+
+model StackFlow {
+  id          String          @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  emoji       String          @default("📚")
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items       StackFlowItem[]
+
+  @@map("stack_flows")
+}
+
+model StackFlowItem {
+  id      String    @id @default(cuid())
+  flowId  String
+  stackId String
+  addedAt DateTime  @default(now())
+  flow    StackFlow @relation(fields: [flowId], references: [id], onDelete: Cascade)
+  stack   Stack     @relation(fields: [stackId], references: [id], onDelete: Cascade)
+
+  @@unique([flowId, stackId])
+  @@map("stack_flow_items")
+}
+
+model Community {
+  id          String            @id @default(cuid())
+  slug        String            @unique
+  name        String
+  description String?
+  banner      String?
+  rules       String?
+  adminId     String
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  admin       User              @relation("CommunityAdmin", fields: [adminId], references: [id])
+  members     CommunityMember[]
+  stacks      CommunityStack[]
+  invites     CommunityInvite[]
+
+  @@map("communities")
+}
+
+model CommunityMember {
+  id          String        @id @default(cuid())
+  communityId String
+  userId      String
+  role        CommunityRole @default(MEMBER)
+  joinedAt    DateTime      @default(now())
+  community   Community     @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([communityId, userId])
+  @@map("community_members")
+}
+
+model CommunityStack {
+  id          String    @id @default(cuid())
+  communityId String
+  stackId     String
+  addedBy     String
+  addedAt     DateTime  @default(now())
+  community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  stack       Stack     @relation(fields: [stackId], references: [id], onDelete: Cascade)
+  contributor User      @relation("CommunityStackContributor", fields: [addedBy], references: [id])
+
+  @@unique([communityId, stackId])
+  @@map("community_stacks")
+}
+
+model CommunityInvite {
+  id            String       @id @default(cuid())
+  communityId   String
+  invitedUserId String
+  invitedBy     String
+  status        InviteStatus @default(PENDING)
+  createdAt     DateTime     @default(now())
+  community     Community    @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  invitedUser   User         @relation("CommunityInviteReceiver", fields: [invitedUserId], references: [id], onDelete: Cascade)
+  inviter       User         @relation("CommunityInviteSender", fields: [invitedBy], references: [id], onDelete: Cascade)
+
+  @@unique([communityId, invitedUserId])
+  @@map("community_invites")
+}
+
+model GatewayConfig {
+  id            String    @id @default(cuid())
+  webhookUrl    String
+  sharedSecret  String
+  waNumber      String
+  isActive      Boolean   @default(false)
+  connectedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("gateway_config")
 }
 
 model BankAccount {

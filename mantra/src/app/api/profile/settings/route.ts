@@ -16,6 +16,7 @@ export async function GET() {
       bio: true, image: true, banner: true,
       university: true, department: true, level: true,
       website: true, location: true, isVerified: true, role: true,
+      agentName: true,
     },
   });
 
@@ -62,7 +63,7 @@ export async function PATCH(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { name, bio, university, department, level, website, location } = body;
+  const { name, bio, university, department, level, website, location, agentName } = body;
 
   if (!name || !name.trim()) {
     return NextResponse.json({ error: "Name is required" }, { status: 400 });
@@ -78,6 +79,7 @@ export async function PATCH(req: NextRequest) {
       level: level?.trim() || null,
       website: website?.trim() || null,
       location: location?.trim() || null,
+      agentName: agentName?.trim() || null,
     },
   });
 

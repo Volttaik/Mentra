@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 import {
   User, Key, Bell, Shield, Save, Plus, Trash2,
   Copy, Check, Loader2, ArrowLeft, AlertTriangle, Eye, EyeOff,
-  Camera, ImageIcon,
+  Camera, ImageIcon, Sparkles,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Link from "next/link";
@@ -84,6 +84,9 @@ export default function SettingsPage() {
   const [tab, setTab] = useState("Profile");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [agentName, setAgentName] = useState("");
+  const [savingAgent, setSavingAgent] = useState(false);
+  const [savedAgent, setSavedAgent] = useState(false);
   const [form, setForm] = useState({
     name: "", bio: "", university: "", department: "", level: "", website: "", location: "",
   });
@@ -127,6 +130,7 @@ export default function SettingsPage() {
           website: d.user.website ?? "",
           location: d.user.location ?? "",
         });
+        setAgentName(d.user.agentName ?? "");
         if (d.user.image) setAvatarPreview(d.user.image);
         if (d.user.banner) setBannerPreview(d.user.banner);
       }
@@ -320,6 +324,7 @@ export default function SettingsPage() {
             <nav className="flex md:flex-col gap-1 overflow-x-auto no-scrollbar">
               {[
                 { label: "Profile", icon: User },
+                { label: "AI Agent", icon: Sparkles },
                 { label: "API Keys", icon: Key },
                 { label: "Notifications", icon: Bell },
                 { label: "Security", icon: Shield },
@@ -501,6 +506,62 @@ export default function SettingsPage() {
                     </button>
                     {saved && <span className="text-sm text-secondary">Profile updated successfully.</span>}
                   </div>
+                </div>
+              </motion.div>
+            )}
+
+            {tab === "AI Agent" && (
+              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
+                <div className="card p-6">
+                  <div className="flex items-center gap-3 mb-1">
+                    <Sparkles className="w-5 h-5 text-secondary" />
+                    <h2 className="font-manrope font-semibold text-lg text-primary">Personal AI Agent</h2>
+                  </div>
+                  <p className="text-sm text-on-surface-variant mb-5">
+                    Customize your personal AI agent. Access it via the floating button on your dashboard.
+                  </p>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-1.5">Agent Name</label>
+                      <p className="text-xs text-on-surface-variant mb-2">Give your agent a name. It will use this when it responds to you.</p>
+                      <input
+                        value={agentName}
+                        onChange={e => setAgentName(e.target.value)}
+                        placeholder="e.g. Mia, Aria, Max…"
+                        className="input-field max-w-xs"
+                        maxLength={32}
+                      />
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={async () => {
+                          setSavingAgent(true);
+                          await fetch("/api/profile/settings", {
+                            method: "PATCH",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ ...form, agentName }),
+                          });
+                          setSavingAgent(false);
+                          setSavedAgent(true);
+                          setTimeout(() => setSavedAgent(false), 3000);
+                        }}
+                        disabled={savingAgent}
+                        className="flex items-center gap-2 bg-secondary text-on-secondary px-5 py-2.5 rounded-xl text-sm font-semibold font-manrope hover:opacity-90 disabled:opacity-60 transition-all"
+                      >
+                        {savingAgent ? <Loader2 className="w-4 h-4 animate-spin" /> : savedAgent ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+                        {savedAgent ? "Saved!" : "Save name"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div className="card p-6 border border-secondary/10 bg-secondary-container/5">
+                  <p className="text-sm font-semibold text-primary mb-2">How to use your agent</p>
+                  <ul className="text-sm text-on-surface-variant space-y-1.5 list-disc list-inside">
+                    <li>Click the <strong>✦ sparkle button</strong> floating in the bottom-right of any page</li>
+                    <li>Long-press (or hold click) the button for quick actions menu</li>
+                    <li>Ask your agent to manage flows, check stats, explore communities, and more</li>
+                    <li>Connect it to WhatsApp via the Gateway in <code className="text-secondary">/connector</code></li>
+                  </ul>
                 </div>
               </motion.div>
             )}

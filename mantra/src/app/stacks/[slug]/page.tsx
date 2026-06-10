@@ -12,6 +12,7 @@ import {
   Code2, ArrowLeft, Loader2, X, Edit2, Trash2,
   AlertTriangle, Send, Upload, File as FileIcon, Check,
   BookOpenCheck, Lock, Maximize2, Bot, BrainCircuit, Info, Coins,
+  Zap, Users,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -124,6 +125,13 @@ export default function StackPage({ params }: { params: { slug: string } }) {
   const [showAiChat, setShowAiChat] = useState(false);
   const [showBuyCredits, setShowBuyCredits] = useState(false);
   const [aiCredits, setAiCredits] = useState(0);
+
+  // Add to Flow
+  const [showFlowModal, setShowFlowModal] = useState(false);
+  const [myFlows, setMyFlows] = useState<{ id: string; name: string; emoji: string; _count: { items: number } }[]>([]);
+  const [flowsLoading, setFlowsLoading] = useState(false);
+  const [addingToFlow, setAddingToFlow] = useState<string | null>(null);
+  const [addedFlows, setAddedFlows] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (session?.user?.id) {
@@ -321,6 +329,25 @@ export default function StackPage({ params }: { params: { slug: string } }) {
         showMessage(data.error ?? "Failed to delete stack.", "error");
       }
     } finally { setDeletingStack(false); }
+  };
+
+  const openFlowModal = async () => {
+    setShowFlowModal(true);
+    if (myFlows.length > 0) return;
+    setFlowsLoading(true);
+    fetch("/api/flows").then(r => r.json()).then(d => { if (!d.error) setMyFlows(d); }).finally(() => setFlowsLoading(false));
+  };
+
+  const addToFlow = async (flowId: string) => {
+    if (!stack) return;
+    setAddingToFlow(flowId);
+    await fetch(`/api/flows/${flowId}/stacks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ stackId: stack.id }),
+    });
+    setAddedFlows(prev => new Set([...prev, flowId]));
+    setAddingToFlow(null);
   };
 
   // Fetch all stack files for Content tab
@@ -598,6 +625,12 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                       {copied ? <Check className="w-4 h-4 text-secondary" /> : <Share2 className="w-4 h-4" />}
                     </button>
                   </div>
+                  <button
+                    onClick={openFlowModal}
+                    className="w-full flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold font-manrope border border-outline-variant/30 text-on-surface-variant hover:bg-surface-container hover:border-secondary/30 hover:text-secondary transition-all"
+                  >
+                    <Zap className="w-3.5 h-3.5" />Add to Flow
+                  </button>
                 </>
               ) : (
                 <Link href={`/login?callbackUrl=/stacks/${slug}`} className="w-full flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold font-manrope bg-primary text-on-primary hover:opacity-90 transition-all">
@@ -1354,6 +1387,70 @@ export default function StackPage({ params }: { params: { slug: string } }) {
             onClose={() => setShowBuyCredits(false)}
             onSuccess={setAiCredits}
           />
+        )}
+      </AnimatePresence>
+
+      {/* Add to Flow modal */}
+      <AnimatePresence>
+        {showFlowModal && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={e => e.target === e.currentTarget && setShowFlowModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-background border border-outline-variant/20 rounded-2xl shadow-2xl w-full max-w-sm p-5"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-manrope font-bold text-primary flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-secondary" /> Add to Flow
+                </h3>
+                <button onClick={() => setShowFlowModal(false)} className="p-1.5 rounded-xl hover:bg-surface-container text-on-surface-variant">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              {flowsLoading ? (
+                <div className="flex items-center justify-center py-8"><Loader2 className="w-6 h-6 text-secondary animate-spin" /></div>
+              ) : myFlows.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-sm text-on-surface-variant mb-3">You don&apos;t have any Stack Flows yet.</p>
+                  <a href="/dashboard" className="text-sm text-secondary font-medium hover:underline">Create one in Dashboard →</a>
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-72 overflow-y-auto">
+                  {myFlows.map(flow => (
+                    <button
+                      key={flow.id}
+                      onClick={() => addToFlow(flow.id)}
+                      disabled={addingToFlow === flow.id || addedFlows.has(flow.id)}
+                      className={cn(
+                        "w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm transition-all text-left",
+                        addedFlows.has(flow.id)
+                          ? "bg-secondary-container/30 text-on-secondary-container cursor-default"
+                          : "hover:bg-surface-container text-on-surface"
+                      )}
+                    >
+                      <span className="text-lg">{flow.emoji}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{flow.name}</p>
+                        <p className="text-xs text-on-surface-variant">{flow._count.items} stack{flow._count.items !== 1 ? "s" : ""}</p>
+                      </div>
+                      {addingToFlow === flow.id ? (
+                        <Loader2 className="w-4 h-4 animate-spin text-secondary shrink-0" />
+                      ) : addedFlows.has(flow.id) ? (
+                        <Check className="w-4 h-4 text-secondary shrink-0" />
+                      ) : (
+                        <Plus className="w-4 h-4 text-on-surface-variant shrink-0" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
 

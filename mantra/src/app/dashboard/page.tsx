@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import {
   BookOpen, Star, GitFork, Plus, Bell, Activity,
   ChevronRight, Bookmark, CheckCircle, MessageSquare,
-  Users, Eye, Loader2,
+  Users, Eye, Loader2, Zap, FolderOpen,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import ContributionGraph from "@/components/ui/ContributionGraph";
@@ -24,22 +24,35 @@ interface Notification {
 interface Stats {
   stackCount: number; starsReceived: number; followerCount: number; totalViews: number;
 }
+interface Flow {
+  id: string; name: string; emoji: string; description: string | null;
+  items: { stack: { id: string; title: string; banner: string | null } }[];
+  _count: { items: number };
+}
+interface Community {
+  id: string; slug: string; name: string; myRole: string;
+  _count: { members: number; stacks: number };
+}
 
 const NOTIF_ICONS: Record<string, React.ReactNode> = {
-  STAR:         <Star className="w-3.5 h-3.5" />,
-  FORK:         <GitFork className="w-3.5 h-3.5" />,
-  COMMENT:      <MessageSquare className="w-3.5 h-3.5" />,
-  CONTRIBUTION: <CheckCircle className="w-3.5 h-3.5" />,
-  FOLLOW:       <Users className="w-3.5 h-3.5" />,
-  SYSTEM:       <Bell className="w-3.5 h-3.5" />,
+  STAR:             <Star className="w-3.5 h-3.5" />,
+  FORK:             <GitFork className="w-3.5 h-3.5" />,
+  COMMENT:          <MessageSquare className="w-3.5 h-3.5" />,
+  CONTRIBUTION:     <CheckCircle className="w-3.5 h-3.5" />,
+  FOLLOW:           <Users className="w-3.5 h-3.5" />,
+  SYSTEM:           <Bell className="w-3.5 h-3.5" />,
+  COMMUNITY_INVITE: <Users className="w-3.5 h-3.5" />,
+  COMMUNITY_JOIN:   <Users className="w-3.5 h-3.5" />,
 };
 const NOTIF_COLORS: Record<string, string> = {
-  STAR:         "bg-amber-100 text-amber-600",
-  FORK:         "bg-blue-100 text-blue-600",
-  COMMENT:      "bg-purple-100 text-purple-600",
-  CONTRIBUTION: "bg-green-100 text-green-600",
-  FOLLOW:       "bg-pink-100 text-pink-600",
-  SYSTEM:       "bg-surface-container text-on-surface-variant",
+  STAR:             "bg-amber-100 text-amber-600",
+  FORK:             "bg-blue-100 text-blue-600",
+  COMMENT:          "bg-purple-100 text-purple-600",
+  CONTRIBUTION:     "bg-green-100 text-green-600",
+  FOLLOW:           "bg-pink-100 text-pink-600",
+  SYSTEM:           "bg-surface-container text-on-surface-variant",
+  COMMUNITY_INVITE: "bg-indigo-100 text-indigo-600",
+  COMMUNITY_JOIN:   "bg-teal-100 text-teal-600",
 };
 
 export default function DashboardPage() {
@@ -49,6 +62,13 @@ export default function DashboardPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [bookmarks, setBookmarks]         = useState<Stack[]>([]);
   const [stats, setStats]                 = useState<Stats>({ stackCount: 0, starsReceived: 0, followerCount: 0, totalViews: 0 });
+  const [flows, setFlows]                 = useState<Flow[]>([]);
+  const [communities, setCommunities]     = useState<Community[]>([]);
+  const [showCreateFlow, setShowCreateFlow]   = useState(false);
+  const [showCreateComm, setShowCreateComm]   = useState(false);
+  const [flowName, setFlowName]           = useState("");
+  const [commName, setCommName]           = useState("");
+  const [creating, setCreating]           = useState(false);
 
   useEffect(() => {
     fetch("/api/dashboard")
@@ -62,7 +82,36 @@ export default function DashboardPage() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
+
+    fetch("/api/flows").then(r => r.json()).then(d => !d.error && setFlows(d)).catch(() => {});
+    fetch("/api/communities").then(r => r.json()).then(d => !d.error && setCommunities(d)).catch(() => {});
   }, []);
+
+  const createFlow = async () => {
+    if (!flowName.trim()) return;
+    setCreating(true);
+    const res = await fetch("/api/flows", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: flowName.trim(), emoji: "📚" }),
+    });
+    const data = await res.json();
+    if (!data.error) { setFlows(prev => [data, ...prev]); setShowCreateFlow(false); setFlowName(""); }
+    setCreating(false);
+  };
+
+  const createCommunity = async () => {
+    if (!commName.trim()) return;
+    setCreating(true);
+    const res = await fetch("/api/communities", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: commName.trim() }),
+    });
+    const data = await res.json();
+    if (!data.error) { setCommunities(prev => [{ ...data, myRole: "ADMIN", _count: { members: 1, stacks: 0 } }, ...prev]); setShowCreateComm(false); setCommName(""); }
+    setCreating(false);
+  };
 
   const markRead = async (ids?: string[]) => {
     await fetch("/api/notifications", {
@@ -139,6 +188,128 @@ export default function DashboardPage() {
           {/* Main column */}
           <div className="lg:col-span-2 space-y-8">
             <ContributionGraph totalContributions={stats.totalViews} />
+
+            {/* Stack Flows */}
+            <div>
+              <div className="flex items-center justify-between mb-5">
+                <h2 className="font-manrope font-semibold text-lg text-primary flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-secondary" />Stack Flows
+                </h2>
+                <button
+                  onClick={() => setShowCreateFlow(true)}
+                  className="flex items-center gap-1.5 text-sm text-secondary font-medium hover:underline"
+                >
+                  <Plus className="w-3.5 h-3.5" />New Flow
+                </button>
+              </div>
+              {showCreateFlow && (
+                <div className="card-sm p-4 mb-4 flex items-center gap-2">
+                  <input
+                    value={flowName}
+                    onChange={e => setFlowName(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && createFlow()}
+                    placeholder="Flow name..."
+                    className="flex-1 bg-transparent text-sm text-on-surface focus:outline-none placeholder:text-on-surface-variant/50"
+                    autoFocus
+                  />
+                  <button onClick={createFlow} disabled={creating || !flowName.trim()} className="px-3 py-1.5 bg-secondary text-on-secondary rounded-lg text-xs font-semibold disabled:opacity-60">
+                    {creating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Create"}
+                  </button>
+                  <button onClick={() => { setShowCreateFlow(false); setFlowName(""); }} className="text-on-surface-variant hover:text-primary text-xs px-2">Cancel</button>
+                </div>
+              )}
+              {loading ? (
+                <div className="flex gap-3">
+                  {[1, 2, 3].map(i => <div key={i} className="w-36 h-20 bg-surface-container rounded-2xl animate-pulse shrink-0" />)}
+                </div>
+              ) : flows.length === 0 ? (
+                <div className="card-sm p-5 text-center">
+                  <FolderOpen className="w-8 h-8 text-outline-variant mx-auto mb-2" />
+                  <p className="text-sm text-on-surface-variant">No Stack Flows yet. Create one to organise your stacks.</p>
+                </div>
+              ) : (
+                <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
+                  {flows.map(flow => (
+                    <Link key={flow.id} href={`/flows/${flow.id}`} className="shrink-0">
+                      <div className="w-44 bg-surface-container-low border border-outline-variant/15 rounded-2xl p-4 hover:border-secondary/30 hover:shadow-md transition-all cursor-pointer">
+                        <div className="text-xl mb-2">{flow.emoji}</div>
+                        <p className="font-manrope font-semibold text-sm text-primary truncate">{flow.name}</p>
+                        <p className="text-xs text-on-surface-variant mt-1">{flow._count.items} stack{flow._count.items !== 1 ? "s" : ""}</p>
+                        {flow.items.length > 0 && (
+                          <div className="flex -space-x-1 mt-2">
+                            {flow.items.slice(0, 3).map(item => (
+                              item.stack.banner
+                                ? <img key={item.stack.id} src={item.stack.banner} alt="" className="w-5 h-5 rounded border border-background object-cover" />
+                                : <div key={item.stack.id} className="w-5 h-5 rounded bg-secondary-container border border-background flex items-center justify-center text-[7px] font-bold text-on-secondary-container">{item.stack.title[0]}</div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Communities */}
+            <div>
+              <div className="flex items-center justify-between mb-5">
+                <h2 className="font-manrope font-semibold text-lg text-primary flex items-center gap-2">
+                  <Users className="w-4 h-4 text-secondary" />Communities
+                </h2>
+                <button
+                  onClick={() => setShowCreateComm(true)}
+                  className="flex items-center gap-1.5 text-sm text-secondary font-medium hover:underline"
+                >
+                  <Plus className="w-3.5 h-3.5" />New Community
+                </button>
+              </div>
+              {showCreateComm && (
+                <div className="card-sm p-4 mb-4 flex items-center gap-2">
+                  <input
+                    value={commName}
+                    onChange={e => setCommName(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && createCommunity()}
+                    placeholder="Community name..."
+                    className="flex-1 bg-transparent text-sm text-on-surface focus:outline-none placeholder:text-on-surface-variant/50"
+                    autoFocus
+                  />
+                  <button onClick={createCommunity} disabled={creating || !commName.trim()} className="px-3 py-1.5 bg-secondary text-on-secondary rounded-lg text-xs font-semibold disabled:opacity-60">
+                    {creating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Create"}
+                  </button>
+                  <button onClick={() => { setShowCreateComm(false); setCommName(""); }} className="text-on-surface-variant hover:text-primary text-xs px-2">Cancel</button>
+                </div>
+              )}
+              {loading ? (
+                <div className="space-y-3">
+                  {[1, 2].map(i => <div key={i} className="h-16 bg-surface-container rounded-2xl animate-pulse" />)}
+                </div>
+              ) : communities.length === 0 ? (
+                <div className="card-sm p-5 text-center">
+                  <Users className="w-8 h-8 text-outline-variant mx-auto mb-2" />
+                  <p className="text-sm text-on-surface-variant">No communities yet. Create one or get invited by peers.</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {communities.slice(0, 5).map(comm => (
+                    <Link key={comm.id} href={`/communities/${comm.slug}`}>
+                      <div className="card-sm p-4 flex items-center gap-3 cursor-pointer hover:-translate-y-0.5 transition-transform duration-150">
+                        <div className="w-9 h-9 bg-secondary-container rounded-xl flex items-center justify-center shrink-0">
+                          <Users className="w-4 h-4 text-on-secondary-container" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-manrope font-semibold text-sm text-primary truncate">{comm.name}</p>
+                          <p className="text-xs text-on-surface-variant">{comm._count.members} members · {comm._count.stacks} stacks</p>
+                        </div>
+                        {comm.myRole === "ADMIN" && (
+                          <span className="text-[10px] font-bold bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded-full shrink-0">Admin</span>
+                        )}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {/* Your stacks */}
             <div>

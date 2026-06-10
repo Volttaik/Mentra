@@ -4,6 +4,7 @@ import SessionProvider from "@/components/providers/SessionProvider";
 import ThemeProvider from "@/components/providers/ThemeProvider";
 import MobileNav from "@/components/layout/MobileNav";
 import PWAInstallPrompt from "@/components/PWAInstallPrompt";
+import FloatingAgent from "@/components/FloatingAgent";
 
 export const metadata: Metadata = {
   title: "Mentra — The Collaborative Academic OS",
@@ -72,6 +73,7 @@ export default function RootLayout({
             {children}
             <MobileNav />
             <PWAInstallPrompt />
+            <FloatingAgent />
           </SessionProvider>
         </ThemeProvider>
       </body>
