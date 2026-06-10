@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import {
   Sparkles, X, Send, BarChart2, Zap, MessageSquare,
   ChevronRight, Loader2, Maximize2,
@@ -30,6 +32,8 @@ function StatCard({ data }: { data: any }) {
 }
 
 export default function FloatingAgent() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [visible, setVisible] = useState(true);
   const [open, setOpen] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
@@ -37,15 +41,15 @@ export default function FloatingAgent() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [agentName, setAgentName] = useState("Mia");
-  const [expanded, setExpanded] = useState(false);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (status !== "authenticated") return;
     const hidden = localStorage.getItem("mentra-agent-hidden");
     if (hidden === "true") setVisible(false);
     fetch("/api/agent").then(r => r.json()).then(d => setAgentName(d.name ?? "Mia")).catch(() => {});
-  }, []);
+  }, [status]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -104,11 +108,13 @@ export default function FloatingAgent() {
     { label: "My Communities", message: "What communities am I in?", icon: MessageSquare },
   ];
 
+  if (status !== "authenticated" || !session) return null;
+
   if (!visible) {
     return (
       <button
         onClick={show}
-        className="fixed bottom-6 right-1 z-40 w-5 h-12 bg-secondary/20 border border-secondary/30 rounded-l-full flex items-center justify-center text-secondary hover:bg-secondary/30 transition-all"
+        className="fixed bottom-6 right-1 z-40 w-5 h-10 bg-secondary/20 border border-secondary/30 rounded-l-full flex items-center justify-center text-secondary hover:bg-secondary/30 transition-all"
         title="Show AI Agent"
       >
         <ChevronRight className="w-3 h-3" />
@@ -125,21 +131,22 @@ export default function FloatingAgent() {
             animate={{ opacity: 1, scale: 1, y: 0, x: 0 }}
             exit={{ opacity: 0, scale: 0.92, y: 16, x: 16 }}
             transition={{ duration: 0.2 }}
-            className={cn(
-              "fixed bottom-24 right-6 z-50 bg-background border border-outline-variant/20 rounded-2xl shadow-2xl flex flex-col overflow-hidden",
-              expanded ? "w-full max-w-lg h-[70vh]" : "w-80 h-[420px]"
-            )}
+            className="fixed bottom-20 right-4 z-50 bg-background border border-outline-variant/20 rounded-2xl shadow-2xl flex flex-col overflow-hidden w-80 h-[400px]"
           >
             {/* Header */}
             <div className="flex items-center gap-2.5 px-4 py-3 border-b border-outline-variant/10 bg-surface-container-low shrink-0">
-              <div className="w-8 h-8 bg-secondary-container rounded-lg flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-on-secondary-container" />
+              <div className="w-7 h-7 bg-secondary-container rounded-lg flex items-center justify-center">
+                <Sparkles className="w-3.5 h-3.5 text-on-secondary-container" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-manrope font-semibold text-sm text-primary">{agentName}</p>
                 <p className="text-[10px] text-on-surface-variant">Your personal AI agent</p>
               </div>
-              <button onClick={() => setExpanded(e => !e)} className="p-1.5 rounded-lg hover:bg-surface-container text-on-surface-variant transition-colors">
+              <button
+                onClick={() => { setOpen(false); router.push("/agent"); }}
+                className="p-1.5 rounded-lg hover:bg-surface-container text-on-surface-variant transition-colors"
+                title="Open full chat"
+              >
                 <Maximize2 className="w-3.5 h-3.5" />
               </button>
               <button onClick={() => setOpen(false)} className="p-1.5 rounded-lg hover:bg-surface-container text-on-surface-variant transition-colors">
@@ -222,12 +229,12 @@ export default function FloatingAgent() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className="fixed bottom-24 right-6 z-50 bg-background border border-outline-variant/20 rounded-2xl shadow-xl overflow-hidden min-w-[180px]"
+            className="fixed bottom-20 right-4 z-50 bg-background border border-outline-variant/20 rounded-2xl shadow-xl overflow-hidden min-w-[180px]"
           >
             {[
               { label: "Chat", onClick: () => { setOpen(true); setShowMenu(false); } },
+              { label: "Full Chat", onClick: () => { router.push("/agent"); setShowMenu(false); } },
               { label: "My Stats", onClick: () => { setInput("Show me my stats"); setOpen(true); setShowMenu(false); } },
-              { label: "Integrations", onClick: () => { window.location.href = "/settings#api-keys"; setShowMenu(false); } },
               { label: "Hide agent", onClick: () => { hide(); setShowMenu(false); }, danger: true },
             ].map(({ label, onClick, danger }) => (
               <button
@@ -253,13 +260,13 @@ export default function FloatingAgent() {
         onTouchStart={handleStartPress}
         onTouchEnd={handleEndPress}
         className={cn(
-          "fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all select-none",
+          "fixed bottom-6 right-5 z-50 w-10 h-10 rounded-full shadow-lg flex items-center justify-center transition-all select-none",
           open ? "bg-primary text-on-primary" : "bg-secondary text-on-secondary hover:scale-105"
         )}
         whileTap={{ scale: 0.94 }}
         animate={{ rotate: open ? 45 : 0 }}
       >
-        <Sparkles className="w-6 h-6" />
+        <Sparkles className="w-4 h-4" />
       </motion.button>
 
       {/* Backdrop for long-press menu */}

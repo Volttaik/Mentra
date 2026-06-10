@@ -560,7 +560,7 @@ export default function SettingsPage() {
                     <li>Click the <strong>✦ sparkle button</strong> floating in the bottom-right of any page</li>
                     <li>Long-press (or hold click) the button for quick actions menu</li>
                     <li>Ask your agent to manage flows, check stats, explore communities, and more</li>
-                    <li>Connect it to WhatsApp via the Gateway in <code className="text-secondary">/connector</code></li>
+                    <li>Click <strong>Maximize</strong> in the mini chat to open the full AI chat experience</li>
                   </ul>
                 </div>
               </motion.div>
