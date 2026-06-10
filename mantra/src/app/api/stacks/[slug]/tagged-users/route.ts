@@ -106,7 +106,7 @@ export async function DELETE(
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { slug: string } }
+  { params: _params }: { params: { slug: string } }
 ) {
   const { query } = await req.json();
   if (!query || query.length < 2) return NextResponse.json([]);

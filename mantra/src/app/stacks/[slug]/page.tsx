@@ -12,7 +12,7 @@ import {
   Code2, ArrowLeft, Loader2, X, Edit2, Trash2,
   AlertTriangle, Send, Upload, File as FileIcon, Check,
   BookOpenCheck, Lock, Maximize2, Bot, BrainCircuit, Info, Coins,
-  Zap, Users,
+  Zap,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";

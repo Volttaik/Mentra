@@ -109,7 +109,7 @@ export default function FlowDetailPage() {
               <BookOpen className="w-8 h-8 text-outline-variant" />
             </div>
             <p className="font-manrope font-semibold text-primary">No stacks yet</p>
-            <p className="text-sm text-on-surface-variant max-w-xs">Browse stacks and click "Add to Flow" to add them here.</p>
+            <p className="text-sm text-on-surface-variant max-w-xs">Browse stacks and click &quot;Add to Flow&quot; to add them here.</p>
             <Link href="/explore" className="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-xl text-sm font-semibold hover:opacity-90 transition-all">
               <Plus className="w-4 h-4" /> Explore stacks
             </Link>

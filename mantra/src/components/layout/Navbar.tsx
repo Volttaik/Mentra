@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import {
-  BookOpen, Bell, Search, Menu, X, ChevronDown,
+  Bell, Search, Menu, X, ChevronDown,
   Upload, Settings, LogOut, User, LayoutDashboard, Moon, Sun,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -13,7 +13,6 @@ import { useTheme } from "@/components/providers/ThemeProvider";
 
 export default function Navbar() {
   const pathname = usePathname();
-  const router = useRouter();
   const { data: session, status } = useSession();
   const { theme, toggle } = useTheme();
   const isAuth = status === "authenticated";

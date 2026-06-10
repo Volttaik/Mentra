@@ -277,9 +277,6 @@ const DEPARTMENTS_LIST = [
 
 const ACADEMIC_LEVELS = ["Undergraduate", "Graduate", "PhD Candidate", "Lecturer", "Professor", "Researcher"];
 
-function getStepCount(userType: UserType) {
-  return 5;
-}
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -289,7 +286,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [verificationCode, setVerificationCode] = useState("");
   const [codeSending, setCodeSending] = useState(false);
-  const [codeSent, setCodeSent] = useState(false);
+  const [_codeSent, setCodeSent] = useState(false);
   const [error, setError] = useState("");
 
   const [userType, setUserType] = useState<UserType>("");

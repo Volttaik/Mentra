@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import {
   BarChart3, Users, BookOpen, Shield, TrendingUp,
   CheckCircle, XCircle, Loader2, Search, Star, GitFork,
-  AlertTriangle, RefreshCw, UserCheck, UserX, Archive,
+  AlertTriangle, UserCheck, UserX, Archive,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";

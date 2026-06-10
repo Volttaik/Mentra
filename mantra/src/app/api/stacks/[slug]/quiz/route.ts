@@ -31,7 +31,7 @@ export async function GET(
     },
   });
 
-  let myAttempts: Record<string, any[]> = {};
+  const myAttempts: Record<string, any[]> = {};
   if (session?.user?.id) {
     const attempts = await prisma.quizAttempt.findMany({
       where: {

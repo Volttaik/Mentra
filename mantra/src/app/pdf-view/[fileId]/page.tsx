@@ -6,7 +6,7 @@ import Script from "next/script";
 import {
   ArrowLeft, BookOpen, Loader2, AlertTriangle,
   ZoomIn, ZoomOut, ChevronLeft, ChevronRight, Search, X,
-  Maximize2, Minimize2, ShieldCheck,
+  Maximize2, Minimize2,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";

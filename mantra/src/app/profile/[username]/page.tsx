@@ -5,14 +5,13 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import {
-  MapPin, GraduationCap, Calendar, Star, Users, BookOpen,
-  GitFork, UserPlus, Share2, Activity, ChevronRight, Loader2, Award, Zap, Coins,
+  GraduationCap, Calendar, BookOpen,
+  UserPlus, Share2, Activity, ChevronRight, Loader2, Award, Zap, Coins,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import RepositoryCard from "@/components/ui/RepositoryCard";
-import ContributionGraph from "@/components/ui/ContributionGraph";
-import { formatNumber, timeAgo } from "@/lib/utils";
+import { formatNumber } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { AnimatePresence } from "framer-motion";
 import BuyCreditsModal from "@/components/BuyCreditsModal";

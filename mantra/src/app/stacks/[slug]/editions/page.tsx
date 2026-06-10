@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
-import { ArrowLeft, GitBranch, Clock, FileText, Plus, Loader2, ChevronRight } from "lucide-react";
+import { ArrowLeft, GitBranch, Clock, FileText, Plus, Loader2 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import { cn } from "@/lib/utils";
 
@@ -74,7 +74,7 @@ export default function EditionsPage({ params }: { params: { slug: string } }) {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="font-manrope font-bold text-2xl text-primary">Edition History</h1>
-            <p className="text-sm text-on-surface-variant mt-1">Version control for this stack's knowledge evolution.</p>
+            <p className="text-sm text-on-surface-variant mt-1">Version control for this stack&apos;s knowledge evolution.</p>
           </div>
           {isOwner && (
             <button

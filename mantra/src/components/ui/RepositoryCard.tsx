@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Star, GitFork, MessageSquare, Eye, Shield, Clock } from "lucide-react";
+import { Star, GitFork, Shield, Clock } from "lucide-react";
 import { cn, formatNumber, truncate } from "@/lib/utils";
 
 interface RepositoryCardProps {

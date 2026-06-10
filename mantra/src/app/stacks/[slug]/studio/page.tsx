@@ -729,7 +729,7 @@ export default function StackStudioPage() {
                 <div className="card p-6 space-y-4">
                   <div>
                     <h3 className="font-manrope font-semibold text-base text-primary mb-1">Stack README</h3>
-                    <p className="text-xs text-on-surface-variant mb-3">This content appears on your stack's Overview tab. Use it to describe what learners will find, prerequisites, and how to navigate your stack.</p>
+                    <p className="text-xs text-on-surface-variant mb-3">This content appears on your stack&apos;s Overview tab. Use it to describe what learners will find, prerequisites, and how to navigate your stack.</p>
                     <textarea
                       value={form.readme}
                       onChange={e => set("readme", e.target.value)}
@@ -796,7 +796,7 @@ export default function StackStudioPage() {
                     <div className="flex items-center justify-between mb-3">
                       <div>
                         <h3 className="font-manrope font-semibold text-base text-primary">Paid Stack</h3>
-                        <p className="text-xs text-on-surface-variant mt-0.5">Charge learners to access this stack's content.</p>
+                        <p className="text-xs text-on-surface-variant mt-0.5">Charge learners to access this stack&apos;s content.</p>
                       </div>
                       <button
                         onClick={() => set("isPaid", !form.isPaid)}
@@ -848,7 +848,7 @@ export default function StackStudioPage() {
               <div className="space-y-5" onClick={() => { if (myCommunities.length === 0) loadCommunities(); }}>
                 <div>
                   <h2 className="font-manrope font-bold text-xl text-primary mb-1">Contribute to Community</h2>
-                  <p className="text-sm text-on-surface-variant">Share this stack with a Stack Community you're a member of.</p>
+                  <p className="text-sm text-on-surface-variant">Share this stack with a Stack Community you&apos;re a member of.</p>
                 </div>
                 {communityLoading ? (
                   <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 text-secondary animate-spin" /></div>

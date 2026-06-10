@@ -14,7 +14,7 @@ export async function POST(req: Request) {
   const { from, message, sessionApiKey } = await req.json();
   if (!from || !message) return NextResponse.json({ error: "from and message required" }, { status: 400 });
 
-  let apiKey = waSessions.get(from) ?? sessionApiKey ?? null;
+  const apiKey = waSessions.get(from) ?? sessionApiKey ?? null;
 
   if (!apiKey) {
     return NextResponse.json({

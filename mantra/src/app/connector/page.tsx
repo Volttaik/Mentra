@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Lock, Wifi, Download, Check, AlertCircle, Loader2, WifiOff, ExternalLink, RefreshCw } from "lucide-react";
+import { motion } from "framer-motion";
+import { Lock, Wifi, Download, Check, Loader2, WifiOff } from "lucide-react";
 
 const PASSWORD = "liquid4*";
 
@@ -15,7 +15,6 @@ export default function ConnectorPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
-  const [polling, setPolling] = useState(false);
 
   useEffect(() => {
     if (!unlocked) return;

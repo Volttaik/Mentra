@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Search, Filter, BookOpen, Users, Tag, X, Loader2 } from "lucide-react";
+import { Search, BookOpen, Users, Tag, X, Loader2 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import RepositoryCard from "@/components/ui/RepositoryCard";

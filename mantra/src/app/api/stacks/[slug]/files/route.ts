@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { put, del } from "@vercel/blob";
-import { extractTextFromFile, isTextExtractable } from "@/lib/mt-extractor";
+import { extractTextFromFile } from "@/lib/mt-extractor";
 import { buildAndEncryptMt } from "@/lib/mt-engine";
 import { randomBytes } from "crypto";
 

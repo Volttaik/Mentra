@@ -10,7 +10,8 @@ type Purpose = typeof VALID_PURPOSES[number];
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    let { email, purpose } = body as { email?: string; purpose?: string };
+    let { email } = body as { email?: string; purpose?: string };
+    const { purpose } = body as { email?: string; purpose?: string };
 
     if (!purpose || !VALID_PURPOSES.includes(purpose as Purpose)) {
       return NextResponse.json({ error: "Invalid purpose" }, { status: 400 });

@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Users, BookOpen, Shield, ArrowLeft, Loader2, Plus, Trash2,
+  Users, BookOpen, Shield, Loader2, Trash2,
   LogOut, Settings, Search, X, UserPlus, Crown, AlertCircle,
 } from "lucide-react";
 import Link from "next/link";
@@ -166,7 +166,7 @@ export default function CommunityPage() {
         {inviteId && !inviteHandled && !community?.myRole && (
           <div className="bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-700/40 rounded-2xl p-4 mb-4 flex items-center justify-between gap-4">
             <div>
-              <p className="font-manrope font-semibold text-indigo-900 dark:text-indigo-200 text-sm">You've been invited to join this community</p>
+              <p className="font-manrope font-semibold text-indigo-900 dark:text-indigo-200 text-sm">You&apos;ve been invited to join this community</p>
               <p className="text-xs text-indigo-600 dark:text-indigo-400 mt-0.5">Accept to become a member and contribute stacks.</p>
             </div>
             <div className="flex items-center gap-2 shrink-0">
@@ -213,7 +213,7 @@ export default function CommunityPage() {
             <div className="flex items-center gap-2 shrink-0">
               {isMember && !isAdmin && (
                 <button
-                  onClick={() => removeMember(session?.user?.id!)}
+                  onClick={() => session?.user?.id && removeMember(session.user.id)}
                   className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-outline-variant/30 text-on-surface-variant hover:border-error/40 hover:text-error text-xs font-medium transition-all"
                 >
                   <LogOut className="w-3.5 h-3.5" /> Leave
@@ -391,7 +391,7 @@ export default function CommunityPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-primary mb-1.5">Rules & Specifications</label>
-                  <p className="text-xs text-on-surface-variant mb-2">E.g. "Stacks must be at least 1,000 words. No duplicate topics."</p>
+                  <p className="text-xs text-on-surface-variant mb-2">E.g. &quot;Stacks must be at least 1,000 words. No duplicate topics.&quot;</p>
                   <textarea
                     value={settingsForm.rules}
                     onChange={e => setSettingsForm(f => ({ ...f, rules: e.target.value }))}

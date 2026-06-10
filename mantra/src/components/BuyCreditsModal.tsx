@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { X, Zap, Check, Loader2, Coins } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -17,7 +17,7 @@ interface Props {
   onSuccess: (newCredits: number) => void;
 }
 
-export default function BuyCreditsModal({ currentCredits, onClose, onSuccess }: Props) {
+export default function BuyCreditsModal({ currentCredits, onClose, onSuccess: _onSuccess }: Props) {
   const [selected, setSelected] = useState("popular");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");

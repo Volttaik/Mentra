@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Sparkles, X, Send, BarChart2, Zap, MessageSquare,
-  ChevronRight, Loader2, MinusSquare, Maximize2,
+  ChevronRight, Loader2, Maximize2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 

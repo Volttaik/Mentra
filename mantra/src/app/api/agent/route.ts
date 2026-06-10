@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 function getGroq() {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const Groq = require("groq-sdk");
   return new Groq({ apiKey: process.env.GROQ_API_KEY });
 }

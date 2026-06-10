@@ -4,12 +4,12 @@ import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
   Search, TrendingUp, Star, Clock, BookOpen, Loader2,
-  Shield, GitFork, Eye, Tag, ChevronRight, Filter,
+  Shield, GitFork, Eye, ChevronRight, Filter,
 } from "lucide-react";
 import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { cn, formatNumber, truncate } from "@/lib/utils";
+import { cn, formatNumber } from "@/lib/utils";
 
 const DEPARTMENTS = ["All", "Computer Science", "Mathematics", "Physics", "Biology", "Chemistry", "Economics", "Engineering"];
 const SORT_OPTIONS = [
@@ -162,7 +162,7 @@ export default function ExplorePage() {
   const [selectedDept, setSelectedDept] = useState("All");
   const [sortBy, setSortBy] = useState("recent");
   const [stacks, setStacks] = useState<Stack[]>([]);
-  const [total, setTotal] = useState(0);
+  const [_total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);

@@ -1,15 +1,14 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
   TrendingUp, Users, BookOpen, MessageSquare, Wallet,
-  ArrowUpRight, Loader2, Building, Check, AlertTriangle,
-  CreditCard, ChevronDown, X, Eye, RefreshCw, CircleDollarSign,
-  Clock, ShieldCheck,
+  ArrowUpRight, Loader2, Building, Check, X, Eye, CircleDollarSign,
+  ShieldCheck,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import { cn, formatNumber } from "@/lib/utils";
@@ -339,7 +338,7 @@ export default function CreatorDashboardPage() {
               <div className="card p-8 text-center">
                 <MessageSquare className="w-10 h-10 text-on-surface-variant/30 mx-auto mb-3" />
                 <p className="font-manrope font-semibold text-primary mb-1">No discussions yet</p>
-                <p className="text-sm text-on-surface-variant">When learners start discussions on your stacks they'll appear here.</p>
+                <p className="text-sm text-on-surface-variant">When learners start discussions on your stacks they&apos;ll appear here.</p>
               </div>
             ) : discussions.map(d => (
               <div key={d.id} className="card p-4 flex items-start gap-3">

@@ -64,7 +64,7 @@ export default function ForgotPasswordPage() {
         <div className="relative z-10">
           <p className="text-on-primary/60 text-sm font-medium uppercase tracking-widest mb-3">Security</p>
           <h2 className="font-manrope font-bold text-4xl text-on-primary leading-tight mb-4">Reset your password</h2>
-          <p className="text-on-primary/70 text-lg leading-relaxed max-w-sm">We'll send a code to your email so you can securely set a new password.</p>
+          <p className="text-on-primary/70 text-lg leading-relaxed max-w-sm">We&apos;ll send a code to your email so you can securely set a new password.</p>
         </div>
         <div className="relative z-10 flex items-center gap-3">
           <span className="text-on-primary/50 text-sm">Remembered it?</span>
@@ -88,7 +88,7 @@ export default function ForgotPasswordPage() {
               <motion.div key="step1" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-5">
                 <div>
                   <h1 className="font-manrope font-bold text-2xl text-primary mb-1">Forgot password?</h1>
-                  <p className="text-on-surface-variant text-sm">Enter your email and we'll send a reset code.</p>
+                  <p className="text-on-surface-variant text-sm">Enter your email and we&apos;ll send a reset code.</p>
                 </div>
 
                 <div>

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  X, Send, Bot, Copy, Check, RotateCcw, Zap, ArrowUp,
+  X, Bot, Copy, Check, Zap, ArrowUp,
   AlertCircle, Loader2, BookOpen, Coins,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
