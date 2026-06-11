@@ -252,7 +252,10 @@ export default function DashboardPage() {
                   <h2 className="font-manrope font-semibold text-lg text-primary flex items-center gap-2">
                     <GitFork className="w-4 h-4 text-secondary" />Fork Management
                   </h2>
-                  <span className="text-xs text-on-surface-variant bg-surface-container px-2.5 py-1 rounded-full">{forkedStacks.length} fork{forkedStacks.length !== 1 ? "s" : ""}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-on-surface-variant bg-surface-container px-2.5 py-1 rounded-full">{forkedStacks.length} fork{forkedStacks.length !== 1 ? "s" : ""}</span>
+                    <Link href="/forks" className="text-xs text-secondary font-medium hover:underline">Manage all →</Link>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   {forkedStacks.map(fork => (

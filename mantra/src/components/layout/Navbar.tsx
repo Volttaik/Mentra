@@ -8,7 +8,7 @@ import {
   Bell, Search, Menu, X, ChevronDown,
   Upload, Settings, LogOut, User, LayoutDashboard, Moon, Sun,
   Sparkles, Users, BookMarked, Compass, Bot, Palette,
-  MessageSquarePlus, Coins,
+  MessageSquarePlus, Coins, GitFork,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/providers/ThemeProvider";
@@ -93,7 +93,7 @@ export default function Navbar() {
       label: "Create",
       items: [
         { href: "/upload",              label: "New Stack",     icon: Upload,           desc: "Publish a stack" },
-        { href: "/dashboard#community", label: "New Community", icon: MessageSquarePlus, desc: "Start a community" },
+        { href: "/communities/new",    label: "New Community", icon: MessageSquarePlus, desc: "Start a community" },
         { href: "/dashboard#flows",     label: "Stack Flows",   icon: BookMarked,       desc: "Organise collections" },
       ],
     },
@@ -109,6 +109,8 @@ export default function Navbar() {
       items: [
         { href: "/dashboard",                        label: "Dashboard",     icon: LayoutDashboard, desc: "Your home base" },
         { href: username ? `/profile/${username}` : "/dashboard", label: "Profile", icon: User, desc: "Your public page" },
+        { href: "/notifications",                    label: "Notifications", icon: Bell,      desc: "Activity & invites" },
+        { href: "/forks",                            label: "My Forks",      icon: GitFork,   desc: "Manage forked stacks" },
         { href: "/settings",                         label: "Settings",      icon: Settings,  desc: "Account preferences" },
         { href: "/settings?tab=Mentra+Studio",       label: "Mentra Studio", icon: Palette,   desc: "Customise your theme" },
       ],
@@ -152,7 +154,7 @@ export default function Navbar() {
         <div className="w-8 h-8 bg-surface-container rounded-full animate-pulse" />
       ) : isAuth ? (
         <>
-          <Link href="/dashboard" className="relative p-2 text-on-surface-variant hover:text-primary transition-colors">
+          <Link href="/notifications" className="relative p-2 text-on-surface-variant hover:text-primary transition-colors" title="Notifications">
             <Bell className="w-5 h-5" />
             {notifCount > 0 && (
               <span className="absolute top-1 right-1 w-4 h-4 bg-secondary text-on-secondary text-[9px] font-bold rounded-full flex items-center justify-center">

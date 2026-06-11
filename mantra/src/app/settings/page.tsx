@@ -144,72 +144,127 @@ function ColorSwatchPicker({
   );
 }
 
-function DashboardPreview({ config }: { config: typeof DEFAULT_STUDIO }) {
-  const palette = PALETTES_META.find(p => p.id === config.palette) ?? PALETTES_META[0];
-  const accent = config.customSecondary || palette.colors[1];
-  const bg = config.customBg || palette.colors[2];
-  const isDark = ["#1A1A2E", "#13100B", "#0F172A", "#111827", "#1E1E2E"].includes(bg);
-  const textColor = isDark ? "#ffffff" : "#1a1a1a";
-  const textMuted = isDark ? "#888888" : "#666666";
-  const cardBg = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)";
+const PREVIEW_PALETTES: Record<string, { accent: string; bg: string; card: string; text: string; muted: string }> = {
+  parchment: { accent: "#D4A84B", bg: "#FFF8E7", card: "#F5EDD0", text: "#2D1F00", muted: "#7A6040" },
+  ocean:     { accent: "#4A9FE0", bg: "#EDF4FF", card: "#D6E8FA", text: "#0A1A2E", muted: "#3A6080" },
+  forest:    { accent: "#4BAF6A", bg: "#F0FFF4", card: "#D4F0DC", text: "#0C2010", muted: "#2E6040" },
+  lavender:  { accent: "#9F85E0", bg: "#F5F2FF", card: "#E0D8F8", text: "#1A0A3E", muted: "#5040A0" },
+  rose:      { accent: "#E07A8A", bg: "#FFF2F4", card: "#FAD8DE", text: "#2E0A10", muted: "#804050" },
+  slate:     { accent: "#7B96BE", bg: "#F5F7FA", card: "#DDE4F0", text: "#0A1020", muted: "#405070" },
+};
+
+function DashboardPreview({ config }: { config: { palette: string; customSecondary: string; customBg: string } }) {
+  const base = PREVIEW_PALETTES[config.palette] ?? PREVIEW_PALETTES.parchment;
+  const accent = config.customSecondary || base.accent;
+  const bg     = config.customBg      || base.bg;
+  const card   = base.card;
+  const text   = base.text;
+  const muted  = base.muted;
 
   return (
     <div className="card p-5">
-      <div className="flex items-center gap-2 mb-1">
-        <Eye className="w-4 h-4 text-secondary" />
-        <h3 className="font-manrope font-semibold text-base text-primary">Dashboard Preview</h3>
+      <div className="flex items-center justify-between mb-1">
+        <div className="flex items-center gap-2">
+          <Eye className="w-4 h-4 text-secondary" />
+          <h3 className="font-manrope font-semibold text-base text-primary">Dashboard Preview</h3>
+        </div>
+        <span className="flex items-center gap-1 text-[10px] font-semibold text-secondary bg-secondary-container/40 px-2 py-0.5 rounded-full">
+          <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse inline-block" />
+          Live
+        </span>
       </div>
-      <p className="text-xs text-on-surface-variant mb-4">A live preview showing how your dashboard will look with these settings.</p>
-      <div className="rounded-2xl overflow-hidden border border-outline-variant/20" style={{ backgroundColor: bg, fontFamily: "inherit" }}>
-        {/* Mini navbar */}
-        <div className="px-3 py-2 flex items-center gap-2 border-b" style={{ backgroundColor: bg, borderColor: accent + "25" }}>
-          <div className="w-4 h-4 rounded-lg shrink-0" style={{ backgroundColor: accent }} />
-          <span className="font-bold text-[9px]" style={{ color: textColor }}>Mentra</span>
-          <div className="flex gap-2 ml-2">
+      <p className="text-xs text-on-surface-variant mb-4">Updates instantly as you change palette and colors.</p>
+
+      {/* Preview frame */}
+      <div
+        className="rounded-2xl overflow-hidden border-2 shadow-sm transition-all duration-300"
+        style={{ backgroundColor: bg, borderColor: accent + "30" }}
+      >
+        {/* Simulated fixed navbar */}
+        <div
+          className="px-3 py-2 flex items-center gap-2 border-b"
+          style={{ backgroundColor: accent + "15", borderColor: accent + "30" }}
+        >
+          <div className="w-5 h-5 rounded-lg shrink-0 flex items-center justify-center" style={{ backgroundColor: accent }}>
+            <div className="w-2.5 h-2.5 rounded bg-white opacity-80" />
+          </div>
+          <span className="font-black text-[10px]" style={{ color: accent }}>Mentra</span>
+          <div className="flex gap-3 ml-2">
             {["Explore", "Communities", "Dashboard"].map(l => (
-              <span key={l} className="text-[8px]" style={{ color: textMuted }}>{l}</span>
+              <span key={l} className="text-[8px] font-medium" style={{ color: muted }}>{l}</span>
             ))}
           </div>
-          <div className="ml-auto w-5 h-5 rounded-full border" style={{ backgroundColor: accent + "30", borderColor: accent + "40" }} />
+          <div className="ml-auto flex items-center gap-1.5">
+            <div className="w-4 h-4 rounded-full" style={{ backgroundColor: accent + "40" }} />
+            <div className="w-5 h-5 rounded-full border-2" style={{ backgroundColor: accent + "25", borderColor: accent + "50" }} />
+          </div>
         </div>
-        {/* Mini content */}
-        <div className="p-3 space-y-2">
+
+        {/* Content area */}
+        <div className="p-3 space-y-2.5">
           {/* Stats row */}
           <div className="grid grid-cols-4 gap-1.5">
-            {["Stacks", "Stars", "Views", "Followers"].map(label => (
-              <div key={label} className="rounded-xl p-1.5" style={{ backgroundColor: cardBg, border: `1px solid ${accent}18` }}>
-                <div className="w-3 h-3 rounded mb-1" style={{ backgroundColor: accent + "30" }} />
-                <div className="h-2 rounded mb-0.5 w-4" style={{ backgroundColor: accent + "80" }} />
-                <div className="h-1 rounded w-5" style={{ backgroundColor: textMuted + "50" }} />
+            {[
+              { label: "Stacks", val: "24" },
+              { label: "Stars",  val: "1.2k" },
+              { label: "Views",  val: "8.5k" },
+              { label: "Followers", val: "142" },
+            ].map(s => (
+              <div
+                key={s.label}
+                className="rounded-xl p-2 transition-colors duration-300"
+                style={{ backgroundColor: card, border: `1px solid ${accent}25` }}
+              >
+                <div className="text-[10px] font-black mb-0.5" style={{ color: accent }}>{s.val}</div>
+                <div className="text-[7px] font-medium" style={{ color: muted }}>{s.label}</div>
               </div>
             ))}
           </div>
-          {/* Two col */}
+
+          {/* Two-column layout */}
           <div className="grid grid-cols-3 gap-1.5">
+            {/* Main stacks list */}
             <div className="col-span-2 space-y-1.5">
-              {[1, 2].map(i => (
-                <div key={i} className="rounded-xl p-2 flex items-center gap-1.5" style={{ backgroundColor: cardBg, border: `1px solid ${accent}18` }}>
-                  <div className="w-5 h-5 rounded-lg shrink-0" style={{ backgroundColor: accent + "25" }} />
-                  <div className="flex-1 space-y-0.5">
-                    <div className="h-1.5 rounded" style={{ backgroundColor: textMuted + "40", width: "70%" }} />
-                    <div className="h-1 rounded" style={{ backgroundColor: textMuted + "25", width: "45%" }} />
+              {["Algorithms & Data Structures", "Machine Learning 101"].map((title, i) => (
+                <div
+                  key={i}
+                  className="rounded-xl p-2 flex items-center gap-2 transition-colors duration-300"
+                  style={{ backgroundColor: card, border: `1px solid ${accent}20` }}
+                >
+                  <div className="w-6 h-6 rounded-lg shrink-0" style={{ backgroundColor: accent + "30" }} />
+                  <div className="flex-1 space-y-0.5 min-w-0">
+                    <div className="text-[8px] font-semibold truncate" style={{ color: text }}>{title}</div>
+                    <div className="flex gap-1">
+                      <div className="h-1 rounded w-8" style={{ backgroundColor: accent + "40" }} />
+                      <div className="h-1 rounded w-6" style={{ backgroundColor: muted + "60" }} />
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
-            <div className="rounded-xl p-2 space-y-1" style={{ backgroundColor: cardBg, border: `1px solid ${accent}18` }}>
-              <div className="h-1.5 rounded mb-1" style={{ backgroundColor: accent + "40", width: "60%" }} />
-              {[1, 2, 3].map(i => (
-                <div key={i} className="flex items-center gap-1">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: accent + "30" }} />
-                  <div className="h-1 rounded flex-1" style={{ backgroundColor: textMuted + "30" }} />
+
+            {/* Sidebar */}
+            <div
+              className="rounded-xl p-2.5 space-y-1.5 transition-colors duration-300"
+              style={{ backgroundColor: card, border: `1px solid ${accent}20` }}
+            >
+              <div className="text-[8px] font-bold mb-1.5" style={{ color: accent }}>Communities</div>
+              {["MIT Study", "CS Guild", "ML Hub"].map((name, i) => (
+                <div key={i} className="flex items-center gap-1.5">
+                  <div className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: accent + (i === 0 ? "50" : "30") }} />
+                  <div className="text-[7px] font-medium truncate" style={{ color: muted }}>{name}</div>
                 </div>
               ))}
             </div>
           </div>
         </div>
       </div>
-      <p className="text-[10px] text-on-surface-variant/50 mt-2">This preview updates as you change colors and palette.</p>
+
+      <p className="text-[10px] text-on-surface-variant/50 mt-2">
+        Palette: <span className="font-medium capitalize" style={{ color: accent }}>{config.palette}</span>
+        {config.customSecondary && <> · Custom accent: <span className="font-medium">{config.customSecondary}</span></>}
+        {config.customBg && <> · Custom bg: <span className="font-medium">{config.customBg}</span></>}
+      </p>
     </div>
   );
 }

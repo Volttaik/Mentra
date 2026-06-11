@@ -251,18 +251,28 @@ export default function AgentPage() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
-      <div className="flex flex-1 overflow-hidden" style={{ height: "calc(100vh - 64px)" }}>
+      <div className="relative flex flex-1 overflow-hidden" style={{ height: "calc(100vh - 64px)" }}>
 
-        {/* Sidebar */}
+        {/* Sidebar — overlays the chat, does not push it */}
         <AnimatePresence initial={false}>
           {sidebarOpen && (
-            <motion.aside
-              initial={{ width: 0, opacity: 0 }}
-              animate={{ width: 260, opacity: 1 }}
-              exit={{ width: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="shrink-0 border-r border-outline-variant/10 bg-surface-container-low flex flex-col overflow-hidden"
-            >
+            <>
+              {/* Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+                className="absolute inset-0 z-20 bg-black/20 backdrop-blur-[1px]"
+                onClick={() => setSidebarOpen(false)}
+              />
+              <motion.aside
+                initial={{ x: -280, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: -280, opacity: 0 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                className="absolute left-0 top-0 bottom-0 z-30 w-[260px] border-r border-outline-variant/10 bg-surface-container-low flex flex-col overflow-hidden shadow-xl"
+              >
               <div className="flex items-center justify-between px-4 py-3 border-b border-outline-variant/10 shrink-0">
                 <span className="font-manrope font-semibold text-sm text-primary">Conversations</span>
                 <button
@@ -316,6 +326,7 @@ export default function AgentPage() {
                 )}
               </div>
             </motion.aside>
+            </>
           )}
         </AnimatePresence>
 
