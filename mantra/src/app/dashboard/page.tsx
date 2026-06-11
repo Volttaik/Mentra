@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import {
   BookOpen, Star, GitFork, Plus, Bell, Activity,
   ChevronRight, Bookmark, CheckCircle, MessageSquare,
-  Users, Eye, Loader2, BookMarked, FolderOpen, Trash2, AlertTriangle,
+  Users, Eye, Loader2, BookMarked, FolderOpen, Trash2, Camera,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import ContributionGraph from "@/components/ui/ContributionGraph";
@@ -82,6 +82,7 @@ export default function DashboardPage() {
   const [hideNotifs, setHideNotifs]       = useState(false);
   const [deletingFork, setDeletingFork]   = useState<string | null>(null);
   const [confirmDeleteFork, setConfirmDeleteFork] = useState<string | null>(null);
+  const [uploadingProfile, setUploadingProfile] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -120,6 +121,18 @@ export default function DashboardPage() {
     setForkedStacks(prev => prev.filter(s => s.slug !== slug));
     setConfirmDeleteFork(null);
     setDeletingFork(null);
+  };
+
+  const uploadForkProfile = async (slug: string, file: File) => {
+    setUploadingProfile(slug);
+    const form = new FormData();
+    form.append("file", file);
+    const res = await fetch(`/api/stacks/${slug}/profile`, { method: "POST", body: form });
+    const data = await res.json();
+    if (data.url) {
+      setForkedStacks(prev => prev.map(s => s.slug === slug ? { ...s, profile: data.url } : s));
+    }
+    setUploadingProfile(null);
   };
 
   const createFlow = async () => {
@@ -244,13 +257,27 @@ export default function DashboardPage() {
                 <div className="space-y-2">
                   {forkedStacks.map(fork => (
                     <div key={fork.id} className="card-sm p-4 flex items-center gap-4">
-                      {(fork.profile || fork.banner) ? (
-                        <img src={fork.profile ?? fork.banner ?? ""} alt="" className="w-10 h-10 rounded-xl object-cover shrink-0 border border-outline-variant/20" />
-                      ) : (
-                        <div className="w-10 h-10 bg-secondary-container/50 rounded-xl flex items-center justify-center shrink-0">
-                          <GitFork className="w-5 h-5 text-on-secondary-container" />
+                      <label className="relative group cursor-pointer shrink-0" title="Upload profile picture">
+                        {(fork.profile || fork.banner) ? (
+                          <img src={fork.profile ?? fork.banner ?? ""} alt="" className="w-10 h-10 rounded-xl object-cover border border-outline-variant/20" />
+                        ) : (
+                          <div className="w-10 h-10 bg-secondary-container/50 rounded-xl flex items-center justify-center">
+                            <GitFork className="w-5 h-5 text-on-secondary-container" />
+                          </div>
+                        )}
+                        <div className="absolute inset-0 rounded-xl bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          {uploadingProfile === fork.slug
+                            ? <Loader2 className="w-4 h-4 text-white animate-spin" />
+                            : <Camera className="w-4 h-4 text-white" />}
                         </div>
-                      )}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          disabled={uploadingProfile === fork.slug}
+                          onChange={e => { const f = e.target.files?.[0]; if (f) uploadForkProfile(fork.slug, f); e.target.value = ""; }}
+                        />
+                      </label>
                       <div className="flex-1 min-w-0">
                         <Link href={`/stacks/${fork.slug}`} className="font-manrope font-semibold text-sm text-primary hover:text-secondary transition-colors truncate block">{fork.title}</Link>
                         {fork.forkedFrom && (

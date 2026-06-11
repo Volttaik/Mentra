@@ -8,7 +8,7 @@ import {
   Bell, Search, Menu, X, ChevronDown,
   Upload, Settings, LogOut, User, LayoutDashboard, Moon, Sun,
   Sparkles, Users, BookMarked, Compass, Bot, Palette,
-  MessageSquarePlus, Coins, PanelLeft,
+  MessageSquarePlus, Coins,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/providers/ThemeProvider";
@@ -80,14 +80,6 @@ export default function Navbar() {
   };
 
   const username = (session?.user as any)?.username ?? "";
-
-  const NAV_LINKS = [
-    { href: "/explore",      label: "Explore",     icon: Compass },
-    { href: "/communities",  label: "Communities", icon: Users,    authOnly: true },
-    { href: "/dashboard",    label: "Dashboard",   icon: LayoutDashboard, authOnly: true },
-    { href: "/upload",       label: "New Stack",   icon: Upload,   authOnly: true },
-    { href: "/agent",        label: "AI Chat",     icon: Sparkles, authOnly: true },
-  ];
 
   const SECTIONS = [
     {

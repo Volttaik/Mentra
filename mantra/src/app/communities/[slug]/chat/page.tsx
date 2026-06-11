@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, MessageCircle, Loader2, Send, Bot, X,
-  AlertCircle, BookOpen, ArrowUp, Coins, Copy, Check, Users,
+  AlertCircle, BookOpen, ArrowUp, Users,
 } from "lucide-react";
 import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
