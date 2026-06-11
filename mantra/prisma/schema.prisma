@@ -112,12 +112,15 @@ model Stack {
   readme      String?
   banner      String?
   profile     String?
-  views       Int      @default(0)
-  ownerId     String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  views        Int      @default(0)
+  ownerId      String
+  forkedFromId String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   owner         User             @relation("StackOwner", fields: [ownerId], references: [id])
+  forkedFrom    Stack?           @relation("ForkOrigin", fields: [forkedFromId], references: [id], onDelete: SetNull)
+  forkedCopies  Stack[]          @relation("ForkOrigin")
   tags          StackTag[]
   modules       Module[]
   editions      Edition[]

@@ -360,7 +360,7 @@ export default function CommunityPage() {
                       >
                         {isMember && (
                           <button
-                            onClick={() => { setActivePanel("chat"); setShowOptionsMenu(false); }}
+                            onClick={() => { router.push(`/communities/${slug}/chat`); setShowOptionsMenu(false); }}
                             className="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-on-surface hover:bg-surface-container transition-colors"
                           >
                             <MessageCircle className="w-4 h-4 text-on-surface-variant" />Community Chat
@@ -406,7 +406,7 @@ export default function CommunityPage() {
             {PANELS.map(panel => (
               <button
                 key={panel.id}
-                onClick={() => setActivePanel(panel.id)}
+                onClick={() => panel.id === "chat" ? router.push(`/communities/${slug}/chat`) : setActivePanel(panel.id)}
                 className={cn(
                   "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all",
                   activePanel === panel.id
@@ -582,7 +582,7 @@ export default function CommunityPage() {
               {PANELS.map(panel => (
                 <button
                   key={panel.id}
-                  onClick={() => setActivePanel(panel.id)}
+                  onClick={() => panel.id === "chat" ? router.push(`/communities/${slug}/chat`) : setActivePanel(panel.id)}
                   className={cn(
                     "flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
                     activePanel === panel.id
@@ -591,11 +591,6 @@ export default function CommunityPage() {
                   )}
                 >
                   <panel.icon className="w-4 h-4 shrink-0" />{panel.label}
-                  {panel.id === "chat" && messages.length > 0 && (
-                    <span className="ml-auto text-[10px] bg-secondary text-on-secondary px-1.5 py-0.5 rounded-full font-bold">
-                      {messages.length > 99 ? "99+" : messages.length}
-                    </span>
-                  )}
                 </button>
               ))}
             </div>

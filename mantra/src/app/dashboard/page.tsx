@@ -69,6 +69,17 @@ export default function DashboardPage() {
   const [flowName, setFlowName]           = useState("");
   const [commName, setCommName]           = useState("");
   const [creating, setCreating]           = useState(false);
+  const [dashLayout, setDashLayout]       = useState("default");
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("mentra-studio-config");
+      if (stored) {
+        const cfg = JSON.parse(stored);
+        if (cfg.layout) setDashLayout(cfg.layout);
+      }
+    } catch { /* ignore */ }
+  }, []);
 
   useEffect(() => {
     fetch("/api/dashboard")
@@ -184,9 +195,17 @@ export default function DashboardPage() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className={cn(
+          "grid grid-cols-1 gap-8",
+          dashLayout === "default" && "lg:grid-cols-3",
+          dashLayout === "compact" && "gap-5"
+        )}>
           {/* Main column */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className={cn(
+            "space-y-8",
+            dashLayout === "default" && "lg:col-span-2",
+            dashLayout === "compact" && "space-y-5"
+          )}>
             <ContributionGraph totalContributions={stats.totalViews} />
 
             {/* Stack Flows */}
@@ -419,8 +438,8 @@ export default function DashboardPage() {
             )}
           </div>
 
-          {/* Right sidebar */}
-          <div className="space-y-6">
+          {/* Right sidebar — hidden in focus layout */}
+          <div className={cn("space-y-6", dashLayout === "focus" && "hidden")}>
             {/* Notifications */}
             <div className="card p-5">
               <div className="flex items-center justify-between mb-4">

@@ -204,6 +204,12 @@ export async function DELETE(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  if (stack.forkedFromId) {
+    await prisma.stackFork.deleteMany({
+      where: { userId: session.user.id, stackId: stack.forkedFromId },
+    }).catch(() => {});
+  }
+
   await prisma.stack.delete({ where: { id: stack.id } });
   return NextResponse.json({ success: true });
 }

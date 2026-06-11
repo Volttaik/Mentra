@@ -89,9 +89,14 @@ const RADII_META = [
   { id: "compact", name: "Compact", desc: "Tighter corners" },
   { id: "rounded", name: "Rounded", desc: "Extra-rounded bubbles" },
 ];
+const LAYOUTS_META = [
+  { id: "default", name: "Default", desc: "Main column + sidebar" },
+  { id: "focus", name: "Focus", desc: "Full-width, no sidebar" },
+  { id: "compact", name: "Compact", desc: "Single column, dense" },
+];
 
 function StudioTab() {
-  const [config, setConfig] = useState({ palette: "parchment", style: "default", font: "default", radius: "default" });
+  const [config, setConfig] = useState({ palette: "parchment", style: "default", font: "default", radius: "default", layout: "default" });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -119,7 +124,7 @@ function StudioTab() {
   };
 
   const reset = () => {
-    const def = { palette: "parchment", style: "default", font: "default", radius: "default" };
+    const def = { palette: "parchment", style: "default", font: "default", radius: "default", layout: "default" };
     setConfig(def);
     localStorage.removeItem("mentra-studio-config");
     fetch("/api/theme", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ themeConfig: JSON.stringify(def) }) });
@@ -224,6 +229,46 @@ function StudioTab() {
               >
                 <p className="text-xs font-semibold text-primary">{r.name}</p>
                 <p className="text-[11px] text-on-surface-variant mt-0.5">{r.desc}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Dashboard Layout */}
+        <div className="mb-8">
+          <p className="text-xs font-bold text-on-surface-variant/60 uppercase tracking-widest mb-3">Dashboard Layout</p>
+          <div className="grid grid-cols-3 gap-3">
+            {LAYOUTS_META.map(l => (
+              <button
+                key={l.id}
+                onClick={() => setConfig(c => ({ ...c, layout: l.id }))}
+                className={cn(
+                  "rounded-2xl border-2 p-3 text-left transition-all",
+                  config.layout === l.id
+                    ? "border-secondary bg-secondary-container/20"
+                    : "border-outline-variant/20 hover:border-outline/40"
+                )}
+              >
+                <div className="flex gap-1 mb-2.5">
+                  {l.id === "default" && (
+                    <>
+                      <div className="h-6 rounded bg-secondary/30 flex-[2]" />
+                      <div className="h-6 rounded bg-outline-variant/30 flex-1" />
+                    </>
+                  )}
+                  {l.id === "focus" && (
+                    <div className="h-6 rounded bg-secondary/30 flex-1" />
+                  )}
+                  {l.id === "compact" && (
+                    <div className="flex flex-col gap-1 flex-1">
+                      <div className="h-2 rounded bg-secondary/30 w-full" />
+                      <div className="h-2 rounded bg-outline-variant/30 w-3/4" />
+                      <div className="h-2 rounded bg-outline-variant/20 w-1/2" />
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs font-semibold text-primary">{l.name}</p>
+                <p className="text-[11px] text-on-surface-variant mt-0.5">{l.desc}</p>
               </button>
             ))}
           </div>

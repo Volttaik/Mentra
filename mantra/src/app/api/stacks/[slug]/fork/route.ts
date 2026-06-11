@@ -54,6 +54,7 @@ export async function POST(
       banner: original.banner,
       profile: original.profile,
       ownerId: userId,
+      forkedFromId: original.id,
     },
   });
 
