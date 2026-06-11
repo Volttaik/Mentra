@@ -33,6 +33,7 @@ export default function MobileNav() {
 
   if (status !== "authenticated") return null;
   if (navStyle === "sidebar") return null;
+  if (pathname.endsWith("/chat") || pathname.includes("/chat/")) return null;
 
   const username = (session?.user as any)?.username;
 

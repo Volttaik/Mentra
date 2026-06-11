@@ -5,9 +5,9 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Plus, Brain, MessageSquare, Zap, BookOpen, FolderKanban,
-  LayoutGrid, Calendar, Cpu, ChevronRight, Sparkles, Users,
-  Star, Globe, Lock, Trash2, Settings, ArrowRight,
+  Plus, Brain, MessageSquare, LayoutGrid,
+  ChevronRight, Sparkles,
+  Globe, Trash2, Settings, BookOpen,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Link from "next/link";
@@ -32,13 +32,8 @@ const DOMAIN_LABELS: Record<string, string> = {
 
 const NAV_ITEMS = [
   { label: "My Agents", href: "/agents", icon: Brain },
-  { label: "Knowledge Hubs", href: "/agents/hubs", icon: BookOpen },
-  { label: "Projects", href: "/agents/projects", icon: FolderKanban },
-  { label: "Workspace", href: "/agents/workspace", icon: LayoutGrid },
-  { label: "Schedule", href: "/agents/schedule", icon: Calendar },
-  { label: "Analytics", href: "/agents/analytics", icon: Cpu },
-  { label: "WhatsApp", href: "/agents/whatsapp", icon: MessageSquare },
   { label: "Marketplace", href: "/agents/marketplace", icon: Globe },
+  { label: "Workspace", href: "/agents/workspace", icon: LayoutGrid },
 ];
 
 function AgentAvatar({ agent, size = 48 }: { agent: Agent; size?: number }) {
@@ -302,20 +297,20 @@ export default function AgentsPage() {
 
         {/* Stats bar */}
         {!loading && agents.length > 0 && (
-          <div className="grid grid-cols-3 gap-3 mb-8">
+          <div className="grid grid-cols-3 gap-2 mb-6">
             {[
-              { label: "Total Agents", value: agents.length, icon: Brain },
-              { label: "Total Chats", value: agents.reduce((a, b) => a + b._count.conversations, 0), icon: MessageSquare },
-              { label: "Knowledge Files", value: agents.reduce((a, b) => a + b.knowledgeFiles.length, 0), icon: BookOpen },
+              { label: "Agents", value: agents.length, icon: Brain },
+              { label: "Chats", value: agents.reduce((a, b) => a + b._count.conversations, 0), icon: MessageSquare },
+              { label: "Files", value: agents.reduce((a, b) => a + b.knowledgeFiles.length, 0), icon: BookOpen },
             ].map((s, i) => (
               <motion.div key={s.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-                className="elevated-surface rounded-xl px-4 py-3 flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-secondary-container/40 flex items-center justify-center">
-                  <s.icon className="h-4 w-4 text-secondary" />
+                className="elevated-surface rounded-xl px-3 py-2.5 flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-secondary-container/40 flex items-center justify-center shrink-0">
+                  <s.icon className="h-3.5 w-3.5 text-secondary" />
                 </div>
-                <div>
-                  <p className="text-xs text-on-surface-variant">{s.label}</p>
-                  <p className="text-lg font-bold font-manrope text-on-surface">{s.value}</p>
+                <div className="min-w-0">
+                  <p className="text-[10px] text-on-surface-variant truncate">{s.label}</p>
+                  <p className="text-sm font-bold font-manrope text-on-surface">{s.value}</p>
                 </div>
               </motion.div>
             ))}

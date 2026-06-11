@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Eye, ShoppingBag, Loader2, Lock, PenLine, ChevronDown, ArrowLeft, Sparkles, Link2 } from "lucide-react";
+import { Eye, ShoppingBag, Loader2, Lock, PenLine, ChevronDown, ArrowLeft, Sparkles, Heart, Share2, Check } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -13,7 +13,7 @@ interface Connector { id: string; textAnchorId: string; imageNodeId: string; }
 interface Edition { id: string; number: number; label: string; content: string; connectors: Connector[]; publishedAt: string; }
 interface ArticleData {
   id: string; slug: string; title: string; summary: string | null;
-  isPaid: boolean; price: number; views: number; tags: string[];
+  isPaid: boolean; price: number; views: number; likes: number; tags: string[];
   isOwner: boolean; hasPurchased: boolean;
   author: { name: string; username: string; image: string | null; bio: string | null };
   editions: Edition[];
@@ -122,11 +122,44 @@ export default function ArticlePage() {
   const [purchasing, setPurchasing] = useState(false);
   const [activeEditionIdx, setActiveEditionIdx] = useState(0);
   const [showEditions, setShowEditions] = useState(false);
+  const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+  const [copied, setCopied] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch(`/api/articles/${slug}`).then(r => r.json()).then(data => { if (data.error) router.push("/articles"); else { setArticle(data); setLoading(false); } });
+    fetch(`/api/articles/${slug}`).then(r => r.json()).then(data => {
+      if (data.error) router.push("/articles");
+      else {
+        setArticle(data);
+        setLikeCount(data.likes ?? 0);
+        setLoading(false);
+      }
+    });
   }, [slug]);
+
+  useEffect(() => {
+    if (!slug) return;
+    const key = `article-liked-${slug}`;
+    setLiked(localStorage.getItem(key) === "1");
+  }, [slug]);
+
+  const handleLike = async () => {
+    if (!session?.user) { router.push("/login"); return; }
+    if (liked) return;
+    const key = `article-liked-${slug}`;
+    setLiked(true);
+    setLikeCount(c => c + 1);
+    localStorage.setItem(key, "1");
+    await fetch(`/api/articles/${slug}/like`, { method: "POST" });
+  };
+
+  const handleShare = () => {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
   const purchase = async () => {
     setPurchasing(true);
@@ -159,7 +192,9 @@ export default function ArticlePage() {
             )}
             <h1 className="text-3xl font-bold font-manrope text-on-surface leading-tight mb-4">{article.title}</h1>
             {article.summary && <p className="text-lg text-on-surface-variant leading-relaxed mb-4">{article.summary}</p>}
-            <div className="flex items-center gap-4 text-sm text-on-surface-variant">
+
+            {/* Meta row */}
+            <div className="flex items-center gap-4 text-sm text-on-surface-variant flex-wrap">
               <div className="flex items-center gap-2">
                 {article.author.image ? <img src={article.author.image} alt={article.author.name} className="w-6 h-6 rounded-full object-cover" /> : <div className="w-6 h-6 rounded-full bg-secondary-container flex items-center justify-center text-xs font-bold text-secondary">{article.author.name[0]}</div>}
                 <Link href={`/profile/${article.author.username}`} className="hover:text-on-surface transition-colors">{article.author.name}</Link>
@@ -167,10 +202,42 @@ export default function ArticlePage() {
               <span className="flex items-center gap-1"><Eye className="h-3.5 w-3.5" />{article.views}</span>
               <span className="flex items-center gap-1"><ShoppingBag className="h-3.5 w-3.5" />{article._count.purchases}</span>
               {article.isOwner && (
-                <Link href={`/editor?article=${slug}`} className="ml-auto flex items-center gap-1.5 text-secondary hover:underline">
+                <Link href={`/editor?article=${slug}`} className="flex items-center gap-1.5 text-secondary hover:underline">
                   <PenLine className="h-3.5 w-3.5" /> Edit
                 </Link>
               )}
+            </div>
+
+            {/* Action bar — like & share */}
+            <div className="flex items-center gap-2 mt-4 pt-4 border-t border-outline-variant/20">
+              <motion.button
+                whileTap={{ scale: 0.88 }}
+                onClick={handleLike}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-all border",
+                  liked
+                    ? "bg-rose-500/10 border-rose-500/30 text-rose-500"
+                    : "border-outline-variant/25 text-on-surface-variant hover:border-rose-400/40 hover:text-rose-500 hover:bg-rose-500/5"
+                )}
+              >
+                <Heart className={cn("h-4 w-4", liked && "fill-current")} />
+                <span>{likeCount > 0 ? likeCount : ""}</span>
+                {liked ? "Liked" : "Like"}
+              </motion.button>
+
+              <motion.button
+                whileTap={{ scale: 0.88 }}
+                onClick={handleShare}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-all border",
+                  copied
+                    ? "bg-secondary-container/50 border-secondary/30 text-secondary"
+                    : "border-outline-variant/25 text-on-surface-variant hover:border-secondary/40 hover:text-on-surface hover:bg-surface-container-high"
+                )}
+              >
+                {copied ? <Check className="h-4 w-4" /> : <Share2 className="h-4 w-4" />}
+                {copied ? "Copied!" : "Share"}
+              </motion.button>
             </div>
           </div>
 

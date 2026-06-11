@@ -92,7 +92,7 @@ export default function CommunityChatPage() {
       .then(r => r.json())
       .then(d => { if (!d.error) setMessages(d.messages ?? []); })
       .finally(() => setChatLoading(false));
-    chatPollRef.current = setInterval(loadMessages, 8000);
+    chatPollRef.current = setInterval(loadMessages, 3000);
     return () => { if (chatPollRef.current) clearInterval(chatPollRef.current); };
   }, [isMember, slug, loadMessages]);
 

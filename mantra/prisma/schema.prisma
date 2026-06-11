@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "cockroachdb"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -850,6 +850,7 @@ model Article {
   isPublished Boolean          @default(false)
   coverImage  String?
   views       Int              @default(0)
+  likes       Int              @default(0)
   tags        String[]
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
