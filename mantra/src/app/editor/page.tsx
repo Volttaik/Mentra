@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, Suspense } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import TextAlign from "@tiptap/extension-text-align";
@@ -20,9 +20,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Bold, Italic, Underline as UnderlineIcon, Strikethrough,
   AlignLeft, AlignCenter, AlignRight, AlignJustify,
-  List, ListOrdered, Quote, Code, Minus, Link2, Image as ImageIcon,
-  Table, Undo, Redo, Type, Highlighter, CheckSquare,
-  Save, BookOpen, ChevronDown, X, Loader2, ArrowLeft,
+  List, ListOrdered, Quote, Code, Minus, Image as ImageIcon,
+  Undo, Redo, Type, Highlighter, CheckSquare,
+  BookOpen, ChevronDown, X, Loader2, ArrowLeft,
   Sparkles, Brain,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
@@ -148,7 +148,7 @@ function AgentTeachDialog({ onClose, onSave, saving }: { onClose: () => void; on
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="font-bold font-manrope text-on-surface text-lg">Teach an Agent</h2>
-            <p className="text-xs text-on-surface-variant mt-0.5">Save this content to an agent's knowledge base</p>
+            <p className="text-xs text-on-surface-variant mt-0.5">Save this content to an agent&apos;s knowledge base</p>
           </div>
           <button onClick={onClose}><X className="h-5 w-5 text-on-surface-variant" /></button>
         </div>
@@ -183,9 +183,8 @@ function AgentTeachDialog({ onClose, onSave, saving }: { onClose: () => void; on
 }
 
 function EditorInner() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const articleSlug = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("article") : null;
 
   const [showPublish, setShowPublish] = useState(false);
@@ -328,7 +327,7 @@ function EditorInner() {
                   <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
                     className="absolute top-10 left-0 z-50 elevated-surface-strong rounded-xl overflow-hidden min-w-[160px] py-1">
                     {HEADINGS.map(h => (
-                      <button key={h.level} onClick={() => { h.level === 0 ? editor.chain().focus().setParagraph().run() : editor.chain().focus().toggleHeading({ level: h.level as 1|2|3|4 }).run(); setHeadingOpen(false); }}
+                      <button key={h.level} onClick={() => { if (h.level === 0) { editor.chain().focus().setParagraph().run(); } else { editor.chain().focus().toggleHeading({ level: h.level as 1|2|3|4 }).run(); } setHeadingOpen(false); }}
                         className={cn("w-full text-left px-4 py-2 text-sm hover:bg-surface-container transition-colors", h.level === 0 ? "text-on-surface" : "", h.level === 1 ? "text-xl font-bold font-manrope" : "", h.level === 2 ? "text-lg font-bold font-manrope" : "", h.level === 3 ? "text-base font-semibold font-manrope" : "", h.level === 4 ? "text-sm font-semibold font-manrope" : "")}>
                         {h.label}
                       </button>
@@ -379,7 +378,7 @@ function EditorInner() {
                     className="absolute top-10 left-0 z-50 elevated-surface-strong rounded-xl p-3">
                     <div className="grid grid-cols-5 gap-1.5">
                       {HIGHLIGHT_COLORS.map(c => (
-                        <button key={c} onClick={() => { c === "transparent" ? editor.chain().focus().unsetHighlight().run() : editor.chain().focus().setHighlight({ color: c }).run(); setHighlightOpen(false); }}
+                        <button key={c} onClick={() => { if (c === "transparent") { editor.chain().focus().unsetHighlight().run(); } else { editor.chain().focus().setHighlight({ color: c }).run(); } setHighlightOpen(false); }}
                           className="w-6 h-6 rounded border border-outline-variant/30 hover:scale-110 transition-transform text-[9px] font-bold"
                           style={{ background: c || "white" }}>
                           {c === "transparent" && "×"}

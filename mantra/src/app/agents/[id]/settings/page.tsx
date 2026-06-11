@@ -6,7 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   ChevronLeft, Save, Trash2, Loader2, Globe, Lock,
-  Camera, Check, Brain, AlertTriangle,
+  Camera, Check,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Link from "next/link";
@@ -43,7 +43,7 @@ interface Agent {
 }
 
 export default function AgentSettingsPage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
 

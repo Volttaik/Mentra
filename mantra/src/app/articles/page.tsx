@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
-import { BookOpen, Search, Plus, Eye, ShoppingBag, Sparkles, PenLine, Star } from "lucide-react";
+import { BookOpen, Search, Eye, ShoppingBag, Sparkles, PenLine } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -74,7 +74,7 @@ function ArticleCard({ article, index }: { article: Article; index: number }) {
 }
 
 export default function ArticlesPage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");

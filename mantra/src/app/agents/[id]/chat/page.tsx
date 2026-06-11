@@ -47,7 +47,7 @@ const AGENT_VERBS = [
 ];
 
 function AgentChatInner() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const [agent, setAgent] = useState<Agent | null>(null);

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 const QUIZ_CREDIT_COST = 5;
 
 function getGroq() {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const Groq = require("groq-sdk");
   return new Groq({ apiKey: process.env.GROQ_API_KEY ?? "" });
 }

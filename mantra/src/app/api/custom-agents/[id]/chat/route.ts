@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 
 function getGroq() {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const Groq = require("groq-sdk");
   return new Groq({ apiKey: process.env.GROQ_API_KEY });
 }

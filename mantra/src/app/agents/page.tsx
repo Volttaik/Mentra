@@ -111,7 +111,7 @@ function AgentCard({ agent, index, onDelete }: { agent: Agent; index: number; on
   );
 }
 
-function CreateAgentDialog({ onClose, onCreate }: { onClose: () => void; onCreate: (a: Agent) => void }) {
+function CreateAgentDialog({ onClose: _onClose, onCreate }: { onClose: () => void; onCreate: (a: Agent) => void }) {
   const [step, setStep] = useState(1);
   const [name, setName] = useState("");
   const [subject, setSubject] = useState("");
@@ -251,7 +251,7 @@ function CreateAgentDialog({ onClose, onCreate }: { onClose: () => void; onCreat
 }
 
 export default function AgentsPage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
