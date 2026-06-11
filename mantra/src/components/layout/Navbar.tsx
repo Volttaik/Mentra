@@ -8,7 +8,7 @@ import {
   Bell, Search, Menu, X, ChevronDown,
   Upload, Settings, LogOut, User, LayoutDashboard, Moon, Sun,
   Sparkles, Users, BookMarked, Compass, Bot, Palette,
-  MessageSquarePlus, Coins, GitFork,
+  MessageSquarePlus, Coins, GitFork, Brain, BookOpen, PenLine,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/providers/ThemeProvider";
@@ -95,13 +95,24 @@ export default function Navbar() {
         { href: "/upload",              label: "New Stack",     icon: Upload,           desc: "Publish a stack" },
         { href: "/communities/new",    label: "New Community", icon: MessageSquarePlus, desc: "Start a community" },
         { href: "/dashboard#flows",     label: "Stack Flows",   icon: BookMarked,       desc: "Organise collections" },
+        { href: "/editor",              label: "Write Article", icon: PenLine,           desc: "Author with Mentra Editor" },
       ],
     },
     {
       label: "AI",
       items: [
         { href: "/agent",                   label: "AI Chat",       icon: Sparkles, desc: "Chat with your agent" },
+        { href: "/agents",                  label: "Mentra Agents", icon: Brain,    desc: "Create & manage custom agents" },
         { href: "/settings?tab=AI+Agent",   label: "AI Management", icon: Bot,      desc: "Manage & customise AI" },
+      ],
+    },
+    {
+      label: "Discover",
+      items: [
+        { href: "/explore",     label: "Explore Stacks",  icon: Compass,   desc: "Find public stacks" },
+        { href: "/communities", label: "Communities",     icon: Users,     desc: "Join knowledge groups" },
+        { href: "/articles",    label: "Articles",        icon: BookOpen,  desc: "Read & buy articles" },
+        { href: "/agents/hubs", label: "Knowledge Hubs", icon: Brain,     desc: "Collaborative learning spaces" },
       ],
     },
     {

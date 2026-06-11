@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, Suspense } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Script from "next/script";
 import {
@@ -21,7 +21,7 @@ declare global {
 /* Pages within this many pixels of the viewport get rendered */
 const RENDER_MARGIN = 800;
 
-export default function PdfViewPage() {
+function PdfViewInner() {
   const { fileId } = useParams<{ fileId: string }>();
   const searchParams = useSearchParams();
   const slug      = searchParams.get("stack") ?? "";
@@ -391,5 +391,13 @@ export default function PdfViewPage() {
         )}
       </div>
     </>
+  );
+}
+
+export default function PdfViewPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center"><div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" /></div>}>
+      <PdfViewInner />
+    </Suspense>
   );
 }

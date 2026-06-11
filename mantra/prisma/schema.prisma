@@ -55,6 +55,16 @@ model User {
   stackFlows    StackFlow[]
   agentConversations AgentConversation[]
   communityMessages  CommunityMessage[]
+  customAgents       CustomAgent[]       @relation("AgentOwner")
+  agentSubscriptions AgentSubscription[] @relation("AgentSubscriber")
+  knowledgeHubsOwned KnowledgeHub[]      @relation("HubCreator")
+  knowledgeHubMemberships KnowledgeHubMember[]
+  agentProjects      AgentProject[]
+  agentWorkspaceItems AgentWorkspaceItem[]
+  agentScheduleSessions AgentScheduleSession[]
+  articles           Article[]           @relation("ArticleAuthor")
+  articlePurchases   ArticlePurchase[]
+  customAgentConversations CustomAgentConversation[]
   adminOfCommunities Community[]      @relation("CommunityAdmin")
   communityMemberships CommunityMember[]
   communityStacksAdded CommunityStack[] @relation("CommunityStackContributor")
@@ -137,6 +147,7 @@ model Stack {
   mtContents    MtContent[]
   flowItems     StackFlowItem[]
   communityStacks CommunityStack[]
+  knowledgeHubs KnowledgeHubStack[]
 
   @@map("stacks")
 }
@@ -617,6 +628,274 @@ model CommunityMessage {
 
   @@map("community_messages")
 }
+
+// ─── Mentra Agents ────────────────────────────────────────────────────────────
+
+model CustomAgent {
+  id            String   @id @default(cuid())
+  ownerId       String
+  name          String
+  subject       String
+  level         String   @default("Undergraduate")
+  domain        String   @default("education")
+  tone          String   @default("patient")
+  personality   String?
+  avatarUrl     String?
+  isPublished   Boolean  @default(false)
+  price         Float    @default(0)
+  isPaid        Boolean  @default(false)
+  description   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  owner          User                     @relation("AgentOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  knowledgeFiles AgentKnowledgeFile[]
+  conversations  CustomAgentConversation[]
+  subscriptions  AgentSubscription[]
+  listing        AgentListing?
+
+  @@map("custom_agents")
+}
+
+model AgentKnowledgeFile {
+  id        String      @id @default(cuid())
+  agentId   String
+  name      String
+  url       String
+  size      Int         @default(0)
+  mimeType  String      @default("application/octet-stream")
+  content   String?
+  createdAt DateTime    @default(now())
+  agent     CustomAgent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@map("agent_knowledge_files")
+}
+
+model CustomAgentConversation {
+  id        String               @id @default(cuid())
+  agentId   String
+  userId    String
+  title     String               @default("New Chat")
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+  agent     CustomAgent          @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages  CustomAgentMessage[]
+
+  @@map("custom_agent_conversations")
+}
+
+model CustomAgentMessage {
+  id             String                  @id @default(cuid())
+  conversationId String
+  role           String
+  content        String
+  verb           String?
+  thinkMs        Int?
+  imageUrl       String?
+  createdAt      DateTime                @default(now())
+  conversation   CustomAgentConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@map("custom_agent_messages")
+}
+
+model AgentListing {
+  id          String      @id @default(cuid())
+  agentId     String      @unique
+  title       String
+  description String?
+  price       Float       @default(0)
+  isPaid      Boolean     @default(false)
+  isActive    Boolean     @default(true)
+  coverImage  String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  agent       CustomAgent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  subscriptions AgentSubscription[]
+
+  @@map("agent_listings")
+}
+
+model AgentSubscription {
+  id        String       @id @default(cuid())
+  userId    String
+  agentId   String
+  listingId String
+  createdAt DateTime     @default(now())
+  user      User         @relation("AgentSubscriber", fields: [userId], references: [id], onDelete: Cascade)
+  agent     CustomAgent  @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  listing   AgentListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, agentId])
+  @@map("agent_subscriptions")
+}
+
+// ─── Knowledge Hubs (integrated with Stacks) ──────────────────────────────────
+
+model KnowledgeHub {
+  id          String               @id @default(cuid())
+  slug        String               @unique
+  title       String
+  description String?
+  domain      String               @default("general")
+  isPublic    Boolean              @default(true)
+  accessCost  Int                  @default(0)
+  coverImage  String?
+  creatorId   String
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  creator     User                 @relation("HubCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  members     KnowledgeHubMember[]
+  stacks      KnowledgeHubStack[]
+
+  @@map("knowledge_hubs")
+}
+
+model KnowledgeHubMember {
+  id        String       @id @default(cuid())
+  hubId     String
+  userId    String
+  role      String       @default("member")
+  joinedAt  DateTime     @default(now())
+  hub       KnowledgeHub @relation(fields: [hubId], references: [id], onDelete: Cascade)
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([hubId, userId])
+  @@map("knowledge_hub_members")
+}
+
+model KnowledgeHubStack {
+  id      String       @id @default(cuid())
+  hubId   String
+  stackId String
+  addedAt DateTime     @default(now())
+  hub     KnowledgeHub @relation(fields: [hubId], references: [id], onDelete: Cascade)
+  stack   Stack        @relation(fields: [stackId], references: [id], onDelete: Cascade)
+
+  @@unique([hubId, stackId])
+  @@map("knowledge_hub_stacks")
+}
+
+// ─── Agent Projects & Workspace ───────────────────────────────────────────────
+
+model AgentProject {
+  id          String            @id @default(cuid())
+  userId      String
+  title       String
+  subject     String?
+  deadline    DateTime?
+  status      String            @default("todo")
+  priority    String            @default("medium")
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks       AgentProjectTask[]
+
+  @@map("agent_projects")
+}
+
+model AgentProjectTask {
+  id        String       @id @default(cuid())
+  projectId String
+  label     String
+  done      Boolean      @default(false)
+  order     Int          @default(0)
+  project   AgentProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("agent_project_tasks")
+}
+
+model AgentWorkspaceItem {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  content   String
+  type      String   @default("note")
+  pinned    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("agent_workspace_items")
+}
+
+model AgentScheduleSession {
+  id          String   @id @default(cuid())
+  userId      String
+  title       String
+  subject     String?
+  date        DateTime
+  duration    Int      @default(60)
+  completed   Boolean  @default(false)
+  notes       String?
+  stackId     String?
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("agent_schedule_sessions")
+}
+
+// ─── Articles ─────────────────────────────────────────────────────────────────
+
+model Article {
+  id          String           @id @default(cuid())
+  slug        String           @unique
+  title       String
+  summary     String?
+  authorId    String
+  price       Float            @default(0)
+  isPaid      Boolean          @default(false)
+  isPublished Boolean          @default(false)
+  coverImage  String?
+  views       Int              @default(0)
+  tags        String[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  author      User             @relation("ArticleAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  editions    ArticleEdition[]
+  purchases   ArticlePurchase[]
+
+  @@map("articles")
+}
+
+model ArticleEdition {
+  id          String             @id @default(cuid())
+  articleId   String
+  number      Int
+  label       String
+  content     String
+  connectors  ArticleConnector[]
+  publishedAt DateTime           @default(now())
+  article     Article            @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([articleId, number])
+  @@map("article_editions")
+}
+
+model ArticleConnector {
+  id           String         @id @default(cuid())
+  editionId    String
+  textAnchorId String
+  imageNodeId  String
+  edition      ArticleEdition @relation(fields: [editionId], references: [id], onDelete: Cascade)
+
+  @@map("article_connectors")
+}
+
+model ArticlePurchase {
+  id        String   @id @default(cuid())
+  userId    String
+  articleId String
+  amount    Float    @default(0)
+  paidAt    DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, articleId])
+  @@map("article_purchases")
+}
+
+// ─── Platform agent conversations (existing, unchanged) ───────────────────────
 
 model AgentConversation {
   id        String         @id @default(cuid())

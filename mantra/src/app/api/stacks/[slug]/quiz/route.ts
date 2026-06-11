@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import Groq from "groq-sdk";
 
 const QUIZ_CREDIT_COST = 5;
 
 function getGroq() {
+  const Groq = require("groq-sdk");
   return new Groq({ apiKey: process.env.GROQ_API_KEY ?? "" });
 }
 

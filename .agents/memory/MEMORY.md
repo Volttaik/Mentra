@@ -3,3 +3,4 @@
 - [Mentra AI features pattern](mentra-ai-features.md) — Groq must use lazy init (getGroq() fn) to avoid SIGBUS at module load; credits system fully wired
 - [Mentra four-feature build](mentra-features.md) — Stack Flows, Communities, AI Agent (FloatingAgent), WhatsApp Gateway (/connector pw: liquid4*) all built and compiling
 - [Mentra theme system](mentra-theme.md) — ThemeApplier.tsx applies CSS vars at runtime from localStorage; API /api/theme GET/PUT; StudioTab in settings; 6 palettes, useSearchParams must use window.location.search in useEffect not useSearchParams hook
+- [Mentra Vercel build fixes](mentra-vercel-build.md) — useSearchParams without Suspense is a hard Next.js 14 build error; all pages using it must wrap inner component in Suspense

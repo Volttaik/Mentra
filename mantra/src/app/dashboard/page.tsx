@@ -7,6 +7,7 @@ import {
   BookOpen, Star, GitFork, Plus, Bell, Activity,
   ChevronRight, Bookmark, CheckCircle, MessageSquare,
   Users, Eye, Loader2, BookMarked, FolderOpen, Trash2, Camera,
+  Brain, PenLine, ArrowRight,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import ContributionGraph from "@/components/ui/ContributionGraph";
@@ -632,6 +633,9 @@ export default function DashboardPage() {
                 {[
                   { href: "/upload",   icon: Plus,     color: "bg-secondary-container", iconColor: "text-on-secondary-container", label: "Create a stack",   sub: "Share your academic knowledge" },
                   { href: "/explore",  icon: Activity, color: "bg-surface-container-high", iconColor: "text-on-surface-variant",   label: "Explore stacks",  sub: "Discover community content" },
+                  { href: "/agents",   icon: Brain,    color: "bg-secondary-container/60", iconColor: "text-on-secondary-container", label: "Mentra Agents",  sub: "Build & chat with custom AI agents" },
+                  { href: "/editor",   icon: PenLine,  color: "bg-surface-container-high", iconColor: "text-on-surface-variant",   label: "Write Article",   sub: "Author with Mentra Editor" },
+                  { href: "/articles", icon: BookOpen, color: "bg-surface-container-high", iconColor: "text-on-surface-variant",   label: "Browse Articles", sub: "Read & buy written knowledge" },
                   { href: session?.user ? `/profile/${(session.user as any)?.username ?? ""}` : "/dashboard", icon: Bookmark, color: "bg-surface-container-high", iconColor: "text-on-surface-variant", label: "View profile", sub: "See your public profile" },
                 ].map(item => (
                   <Link
@@ -648,6 +652,30 @@ export default function DashboardPage() {
                     </div>
                   </Link>
                 ))}
+              </div>
+            </div>
+
+            {/* Mentra Agents card */}
+            <div className="card p-5 bg-gradient-to-br from-secondary-container/30 to-primary-container/20 border-secondary/10">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl bg-secondary-container/60 flex items-center justify-center">
+                    <Brain className="w-4 h-4 text-on-secondary-container" />
+                  </div>
+                  <h3 className="font-manrope font-semibold text-sm text-primary">Mentra Agents</h3>
+                </div>
+                <Link href="/agents" className="text-xs text-secondary font-medium hover:underline flex items-center gap-1">
+                  Open <ArrowRight className="w-3 h-3" />
+                </Link>
+              </div>
+              <p className="text-xs text-on-surface-variant mb-3">Create AI agents that know your stacks, flows, and articles. First agent is free.</p>
+              <div className="grid grid-cols-2 gap-2">
+                <Link href="/agents" className="flex items-center gap-2 text-xs text-on-surface-variant bg-surface-container/60 px-3 py-2 rounded-lg hover:bg-surface-container transition-colors">
+                  <Brain className="w-3 h-3 text-secondary" /> My Agents
+                </Link>
+                <Link href="/agents/hubs" className="flex items-center gap-2 text-xs text-on-surface-variant bg-surface-container/60 px-3 py-2 rounded-lg hover:bg-surface-container transition-colors">
+                  <BookOpen className="w-3 h-3 text-secondary" /> Knowledge Hubs
+                </Link>
               </div>
             </div>
           </div>
