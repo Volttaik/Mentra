@@ -13,6 +13,7 @@ import Navbar from "@/components/layout/Navbar";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { VerbThinkingIndicator, CopyBtn, renderMessage } from "@/components/chat/ChatPrimitives";
+import ChatBackground from "@/components/chat/ChatBackground";
 
 interface Message {
   id: string;
@@ -211,7 +212,8 @@ function AgentChatInner() {
         </AnimatePresence>
 
         {/* Chat area */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col overflow-hidden relative">
+          <ChatBackground />
           {/* Header */}
           <div className="flex items-center gap-3 px-4 py-3 border-b border-outline-variant/10 bg-surface-container-low/80 backdrop-blur-sm shrink-0">
             <button onClick={() => setSidebarOpen(v => !v)} className="text-on-surface-variant hover:text-on-surface transition-colors">

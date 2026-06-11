@@ -13,6 +13,7 @@ import {
 import Navbar from "@/components/layout/Navbar";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { CHAT_BG_OPTIONS } from "@/components/chat/ChatBackground";
 
 const NOTIFICATION_PREFS = [
   { key: "stars", label: "Someone stars your stack" },
@@ -284,6 +285,7 @@ const DEFAULT_STUDIO = {
   density: "comfortable", animations: "on",
   customSecondary: "", customBg: "",
   hideStats: false, hideGraph: false, hideNotifs: false,
+  chatBg: "none",
 };
 
 function ToggleRow({ label, desc, value, onChange }: { label: string; desc?: string; value: boolean; onChange: (v: boolean) => void }) {
@@ -650,6 +652,39 @@ function StudioTab() {
           value={!config.hideNotifs}
           onChange={v => set("hideNotifs", !v)}
         />
+      </div>
+
+      {/* ── CHAT BACKGROUNDS ── */}
+      <div className="card p-5">
+        <div className="flex items-center gap-2 mb-1">
+          <Monitor className="w-4 h-4 text-secondary" />
+          <h3 className="font-manrope font-semibold text-base text-primary">Chat Backgrounds</h3>
+        </div>
+        <p className="text-xs text-on-surface-variant mb-4">Choose a decorative background for all your chat windows — community chat, AI assistant, and custom agents.</p>
+        <div className="grid grid-cols-4 gap-2.5">
+          {CHAT_BG_OPTIONS.map(opt => (
+            <button
+              key={opt.id}
+              onClick={() => set("chatBg", opt.id)}
+              title={opt.description}
+              className={cn(
+                "group flex flex-col gap-1.5 rounded-xl border-2 overflow-hidden transition-all hover:scale-[1.03]",
+                config.chatBg === opt.id
+                  ? "border-secondary shadow-md"
+                  : "border-outline-variant/20 hover:border-outline/40"
+              )}
+            >
+              <div className="h-12 w-full bg-surface-container overflow-hidden rounded-t-lg">
+                {opt.thumbnail}
+              </div>
+              <div className="px-2 pb-2">
+                <p className={cn("text-[11px] font-semibold truncate text-left transition-colors",
+                  config.chatBg === opt.id ? "text-secondary" : "text-on-surface-variant group-hover:text-on-surface"
+                )}>{opt.label}</p>
+              </div>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* ── ACTIONS ── */}

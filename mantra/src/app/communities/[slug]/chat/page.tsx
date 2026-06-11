@@ -12,6 +12,7 @@ import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
 import { cn } from "@/lib/utils";
 import { timeAgo } from "@/lib/utils";
+import ChatBackground from "@/components/chat/ChatBackground";
 
 interface ChatMessage {
   id: string;
@@ -191,7 +192,8 @@ export default function CommunityChatPage() {
     <div className="h-screen flex flex-col bg-background overflow-hidden">
       <Navbar />
 
-      <div className="flex-1 flex flex-col max-w-3xl mx-auto w-full min-h-0">
+      <div className="flex-1 flex flex-col max-w-3xl mx-auto w-full min-h-0 relative">
+        <ChatBackground />
         {/* Header */}
         <div className="px-4 py-3 border-b border-outline-variant/10 flex items-center gap-3 bg-surface-container-low shrink-0">
           <button

@@ -12,6 +12,7 @@ import {
 import { cn } from "@/lib/utils";
 import Navbar from "@/components/layout/Navbar";
 import { VerbThinkingIndicator, CopyBtn, renderMessage } from "@/components/chat/ChatPrimitives";
+import ChatBackground from "@/components/chat/ChatBackground";
 
 interface Message {
   id?: string;
@@ -302,7 +303,8 @@ export default function AgentPage() {
         </AnimatePresence>
 
         {/* Main chat area */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col overflow-hidden relative">
+          <ChatBackground />
           {/* Header */}
           <div className="flex items-center gap-3 px-4 py-3 border-b border-outline-variant/10 shrink-0">
             <button onClick={() => router.back()} className="p-1.5 rounded-xl hover:bg-surface-container text-on-surface-variant transition-colors">
