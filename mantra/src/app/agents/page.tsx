@@ -70,7 +70,7 @@ function AgentCard({ agent, index, onDelete }: { agent: Agent; index: number; on
     >
       <div className="flex items-start justify-between mb-4">
         <AgentAvatar agent={agent} size={44} />
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex items-center gap-1">
           <button onClick={e => { e.stopPropagation(); router.push(`/agents/${agent.id}/settings`); }} className="w-7 h-7 rounded-lg bg-surface-container hover:bg-surface-container-high flex items-center justify-center text-on-surface-variant transition-colors">
             <Settings className="h-3.5 w-3.5" strokeWidth={1.5} />
           </button>
