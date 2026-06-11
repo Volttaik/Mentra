@@ -168,7 +168,7 @@ export default function CommunityChatPage() {
         <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center p-6">
           <AlertCircle className="w-10 h-10 text-outline-variant" />
           <p className="text-on-surface-variant">Sign in to access community chat.</p>
-          <Link href="/auth/signin" className="px-5 py-2.5 bg-primary text-on-primary rounded-xl text-sm font-semibold">Sign in</Link>
+          <Link href="/auth/signin" className="btn-primary">Sign in</Link>
         </div>
       </div>
     );
@@ -181,7 +181,7 @@ export default function CommunityChatPage() {
         <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center p-6">
           <AlertCircle className="w-10 h-10 text-outline-variant" />
           <p className="text-on-surface-variant">You need to be a member to view this community&apos;s chat.</p>
-          <button onClick={() => router.push(`/communities/${slug}`)} className="px-5 py-2.5 bg-secondary text-on-secondary rounded-xl text-sm font-semibold">View community</button>
+          <button onClick={() => router.push(`/communities/${slug}`)} className="btn-primary">View community</button>
         </div>
       </div>
     );

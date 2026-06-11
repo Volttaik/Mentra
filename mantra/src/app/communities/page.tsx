@@ -64,7 +64,7 @@ export default function CommunitiesPage() {
           {session?.user && (
             <button
               onClick={() => setShowCreate(true)}
-              className="flex items-center gap-2 bg-secondary text-on-secondary px-4 py-2.5 rounded-xl text-sm font-semibold font-manrope hover:opacity-90 transition-all shadow-sm"
+              className="btn-primary"
             >
               <Plus className="w-4 h-4" />New
             </button>
@@ -114,7 +114,7 @@ export default function CommunitiesPage() {
               {session?.user ? "Create a community or get invited by peers." : "Sign in to create or join communities."}
             </p>
             {!session?.user && (
-              <Link href="/login" className="inline-flex items-center gap-2 bg-primary text-on-primary px-5 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-all">
+              <Link href="/login" className="btn-primary">
                 Sign in
               </Link>
             )}

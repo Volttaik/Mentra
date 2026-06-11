@@ -837,7 +837,7 @@ export default function CommunityPage() {
                   <button
                     onClick={saveSettings}
                     disabled={saving}
-                    className="w-full py-3 bg-secondary text-on-secondary rounded-xl text-sm font-semibold font-manrope hover:opacity-90 transition-all disabled:opacity-60"
+                    className="w-full py-2 bg-secondary text-on-secondary rounded-xl text-xs font-semibold font-manrope hover:opacity-90 transition-all disabled:opacity-60"
                   >
                     {saving ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Save Changes"}
                   </button>

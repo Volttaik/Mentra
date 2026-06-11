@@ -582,7 +582,7 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
                 href="/register"
-                className="inline-flex items-center gap-2 bg-primary text-on-primary px-8 py-4 rounded-2xl font-semibold font-manrope text-base hover:opacity-90 transition-opacity shadow-card active:scale-[0.98]"
+                className="inline-flex items-center gap-2 bg-primary text-on-primary px-5 py-2.5 rounded-xl font-semibold font-manrope text-sm hover:opacity-90 transition-opacity shadow-card active:scale-[0.98]"
               >
                 Create your first stack <ArrowRight className="w-5 h-5" />
               </Link>

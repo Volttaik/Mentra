@@ -93,9 +93,9 @@ export default function ForksPage() {
           </div>
           <Link
             href="/explore"
-            className="flex items-center gap-1.5 px-4 py-2 bg-secondary text-on-secondary rounded-xl text-sm font-medium hover:opacity-90 transition-opacity"
+            className="btn-primary"
           >
-            <ExternalLink className="w-3.5 h-3.5" /> Explore stacks
+            <ExternalLink className="w-3 h-3" /> Explore stacks
           </Link>
         </div>
 
@@ -118,7 +118,7 @@ export default function ForksPage() {
             </p>
             <Link
               href="/explore"
-              className="mt-5 px-5 py-2 bg-secondary text-on-secondary rounded-xl text-sm font-medium hover:opacity-90 transition-opacity"
+              className="btn-primary mt-4"
             >
               Browse stacks to fork
             </Link>

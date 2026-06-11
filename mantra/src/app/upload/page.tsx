@@ -462,7 +462,7 @@ export default function UploadPage() {
                     key={String(opt.value)}
                     onClick={() => update("isPublic", opt.value)}
                     className={cn(
-                      "flex-1 py-3 rounded-xl text-sm font-semibold font-manrope flex items-center justify-center gap-2 transition-all border",
+                      "flex-1 py-2 rounded-xl text-xs font-semibold font-manrope flex items-center justify-center gap-1.5 transition-all border",
                       form.isPublic === opt.value
                         ? "bg-secondary-container border-secondary/30 text-on-secondary-container"
                         : "border-outline-variant/30 text-on-surface-variant hover:bg-surface-container"
@@ -753,7 +753,7 @@ export default function UploadPage() {
                     key={String(opt.value)}
                     onClick={() => update("isPaid", opt.value)}
                     className={cn(
-                      "flex-1 py-2.5 rounded-xl text-sm font-semibold font-manrope transition-all border",
+                      "flex-1 py-2 rounded-xl text-xs font-semibold font-manrope transition-all border",
                       form.isPaid === opt.value
                         ? "bg-secondary-container border-secondary/30 text-on-secondary-container"
                         : "border-outline-variant/30 text-on-surface-variant hover:bg-surface-container"
@@ -897,7 +897,7 @@ export default function UploadPage() {
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col gap-3">
                 <button
                   onClick={() => router.push(`/stacks/${processing.stackSlug}`)}
-                  className="w-full flex items-center justify-center gap-2 bg-primary text-on-primary py-3.5 rounded-xl font-semibold font-manrope hover:opacity-90 transition-all"
+                  className="w-full flex items-center justify-center gap-2 bg-primary text-on-primary py-2.5 rounded-xl font-semibold font-manrope text-sm hover:opacity-90 transition-all"
                 >
                   View your stack <ChevronRight className="w-4 h-4" />
                 </button>

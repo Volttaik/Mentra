@@ -293,7 +293,7 @@ export default function AgentsPage() {
             <h1 className="text-2xl font-bold font-manrope text-on-surface">Mentra Agents</h1>
             <p className="text-sm text-on-surface-variant mt-1">Build AI agents that know your stacks, flows, and articles</p>
           </div>
-          <motion.button onClick={() => setShowCreate(true)} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="btn-primary px-5 py-2.5 text-sm gap-2">
+          <motion.button onClick={() => setShowCreate(true)} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="btn-primary">
             <Plus className="h-4 w-4" /> New Agent
           </motion.button>
         </div>

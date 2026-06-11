@@ -108,7 +108,7 @@ export default function ForgotPasswordPage() {
                 <button
                   onClick={handleSendCode}
                   disabled={loading}
-                  className="w-full flex items-center justify-center gap-2 bg-primary text-on-primary py-3.5 rounded-xl font-semibold font-manrope text-sm hover:opacity-90 disabled:opacity-60 transition-all mt-2"
+                  className="w-full flex items-center justify-center gap-2 bg-primary text-on-primary py-2.5 rounded-xl font-semibold font-manrope text-sm hover:opacity-90 disabled:opacity-60 transition-all mt-2"
                 >
                   {loading ? <div className="w-5 h-5 border-2 border-on-primary/30 border-t-on-primary rounded-full animate-spin" /> : <>Send reset code <ArrowRight className="w-4 h-4" /></>}
                 </button>
@@ -174,7 +174,7 @@ export default function ForgotPasswordPage() {
                 <button
                   onClick={handleResetPassword}
                   disabled={loading || code.length < 6 || newPassword.length < 8}
-                  className="w-full flex items-center justify-center gap-2 bg-primary text-on-primary py-3.5 rounded-xl font-semibold font-manrope text-sm hover:opacity-90 disabled:opacity-60 transition-all"
+                  className="w-full flex items-center justify-center gap-2 bg-primary text-on-primary py-2.5 rounded-xl font-semibold font-manrope text-sm hover:opacity-90 disabled:opacity-60 transition-all"
                 >
                   {loading ? <div className="w-5 h-5 border-2 border-on-primary/30 border-t-on-primary rounded-full animate-spin" /> : <>Reset password <ArrowRight className="w-4 h-4" /></>}
                 </button>
@@ -197,7 +197,7 @@ export default function ForgotPasswordPage() {
                 </div>
                 <button
                   onClick={() => router.push("/login")}
-                  className="w-full flex items-center justify-center gap-2 bg-primary text-on-primary py-3.5 rounded-xl font-semibold font-manrope text-sm hover:opacity-90 transition-all"
+                  className="w-full flex items-center justify-center gap-2 bg-primary text-on-primary py-2.5 rounded-xl font-semibold font-manrope text-sm hover:opacity-90 transition-all"
                 >
                   Sign in <ArrowRight className="w-4 h-4" />
                 </button>

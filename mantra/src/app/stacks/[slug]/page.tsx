@@ -654,7 +654,7 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                       onClick={handleBookmark}
                       disabled={actionLoading === "bookmark"}
                       className={cn(
-                        "flex-1 flex items-center justify-center py-2.5 rounded-xl transition-all border",
+                        "flex-1 flex items-center justify-center py-2 rounded-xl transition-all border",
                         isBookmarked
                           ? "bg-secondary-container border-secondary/30 text-on-secondary-container"
                           : "border-outline-variant/30 text-on-surface-variant hover:bg-surface-container"
@@ -665,7 +665,7 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                     </button>
                     <button
                       onClick={handleShare}
-                      className="flex-1 flex items-center justify-center py-2.5 rounded-xl border border-outline-variant/30 text-on-surface-variant hover:bg-surface-container transition-all"
+                      className="flex-1 flex items-center justify-center py-2 rounded-xl border border-outline-variant/30 text-on-surface-variant hover:bg-surface-container transition-all"
                       title="Copy link"
                     >
                       {copied ? <Check className="w-4 h-4 text-secondary" /> : <Share2 className="w-4 h-4" />}
@@ -1087,12 +1087,12 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                   {session?.user ? (
                     <button
                       onClick={() => setShowDiscModal(true)}
-                      className="flex items-center gap-2 bg-primary text-on-primary px-4 py-2.5 rounded-xl text-sm font-semibold font-manrope hover:opacity-90 transition-all"
+                      className="btn-primary"
                     >
                       <Plus className="w-4 h-4" />New Discussion
                     </button>
                   ) : (
-                    <Link href={`/login?callbackUrl=/stacks/${slug}`} className="flex items-center gap-2 bg-primary text-on-primary px-4 py-2.5 rounded-xl text-sm font-semibold font-manrope hover:opacity-90 transition-all">
+                    <Link href={`/login?callbackUrl=/stacks/${slug}`} className="btn-primary">
                       Sign in to discuss
                     </Link>
                   )}
@@ -1227,7 +1227,7 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                     <BrainCircuit className="w-10 h-10 text-outline-variant mx-auto mb-3" />
                     <p className="font-manrope font-semibold text-primary mb-1">Sign in to access quizzes</p>
                     <p className="text-sm text-on-surface-variant mb-5">Sign in to take quizzes and track your progress.</p>
-                    <Link href={`/login?callbackUrl=/stacks/${slug}`} className="inline-flex items-center gap-2 bg-primary text-on-primary px-5 py-2.5 rounded-xl text-sm font-semibold font-manrope hover:opacity-90 transition-all">
+                    <Link href={`/login?callbackUrl=/stacks/${slug}`} className="btn-primary">
                       Sign in
                     </Link>
                   </div>
@@ -1329,7 +1329,7 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                 <button
                   onClick={handleCreateDiscussion}
                   disabled={submittingDisc || !discTitle.trim()}
-                  className="flex items-center gap-2 bg-primary text-on-primary px-5 py-2 rounded-xl text-sm font-semibold font-manrope hover:opacity-90 disabled:opacity-60 transition-all"
+                  className="btn-primary"
                 >
                   {submittingDisc ? <Loader2 className="w-4 h-4 animate-spin" /> : "Post discussion"}
                 </button>
@@ -1410,7 +1410,7 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                 <button
                   onClick={handleEditStack}
                   disabled={savingEdit}
-                  className="flex items-center gap-2 bg-primary text-on-primary px-6 py-2.5 rounded-xl text-sm font-semibold font-manrope hover:opacity-90 disabled:opacity-60 transition-all"
+                  className="btn-primary"
                 >
                   {savingEdit ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4" />Save changes</>}
                 </button>
@@ -1444,7 +1444,7 @@ export default function StackPage({ params }: { params: { slug: string } }) {
               <button
                 onClick={handleDeleteStack}
                 disabled={deletingStack}
-                className="flex items-center gap-2 bg-error text-on-error px-5 py-2 rounded-xl text-sm font-semibold font-manrope hover:opacity-90 disabled:opacity-60 transition-all"
+                className="inline-flex items-center gap-1.5 bg-error text-on-error px-3 py-1.5 rounded-lg text-xs font-semibold font-manrope hover:opacity-90 disabled:opacity-60 transition-all"
               >
                 {deletingStack ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Trash2 className="w-4 h-4" />Delete permanently</>}
               </button>

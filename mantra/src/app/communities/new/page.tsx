@@ -183,14 +183,14 @@ export default function NewCommunityPage() {
           <div className="flex items-center gap-3 justify-end">
             <Link
               href="/communities"
-              className="px-5 py-2.5 border border-outline-variant/30 text-on-surface-variant rounded-xl text-sm hover:bg-surface-container transition-colors"
+              className="btn-secondary"
             >
               Cancel
             </Link>
             <button
               onClick={handleCreate}
               disabled={creating || !name.trim()}
-              className="flex items-center gap-2 px-6 py-2.5 bg-secondary text-on-secondary rounded-xl text-sm font-semibold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+              className="btn-primary"
             >
               {creating ? (
                 <><Loader2 className="w-4 h-4 animate-spin" /> Creating…</>
