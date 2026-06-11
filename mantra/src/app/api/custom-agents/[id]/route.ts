@@ -34,6 +34,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       ...(body.personality !== undefined && { personality: body.personality }),
       ...(body.description !== undefined && { description: body.description }),
       ...(body.avatarUrl !== undefined && { avatarUrl: body.avatarUrl }),
+      ...(body.isPublished !== undefined && { isPublished: body.isPublished }),
     },
   });
   return NextResponse.json({ updated: agent.count > 0 });

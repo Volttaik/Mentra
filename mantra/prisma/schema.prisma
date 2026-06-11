@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "cockroachdb"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -65,6 +65,7 @@ model User {
   articles           Article[]           @relation("ArticleAuthor")
   articlePurchases   ArticlePurchase[]
   customAgentConversations CustomAgentConversation[]
+  whatsAppAgentCodes       WhatsAppAgentCode[]
   adminOfCommunities Community[]      @relation("CommunityAdmin")
   communityMemberships CommunityMember[]
   communityStacksAdded CommunityStack[] @relation("CommunityStackContributor")
@@ -653,6 +654,7 @@ model CustomAgent {
   conversations  CustomAgentConversation[]
   subscriptions  AgentSubscription[]
   listing        AgentListing?
+  whatsAppCodes  WhatsAppAgentCode[]
 
   @@map("custom_agents")
 }
@@ -893,6 +895,23 @@ model ArticlePurchase {
 
   @@unique([userId, articleId])
   @@map("article_purchases")
+}
+
+// ─── WhatsApp Agent Codes ─────────────────────────────────────────────────────
+
+model WhatsAppAgentCode {
+  id          Int       @id @default(autoincrement())
+  code        String    @unique
+  agentId     String
+  userId      String
+  used        Boolean   @default(false)
+  phoneNumber String?
+  usedAt      DateTime?
+  createdAt   DateTime  @default(now())
+  agent       CustomAgent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("whatsapp_agent_codes")
 }
 
 // ─── Platform agent conversations (existing, unchanged) ───────────────────────

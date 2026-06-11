@@ -36,6 +36,8 @@ const NAV_ITEMS = [
   { label: "Projects", href: "/agents/projects", icon: FolderKanban },
   { label: "Workspace", href: "/agents/workspace", icon: LayoutGrid },
   { label: "Schedule", href: "/agents/schedule", icon: Calendar },
+  { label: "Analytics", href: "/agents/analytics", icon: Cpu },
+  { label: "WhatsApp", href: "/agents/whatsapp", icon: MessageSquare },
   { label: "Marketplace", href: "/agents/marketplace", icon: Globe },
 ];
 

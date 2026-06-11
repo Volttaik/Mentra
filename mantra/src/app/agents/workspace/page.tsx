@@ -4,17 +4,19 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { LayoutGrid, Plus, Pin, Trash2, X, Edit3, Save } from "lucide-react";
+import { LayoutGrid, Plus, Pin, Trash2, X, Edit3, Save, Brain, BookOpen, FolderKanban, Calendar, BarChart2, MessageCircle } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
-  { label: "My Agents", href: "/agents" },
-  { label: "Knowledge Hubs", href: "/agents/hubs" },
-  { label: "Projects", href: "/agents/projects" },
-  { label: "Workspace", href: "/agents/workspace" },
-  { label: "Schedule", href: "/agents/schedule" },
+  { label: "My Agents", href: "/agents", icon: Brain },
+  { label: "Knowledge Hubs", href: "/agents/hubs", icon: BookOpen },
+  { label: "Projects", href: "/agents/projects", icon: FolderKanban },
+  { label: "Workspace", href: "/agents/workspace", icon: LayoutGrid },
+  { label: "Schedule", href: "/agents/schedule", icon: Calendar },
+  { label: "Analytics", href: "/agents/analytics", icon: BarChart2 },
+  { label: "WhatsApp", href: "/agents/whatsapp", icon: MessageCircle },
 ];
 
 interface WorkspaceItem { id: string; title: string; content: string; type: string; pinned: boolean; updatedAt: string; }
@@ -64,7 +66,18 @@ export default function AgentWorkspacePage() {
       <Navbar />
       <div className="max-w-7xl mx-auto px-4 pt-8 pb-20">
         <div className="flex items-center gap-1 mb-8 overflow-x-auto no-scrollbar pb-1">
-          {NAV_ITEMS.map(item => <Link key={item.href} href={item.href} className={cn("px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all", item.href === "/agents/workspace" ? "bg-secondary-container/60 text-on-secondary-container" : "text-on-surface-variant hover:bg-surface-container hover:text-on-surface")}>{item.label}</Link>)}
+          {NAV_ITEMS.map(item => {
+            const Icon = item.icon;
+            const active = item.href === "/agents/workspace";
+            return (
+              <Link key={item.href} href={item.href}
+                className={cn("flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all", active
+                  ? "bg-secondary-container/60 text-on-secondary-container"
+                  : "text-on-surface-variant hover:bg-surface-container hover:text-on-surface")}>
+                <Icon className="h-3.5 w-3.5 shrink-0" /><span>{item.label}</span>
+              </Link>
+            );
+          })}
         </div>
         <div className="flex items-center justify-between mb-8">
           <div><h1 className="text-lg font-bold font-manrope text-on-surface">Workspace</h1><p className="text-xs text-on-surface-variant mt-0.5">Notes, ideas, references, and summaries</p></div>

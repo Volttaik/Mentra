@@ -86,7 +86,7 @@ function AgentChatInner() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(() => typeof window !== "undefined" ? window.innerWidth >= 768 : true);
   const [uploading, setUploading] = useState(false);
   const [knowledgeOpen, setKnowledgeOpen] = useState(false);
   const [loadingMsgs, setLoadingMsgs] = useState(false);
@@ -184,11 +184,16 @@ function AgentChatInner() {
       <Navbar />
       <div className="flex flex-1 overflow-hidden" style={{ height: "calc(100vh - 64px)", marginTop: "64px", position: "fixed", top: 0, left: 0, right: 0, bottom: 0 }}>
 
+        {/* Sidebar overlay backdrop on mobile */}
+        {sidebarOpen && (
+          <div className="md:hidden fixed inset-0 bg-black/40 z-10" onClick={() => setSidebarOpen(false)} />
+        )}
+
         {/* Sidebar */}
         <AnimatePresence>
           {sidebarOpen && (
-            <motion.aside initial={{ width: 0, opacity: 0 }} animate={{ width: 280, opacity: 1 }} exit={{ width: 0, opacity: 0 }} transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-              className="h-full elevated-surface border-r border-outline-variant/20 flex flex-col overflow-hidden shrink-0">
+            <motion.aside initial={{ x: -300, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -300, opacity: 0 }} transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+              className="h-full elevated-surface border-r border-outline-variant/20 flex flex-col overflow-hidden shrink-0 md:relative fixed left-0 top-0 bottom-0 z-20" style={{ width: 280 }}>
               <div className="p-4 border-b border-outline-variant/15">
                 <Link href="/agents" className="flex items-center gap-2 text-on-surface-variant hover:text-on-surface transition-colors mb-4 text-sm">
                   <ChevronLeft className="h-4 w-4" /> All Agents
