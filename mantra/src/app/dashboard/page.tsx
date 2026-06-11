@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import {
   BookOpen, Star, GitFork, Plus, Bell, Activity,
   ChevronRight, Bookmark, CheckCircle, MessageSquare,
-  Users, Eye, Loader2, Zap, FolderOpen,
+  Users, Eye, Loader2, BookMarked, FolderOpen, Trash2, AlertTriangle,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import ContributionGraph from "@/components/ui/ContributionGraph";
@@ -17,6 +17,12 @@ interface Stack {
   id: string; title: string; slug: string; courseCode: string;
   university: string; stars: number; forks: number; modules: { id: string }[];
   updatedDaysAgo: number; tags: string[]; banner?: string | null; profile?: string | null;
+  forkedFromId?: string | null;
+}
+interface ForkedStack {
+  id: string; title: string; slug: string; banner: string | null; profile: string | null;
+  forkedFromId: string | null; createdAt: string; stars: number;
+  forkedFrom: { id: string; title: string; slug: string; ownerName: string; ownerUsername: string } | null;
 }
 interface Notification {
   id: string; type: string; title: string; body: string; read: boolean; createdAt: string; link?: string;
@@ -64,6 +70,7 @@ export default function DashboardPage() {
   const [stats, setStats]                 = useState<Stats>({ stackCount: 0, starsReceived: 0, followerCount: 0, totalViews: 0 });
   const [flows, setFlows]                 = useState<Flow[]>([]);
   const [communities, setCommunities]     = useState<Community[]>([]);
+  const [forkedStacks, setForkedStacks]   = useState<ForkedStack[]>([]);
   const [showCreateFlow, setShowCreateFlow]   = useState(false);
   const [showCreateComm, setShowCreateComm]   = useState(false);
   const [flowName, setFlowName]           = useState("");
@@ -73,6 +80,8 @@ export default function DashboardPage() {
   const [hideStats, setHideStats]         = useState(false);
   const [hideGraph, setHideGraph]         = useState(false);
   const [hideNotifs, setHideNotifs]       = useState(false);
+  const [deletingFork, setDeletingFork]   = useState<string | null>(null);
+  const [confirmDeleteFork, setConfirmDeleteFork] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -95,6 +104,7 @@ export default function DashboardPage() {
         setMyStacks(d.myStacks ?? []);
         setNotifications(d.notifications ?? []);
         setBookmarks(d.bookmarks ?? []);
+        setForkedStacks(d.forkedStacks ?? []);
         setStats(d.stats ?? { stackCount: 0, starsReceived: 0, followerCount: 0, totalViews: 0 });
       })
       .catch(() => {})
@@ -103,6 +113,14 @@ export default function DashboardPage() {
     fetch("/api/flows").then(r => r.json()).then(d => !d.error && setFlows(d)).catch(() => {});
     fetch("/api/communities").then(r => r.json()).then(d => !d.error && setCommunities(d)).catch(() => {});
   }, []);
+
+  const deleteFork = async (slug: string) => {
+    setDeletingFork(slug);
+    await fetch(`/api/stacks/${slug}`, { method: "DELETE" });
+    setForkedStacks(prev => prev.filter(s => s.slug !== slug));
+    setConfirmDeleteFork(null);
+    setDeletingFork(null);
+  };
 
   const createFlow = async () => {
     if (!flowName.trim()) return;
@@ -214,11 +232,70 @@ export default function DashboardPage() {
           )}>
             {!hideGraph && <ContributionGraph totalContributions={stats.totalViews} />}
 
+            {/* Fork Management */}
+            {forkedStacks.length > 0 && (
+              <div>
+                <div className="flex items-center justify-between mb-5">
+                  <h2 className="font-manrope font-semibold text-lg text-primary flex items-center gap-2">
+                    <GitFork className="w-4 h-4 text-secondary" />Fork Management
+                  </h2>
+                  <span className="text-xs text-on-surface-variant bg-surface-container px-2.5 py-1 rounded-full">{forkedStacks.length} fork{forkedStacks.length !== 1 ? "s" : ""}</span>
+                </div>
+                <div className="space-y-2">
+                  {forkedStacks.map(fork => (
+                    <div key={fork.id} className="card-sm p-4 flex items-center gap-4">
+                      {(fork.profile || fork.banner) ? (
+                        <img src={fork.profile ?? fork.banner ?? ""} alt="" className="w-10 h-10 rounded-xl object-cover shrink-0 border border-outline-variant/20" />
+                      ) : (
+                        <div className="w-10 h-10 bg-secondary-container/50 rounded-xl flex items-center justify-center shrink-0">
+                          <GitFork className="w-5 h-5 text-on-secondary-container" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <Link href={`/stacks/${fork.slug}`} className="font-manrope font-semibold text-sm text-primary hover:text-secondary transition-colors truncate block">{fork.title}</Link>
+                        {fork.forkedFrom && (
+                          <p className="text-xs text-on-surface-variant mt-0.5">
+                            Forked from{" "}
+                            <Link href={`/stacks/${fork.forkedFrom.slug}`} className="hover:text-secondary transition-colors">{fork.forkedFrom.title}</Link>
+                            {" "}by{" "}
+                            <Link href={`/profile/${fork.forkedFrom.ownerUsername}`} className="hover:text-secondary transition-colors">{fork.forkedFrom.ownerName}</Link>
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Link href={`/stacks/${fork.slug}/studio`} className="text-xs text-secondary font-medium hover:underline">Edit</Link>
+                        {confirmDeleteFork === fork.slug ? (
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => deleteFork(fork.slug)}
+                              disabled={deletingFork === fork.slug}
+                              className="px-2.5 py-1 bg-error text-on-error rounded-lg text-xs font-semibold hover:opacity-90 disabled:opacity-60"
+                            >
+                              {deletingFork === fork.slug ? "Deleting…" : "Confirm"}
+                            </button>
+                            <button onClick={() => setConfirmDeleteFork(null)} className="px-2.5 py-1 text-xs text-on-surface-variant hover:text-primary rounded-lg hover:bg-surface-container transition-colors">Cancel</button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setConfirmDeleteFork(fork.slug)}
+                            className="p-2 text-on-surface-variant hover:text-error rounded-xl hover:bg-error-container/20 transition-colors"
+                            title="Delete this fork"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Stack Flows */}
             <div>
               <div className="flex items-center justify-between mb-5">
                 <h2 className="font-manrope font-semibold text-lg text-primary flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-secondary" />Stack Flows
+                  <BookMarked className="w-4 h-4 text-secondary" />Stack Flows
                 </h2>
                 <button
                   onClick={() => setShowCreateFlow(true)}
@@ -257,7 +334,7 @@ export default function DashboardPage() {
                   {flows.map(flow => (
                     <Link key={flow.id} href={`/flows/${flow.id}`} className="shrink-0">
                       <div className="w-44 bg-surface-container-low border border-outline-variant/15 rounded-2xl p-4 hover:border-secondary/30 hover:shadow-md transition-all cursor-pointer">
-                        <Zap className="w-5 h-5 text-secondary mb-2" />
+                        <BookMarked className="w-5 h-5 text-secondary mb-2" />
                         <p className="font-manrope font-semibold text-sm text-primary truncate">{flow.name}</p>
                         <p className="text-xs text-on-surface-variant mt-1">{flow._count.items} stack{flow._count.items !== 1 ? "s" : ""}</p>
                         {flow.items.length > 0 && (

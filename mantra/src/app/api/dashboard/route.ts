@@ -28,6 +28,10 @@ function formatStack(s: any, userId: string) {
     lastUpdated: s.updatedAt?.toISOString?.() ?? s.updatedAt,
     isStarred: s.stars?.some((st: any) => st.userId === userId) ?? false,
     isBookmarked: s.bookmarks?.some((b: any) => b.userId === userId) ?? false,
+    banner: s.banner ?? null,
+    profile: s.profile ?? null,
+    forkedFromId: s.forkedFromId ?? null,
+    forkedFrom: s.forkedFrom ?? null,
   };
 }
 
@@ -38,7 +42,7 @@ export async function GET() {
   }
   const userId = session.user.id;
 
-  const [user, myStacks, allNotifs, bookmarks, starsReceived, followerCount, stackCount] =
+  const [user, myStacks, allNotifs, bookmarks, starsReceived, followerCount, stackCount, forkedStacks] =
     await Promise.all([
       prisma.user.findUnique({
         where: { id: userId },
@@ -82,6 +86,19 @@ export async function GET() {
       prisma.stackStar.count({ where: { stack: { ownerId: userId } } }),
       prisma.follow.count({ where: { followingId: userId } }),
       prisma.stack.count({ where: { ownerId: userId } }),
+      prisma.stack.findMany({
+        where: { ownerId: userId, NOT: { forkedFromId: null } },
+        orderBy: { createdAt: "desc" },
+        take: 20,
+        select: {
+          id: true, title: true, slug: true, banner: true, profile: true,
+          forkedFromId: true, createdAt: true,
+          forkedFrom: {
+            select: { id: true, title: true, slug: true, owner: { select: { name: true, username: true } } },
+          },
+          _count: { select: { stars: true } },
+        },
+      }),
     ]);
 
   const unreadCount = allNotifs.filter(n => !n.read).length;
@@ -95,6 +112,23 @@ export async function GET() {
     })),
     unreadCount,
     bookmarks: bookmarks.map(b => formatStack(b.stack, userId)),
+    forkedStacks: forkedStacks.map(s => ({
+      id: s.id,
+      title: s.title,
+      slug: s.slug,
+      banner: s.banner ?? null,
+      profile: s.profile ?? null,
+      forkedFromId: s.forkedFromId,
+      createdAt: (s.createdAt as Date).toISOString(),
+      stars: s._count?.stars ?? 0,
+      forkedFrom: s.forkedFrom ? {
+        id: s.forkedFrom.id,
+        title: s.forkedFrom.title,
+        slug: s.forkedFrom.slug,
+        ownerName: s.forkedFrom.owner.name,
+        ownerUsername: s.forkedFrom.owner.username,
+      } : null,
+    })),
     stats: {
       stackCount,
       starsReceived,

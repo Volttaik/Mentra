@@ -71,7 +71,9 @@ export default function RootLayout({
       <body className="min-h-full antialiased bg-background text-on-background">
         <ThemeProvider>
           <SessionProvider>
-            {children}
+            <div className="pt-16 min-h-screen">
+              {children}
+            </div>
             <MobileNav />
             <PWAInstallPrompt />
             <FloatingAgent />

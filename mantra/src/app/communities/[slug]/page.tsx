@@ -56,6 +56,9 @@ export default function CommunityPage() {
   const [invitedIds, setInvitedIds] = useState<Set<string>>(new Set());
   const [removingStack, setRemovingStack] = useState<string | null>(null);
   const [removingMember, setRemovingMember] = useState<string | null>(null);
+  const [longPressTarget, setLongPressTarget] = useState<string | null>(null);
+  const [banConfirmId, setBanConfirmId] = useState<string | null>(null);
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   const [settingsForm, setSettingsForm] = useState({ name: "", description: "", rules: "" });
   const [saving, setSaving] = useState(false);
   const [showOptionsMenu, setShowOptionsMenu] = useState(false);
@@ -180,6 +183,22 @@ export default function CommunityPage() {
     if (userId === session?.user?.id) { router.push("/dashboard"); return; }
     setCommunity(prev => prev ? { ...prev, members: prev.members.filter(m => m.userId !== userId) } : null);
     setRemovingMember(null);
+    setBanConfirmId(null);
+  };
+
+  const startLongPress = (userId: string) => {
+    longPressTimer.current = setTimeout(() => {
+      setLongPressTarget(userId);
+      setBanConfirmId(userId);
+    }, 600);
+  };
+
+  const cancelLongPress = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+    setLongPressTarget(null);
   };
 
   const saveSettings = async () => {
@@ -663,8 +682,25 @@ export default function CommunityPage() {
             {/* MEMBERS */}
             {activePanel === "members" && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
+                {isAdmin && (
+                  <p className="text-xs text-on-surface-variant/60 text-center py-1">
+                    Long-press any member to remove or ban them from this community.
+                  </p>
+                )}
                 {community.members.map(m => (
-                  <div key={m.id} className="bg-surface-container-low border border-outline-variant/15 rounded-2xl p-4 flex items-center gap-4 shadow-sm">
+                  <div
+                    key={m.id}
+                    className={cn(
+                      "bg-surface-container-low border rounded-2xl p-4 flex items-center gap-4 shadow-sm select-none transition-all",
+                      banConfirmId === m.userId ? "border-error/40 bg-error-container/10" : "border-outline-variant/15",
+                      longPressTarget === m.userId && "scale-[0.98] opacity-80"
+                    )}
+                    onMouseDown={() => isAdmin && m.userId !== session?.user?.id && m.role !== "ADMIN" && startLongPress(m.userId)}
+                    onMouseUp={cancelLongPress}
+                    onMouseLeave={cancelLongPress}
+                    onTouchStart={() => isAdmin && m.userId !== session?.user?.id && m.role !== "ADMIN" && startLongPress(m.userId)}
+                    onTouchEnd={cancelLongPress}
+                  >
                     <div className="w-10 h-10 rounded-full bg-secondary-container overflow-hidden flex items-center justify-center text-sm font-bold font-manrope text-on-secondary-container shrink-0">
                       {m.user.image ? <img src={m.user.image} alt="" className="w-full h-full object-cover" /> : m.user.name.slice(0, 2).toUpperCase()}
                     </div>
@@ -680,14 +716,32 @@ export default function CommunityPage() {
                       <span className="text-[10px] text-on-surface-variant bg-surface-container px-2.5 py-1 rounded-full">Member</span>
                     )}
                     {isAdmin && m.userId !== session?.user?.id && m.role !== "ADMIN" && (
-                      <button
-                        onClick={() => removeMember(m.userId)}
-                        disabled={removingMember === m.userId}
-                        className="p-2 text-on-surface-variant hover:text-error rounded-lg transition-colors"
-                        title="Remove member"
-                      >
-                        {removingMember === m.userId ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UserMinus className="w-3.5 h-3.5" />}
-                      </button>
+                      banConfirmId === m.userId ? (
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <button
+                            onClick={() => removeMember(m.userId)}
+                            disabled={removingMember === m.userId}
+                            className="px-3 py-1.5 bg-error text-on-error rounded-xl text-xs font-semibold hover:opacity-90 disabled:opacity-60"
+                          >
+                            {removingMember === m.userId ? <Loader2 className="w-3 h-3 animate-spin" /> : "Remove"}
+                          </button>
+                          <button
+                            onClick={() => { setBanConfirmId(null); setLongPressTarget(null); }}
+                            className="px-3 py-1.5 border border-outline-variant/30 text-on-surface-variant rounded-xl text-xs hover:bg-surface-container transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => removeMember(m.userId)}
+                          disabled={removingMember === m.userId}
+                          className="p-2 text-on-surface-variant hover:text-error rounded-lg transition-colors shrink-0"
+                          title="Remove member"
+                        >
+                          {removingMember === m.userId ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UserMinus className="w-3.5 h-3.5" />}
+                        </button>
+                      )
                     )}
                   </div>
                 ))}

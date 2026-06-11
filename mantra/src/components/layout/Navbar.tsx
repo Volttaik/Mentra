@@ -7,7 +7,7 @@ import { useSession, signOut } from "next-auth/react";
 import {
   Bell, Search, Menu, X, ChevronDown,
   Upload, Settings, LogOut, User, LayoutDashboard, Moon, Sun,
-  Sparkles, Users, Zap, Compass, Bot, Palette,
+  Sparkles, Users, BookMarked, Compass, Bot, Palette,
   MessageSquarePlus, Coins, PanelLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -102,7 +102,7 @@ export default function Navbar() {
       items: [
         { href: "/upload",              label: "New Stack",     icon: Upload,           desc: "Publish a stack" },
         { href: "/dashboard#community", label: "New Community", icon: MessageSquarePlus, desc: "Start a community" },
-        { href: "/dashboard#flows",     label: "Stack Flows",   icon: Zap,              desc: "Organise collections" },
+        { href: "/dashboard#flows",     label: "Stack Flows",   icon: BookMarked,       desc: "Organise collections" },
       ],
     },
     {
@@ -252,7 +252,7 @@ export default function Navbar() {
   if (navStyle === "sidebar") {
     return (
       <>
-        <header className="sticky top-0 z-50 parchment-blur border-b border-outline-variant/20">
+        <header className="fixed top-0 left-0 right-0 w-full z-50 parchment-blur border-b border-outline-variant/20">
           <nav className="max-w-[1200px] mx-auto px-4 md:px-6 h-16 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               {isAuth && (
@@ -364,7 +364,7 @@ export default function Navbar() {
 
   if (navStyle === "minimal") {
     return (
-      <header className="sticky top-0 z-50 parchment-blur border-b border-outline-variant/20">
+      <header className="fixed top-0 left-0 right-0 w-full z-50 parchment-blur border-b border-outline-variant/20">
         <nav className="max-w-[1200px] mx-auto px-4 md:px-6 h-16 flex items-center justify-between gap-4">
           <Link href="/" className="flex items-center gap-2 shrink-0">
             <img src="/icons/icon-192.png" alt="Mentra" className="w-8 h-8 rounded-lg object-cover" />
@@ -430,7 +430,7 @@ export default function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-50 parchment-blur border-b border-outline-variant/20">
+    <header className="fixed top-0 left-0 right-0 w-full z-50 parchment-blur border-b border-outline-variant/20">
       <nav className="max-w-[1200px] mx-auto px-4 md:px-6 h-16 flex items-center justify-between gap-4">
         <Link href="/" className="flex items-center gap-2 shrink-0">
           <img src="/icons/icon-192.png" alt="Mentra" className="w-8 h-8 rounded-lg object-cover" />

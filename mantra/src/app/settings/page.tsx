@@ -8,7 +8,7 @@ import {
   User, Key, Bell, Shield, Save, Plus, Trash2,
   Copy, Check, Loader2, ArrowLeft, AlertTriangle, Eye, EyeOff,
   Camera, ImageIcon, Sparkles, Palette, PanelLeft, LayoutPanelTop,
-  Monitor, BarChart2, Activity, Zap,
+  Monitor, BarChart2, Activity, ChevronDown, X,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Link from "next/link";
@@ -64,6 +64,153 @@ function NotificationsTab() {
         ))}
       </div>
     </motion.div>
+  );
+}
+
+const ACCENT_COLORS = [
+  "#D4A84B", "#C0392B", "#2980B9", "#27AE60", "#8E44AD",
+  "#E67E22", "#16A085", "#2C3E50", "#E74C3C", "#3498DB",
+  "#9B59B6", "#2ECC71", "#F39C12", "#1ABC9C", "#34495E",
+  "#E91E63", "#00BCD4", "#FF5722", "#795548", "#607D8B",
+];
+
+const BG_COLORS = [
+  "#FFFBF0", "#FFF5F5", "#F0F8FF", "#F0FFF4", "#FAF0FF",
+  "#FFFAF0", "#F5F5DC", "#F0FFFF", "#FFF0F5", "#F5F5F5",
+  "#FAFAFA", "#F8F9FA", "#EDF2F7", "#FEFCE8", "#FFF1F2",
+  "#1A1A2E", "#13100B", "#0F172A", "#111827", "#1E1E2E",
+];
+
+function ColorSwatchPicker({
+  label, value, onChange, colors, clearLabel = "Use palette default",
+}: {
+  label: string; value: string; onChange: (v: string) => void;
+  colors: string[]; clearLabel?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  return (
+    <div className="relative" ref={ref}>
+      <label className="block text-xs font-medium text-on-surface-variant mb-1.5">{label}</label>
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-2 px-3 py-2 bg-surface-container border border-outline-variant/30 rounded-xl hover:border-outline/50 transition-all text-sm w-full"
+      >
+        <div
+          className="w-5 h-5 rounded-full border border-black/10 shadow-sm shrink-0"
+          style={{ backgroundColor: value || "#aaaaaa" }}
+        />
+        <span className="text-xs text-on-surface-variant flex-1 text-left truncate">
+          {value || "Palette default"}
+        </span>
+        <ChevronDown className={cn("w-3.5 h-3.5 text-on-surface-variant/60 transition-transform shrink-0", open && "rotate-180")} />
+      </button>
+      {open && (
+        <div className="absolute top-full left-0 mt-1.5 z-30 bg-surface-container-lowest border border-outline-variant/20 rounded-2xl shadow-modal p-3 w-full min-w-[200px]">
+          <div className="flex flex-wrap gap-2 mb-2">
+            {colors.map(color => (
+              <button
+                key={color}
+                onClick={() => { onChange(color); setOpen(false); }}
+                title={color}
+                className={cn(
+                  "w-7 h-7 rounded-full border-2 transition-all hover:scale-110 shrink-0",
+                  value === color ? "border-on-surface shadow-md scale-110" : "border-transparent hover:border-outline-variant/50"
+                )}
+                style={{ backgroundColor: color }}
+              />
+            ))}
+          </div>
+          {value && (
+            <button
+              onClick={() => { onChange(""); setOpen(false); }}
+              className="flex items-center gap-1 text-xs text-on-surface-variant hover:text-primary w-full pt-2 border-t border-outline-variant/10 transition-colors"
+            >
+              <X className="w-3 h-3" />{clearLabel}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DashboardPreview({ config }: { config: typeof DEFAULT_STUDIO }) {
+  const palette = PALETTES_META.find(p => p.id === config.palette) ?? PALETTES_META[0];
+  const accent = config.customSecondary || palette.colors[1];
+  const bg = config.customBg || palette.colors[2];
+  const isDark = ["#1A1A2E", "#13100B", "#0F172A", "#111827", "#1E1E2E"].includes(bg);
+  const textColor = isDark ? "#ffffff" : "#1a1a1a";
+  const textMuted = isDark ? "#888888" : "#666666";
+  const cardBg = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)";
+
+  return (
+    <div className="card p-5">
+      <div className="flex items-center gap-2 mb-1">
+        <Eye className="w-4 h-4 text-secondary" />
+        <h3 className="font-manrope font-semibold text-base text-primary">Dashboard Preview</h3>
+      </div>
+      <p className="text-xs text-on-surface-variant mb-4">A live preview showing how your dashboard will look with these settings.</p>
+      <div className="rounded-2xl overflow-hidden border border-outline-variant/20" style={{ backgroundColor: bg, fontFamily: "inherit" }}>
+        {/* Mini navbar */}
+        <div className="px-3 py-2 flex items-center gap-2 border-b" style={{ backgroundColor: bg, borderColor: accent + "25" }}>
+          <div className="w-4 h-4 rounded-lg shrink-0" style={{ backgroundColor: accent }} />
+          <span className="font-bold text-[9px]" style={{ color: textColor }}>Mentra</span>
+          <div className="flex gap-2 ml-2">
+            {["Explore", "Communities", "Dashboard"].map(l => (
+              <span key={l} className="text-[8px]" style={{ color: textMuted }}>{l}</span>
+            ))}
+          </div>
+          <div className="ml-auto w-5 h-5 rounded-full border" style={{ backgroundColor: accent + "30", borderColor: accent + "40" }} />
+        </div>
+        {/* Mini content */}
+        <div className="p-3 space-y-2">
+          {/* Stats row */}
+          <div className="grid grid-cols-4 gap-1.5">
+            {["Stacks", "Stars", "Views", "Followers"].map(label => (
+              <div key={label} className="rounded-xl p-1.5" style={{ backgroundColor: cardBg, border: `1px solid ${accent}18` }}>
+                <div className="w-3 h-3 rounded mb-1" style={{ backgroundColor: accent + "30" }} />
+                <div className="h-2 rounded mb-0.5 w-4" style={{ backgroundColor: accent + "80" }} />
+                <div className="h-1 rounded w-5" style={{ backgroundColor: textMuted + "50" }} />
+              </div>
+            ))}
+          </div>
+          {/* Two col */}
+          <div className="grid grid-cols-3 gap-1.5">
+            <div className="col-span-2 space-y-1.5">
+              {[1, 2].map(i => (
+                <div key={i} className="rounded-xl p-2 flex items-center gap-1.5" style={{ backgroundColor: cardBg, border: `1px solid ${accent}18` }}>
+                  <div className="w-5 h-5 rounded-lg shrink-0" style={{ backgroundColor: accent + "25" }} />
+                  <div className="flex-1 space-y-0.5">
+                    <div className="h-1.5 rounded" style={{ backgroundColor: textMuted + "40", width: "70%" }} />
+                    <div className="h-1 rounded" style={{ backgroundColor: textMuted + "25", width: "45%" }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="rounded-xl p-2 space-y-1" style={{ backgroundColor: cardBg, border: `1px solid ${accent}18` }}>
+              <div className="h-1.5 rounded mb-1" style={{ backgroundColor: accent + "40", width: "60%" }} />
+              {[1, 2, 3].map(i => (
+                <div key={i} className="flex items-center gap-1">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: accent + "30" }} />
+                  <div className="h-1 rounded flex-1" style={{ backgroundColor: textMuted + "30" }} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+      <p className="text-[10px] text-on-surface-variant/50 mt-2">This preview updates as you change colors and palette.</p>
+    </div>
   );
 }
 
@@ -185,53 +332,28 @@ function StudioTab() {
         </div>
 
         <SectionLabel>Custom accent color</SectionLabel>
-        <p className="text-xs text-on-surface-variant mb-3">Override the secondary/accent color from your palette.</p>
+        <p className="text-xs text-on-surface-variant mb-3">Pick a custom accent and background color to override the palette.</p>
         <div className="grid grid-cols-2 gap-3 mb-1">
-          <div>
-            <label className="block text-xs font-medium text-on-surface-variant mb-1.5">Accent / Secondary</label>
-            <div className="flex items-center gap-2">
-              <input
-                type="color"
-                value={config.customSecondary || "#D4A84B"}
-                onChange={e => set("customSecondary", e.target.value)}
-                className="w-9 h-9 rounded-xl border border-outline-variant/30 cursor-pointer bg-transparent p-0.5"
-              />
-              <input
-                type="text"
-                value={config.customSecondary}
-                onChange={e => set("customSecondary", e.target.value)}
-                placeholder="e.g. #D4A84B or leave blank"
-                className="flex-1 bg-surface-container border border-outline-variant/30 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-secondary/30"
-              />
-              {config.customSecondary && (
-                <button onClick={() => set("customSecondary", "")} className="text-xs text-on-surface-variant hover:text-primary px-1">✕</button>
-              )}
-            </div>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-on-surface-variant mb-1.5">Background tint</label>
-            <div className="flex items-center gap-2">
-              <input
-                type="color"
-                value={config.customBg || "#FFFBF0"}
-                onChange={e => set("customBg", e.target.value)}
-                className="w-9 h-9 rounded-xl border border-outline-variant/30 cursor-pointer bg-transparent p-0.5"
-              />
-              <input
-                type="text"
-                value={config.customBg}
-                onChange={e => set("customBg", e.target.value)}
-                placeholder="e.g. #F5F5F5 or leave blank"
-                className="flex-1 bg-surface-container border border-outline-variant/30 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-secondary/30"
-              />
-              {config.customBg && (
-                <button onClick={() => set("customBg", "")} className="text-xs text-on-surface-variant hover:text-primary px-1">✕</button>
-              )}
-            </div>
-          </div>
+          <ColorSwatchPicker
+            label="Accent / Secondary"
+            value={config.customSecondary}
+            onChange={v => set("customSecondary", v)}
+            colors={ACCENT_COLORS}
+            clearLabel="Use palette default"
+          />
+          <ColorSwatchPicker
+            label="Background tint"
+            value={config.customBg}
+            onChange={v => set("customBg", v)}
+            colors={BG_COLORS}
+            clearLabel="Use palette default"
+          />
         </div>
         <p className="text-[11px] text-on-surface-variant/50 mt-1">Leave blank to use the palette defaults. Custom colors override the palette.</p>
       </div>
+
+      {/* ── LIVE PREVIEW ── */}
+      <DashboardPreview config={config} />
 
       {/* ── SURFACE STYLE ── */}
       <div className="card p-5">
@@ -415,7 +537,7 @@ function StudioTab() {
       {/* ── DENSITY & ANIMATIONS ── */}
       <div className="card p-5">
         <div className="flex items-center gap-2 mb-4">
-          <Zap className="w-4 h-4 text-secondary" />
+          <Activity className="w-4 h-4 text-secondary" />
           <h3 className="font-manrope font-semibold text-base text-primary">Feel & Motion</h3>
         </div>
         <SectionLabel>Spacing density</SectionLabel>
