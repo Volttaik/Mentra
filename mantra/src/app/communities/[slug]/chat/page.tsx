@@ -317,7 +317,7 @@ export default function CommunityChatPage() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 32 }}
               transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              className="fixed right-0 top-0 h-full w-full max-w-[400px] z-50 flex flex-col bg-background border-l border-outline-variant/20 shadow-2xl"
+              className="fixed right-0 top-0 h-full w-full max-w-[400px] z-[60] flex flex-col bg-background border-l border-outline-variant/20 shadow-2xl"
             >
               {/* AI panel header */}
               <div className="flex items-center gap-3 px-5 py-4 border-b border-outline-variant/10 bg-surface-container-low shrink-0">

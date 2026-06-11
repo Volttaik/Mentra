@@ -13,6 +13,7 @@ export default function MobileNav() {
   const { data: session, status } = useSession();
   const [hidden, setHidden] = useState(false);
   const [showTip, setShowTip] = useState(false);
+  const [navStyle, setNavStyle] = useState("top");
 
   useEffect(() => {
     const seen = localStorage.getItem("nav-tip-seen");
@@ -21,23 +22,30 @@ export default function MobileNav() {
       localStorage.setItem("nav-tip-seen", "1");
       setTimeout(() => setShowTip(false), 3500);
     }
+    try {
+      const cfg = localStorage.getItem("mentra-studio-config");
+      if (cfg) {
+        const parsed = JSON.parse(cfg);
+        if (parsed.navStyle) setNavStyle(parsed.navStyle);
+      }
+    } catch { /* ignore */ }
   }, []);
 
   if (status !== "authenticated") return null;
+  if (navStyle === "sidebar") return null;
 
   const username = (session?.user as any)?.username;
 
   const items = [
-    { href: "/dashboard", icon: Home, label: "Home" },
-    { href: "/explore", icon: Compass, label: "Explore" },
-    { href: "/upload", icon: Plus, label: "Create", special: true },
-    { href: "/dashboard", icon: Bell, label: "Alerts" },
+    { href: "/dashboard", icon: Home,    label: "Home" },
+    { href: "/explore",   icon: Compass, label: "Explore" },
+    { href: "/upload",    icon: Plus,    label: "Create", special: true },
+    { href: "/dashboard", icon: Bell,    label: "Alerts" },
     { href: username ? `/profile/${username}` : "/dashboard", icon: User, label: "Profile" },
   ];
 
   return (
     <>
-      {/* Toggle handle */}
       <div className={cn(
         "fixed z-50 md:hidden flex flex-col items-center transition-all duration-300 ease-in-out",
         hidden ? "bottom-3 left-1/2 -translate-x-1/2" : "bottom-[60px] left-1/2 -translate-x-1/2"
@@ -69,7 +77,6 @@ export default function MobileNav() {
         </button>
       </div>
 
-      {/* Nav */}
       <motion.nav
         animate={{ y: hidden ? "100%" : "0%" }}
         transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}

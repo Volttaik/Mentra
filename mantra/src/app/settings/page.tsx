@@ -7,7 +7,8 @@ import { motion } from "framer-motion";
 import {
   User, Key, Bell, Shield, Save, Plus, Trash2,
   Copy, Check, Loader2, ArrowLeft, AlertTriangle, Eye, EyeOff,
-  Camera, ImageIcon, Sparkles, Palette,
+  Camera, ImageIcon, Sparkles, Palette, PanelLeft, LayoutPanelTop,
+  Monitor, BarChart2, Activity, Zap,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Link from "next/link";
@@ -68,44 +69,64 @@ function NotificationsTab() {
 
 const PALETTES_META = [
   { id: "parchment", name: "Parchment", colors: ["#8B6914", "#D4A84B", "#FFF8E7"] },
-  { id: "ocean", name: "Ocean", colors: ["#1964C8", "#4A9FE0", "#EDF4FF"] },
-  { id: "forest", name: "Forest", colors: ["#1E7338", "#4BAF6A", "#F0FFF4"] },
-  { id: "lavender", name: "Lavender", colors: ["#5A3CC8", "#9F85E0", "#F5F2FF"] },
-  { id: "rose", name: "Rose", colors: ["#B93250", "#E07A8A", "#FFF2F4"] },
-  { id: "slate", name: "Slate", colors: ["#3C506E", "#7B96BE", "#F5F7FA"] },
-];
-const STYLES_META = [
-  { id: "default", name: "Default", desc: "Balanced shadows" },
-  { id: "elevated", name: "Elevated", desc: "Deeper shadows" },
-  { id: "flat", name: "Flat", desc: "No shadows, border-based" },
-];
-const FONTS_META = [
-  { id: "default", name: "Be Vietnam Pro", desc: "Current default" },
-  { id: "manrope", name: "Manrope", desc: "Rounded & geometric" },
-  { id: "inter", name: "Inter", desc: "Classic readable UI font" },
-];
-const RADII_META = [
-  { id: "default", name: "Default", desc: "Comfortable rounding" },
-  { id: "compact", name: "Compact", desc: "Tighter corners" },
-  { id: "rounded", name: "Rounded", desc: "Extra-rounded bubbles" },
-];
-const LAYOUTS_META = [
-  { id: "default", name: "Default", desc: "Main column + sidebar" },
-  { id: "focus", name: "Focus", desc: "Full-width, no sidebar" },
-  { id: "compact", name: "Compact", desc: "Single column, dense" },
+  { id: "ocean",     name: "Ocean",     colors: ["#1964C8", "#4A9FE0", "#EDF4FF"] },
+  { id: "forest",    name: "Forest",    colors: ["#1E7338", "#4BAF6A", "#F0FFF4"] },
+  { id: "lavender",  name: "Lavender",  colors: ["#5A3CC8", "#9F85E0", "#F5F2FF"] },
+  { id: "rose",      name: "Rose",      colors: ["#B93250", "#E07A8A", "#FFF2F4"] },
+  { id: "slate",     name: "Slate",     colors: ["#3C506E", "#7B96BE", "#F5F7FA"] },
 ];
 
+const DEFAULT_STUDIO = {
+  palette: "parchment", style: "default", font: "default",
+  radius: "default", layout: "default", navStyle: "top",
+  density: "comfortable", animations: "on",
+  customSecondary: "", customBg: "",
+  hideStats: false, hideGraph: false, hideNotifs: false,
+};
+
+function ToggleRow({ label, desc, value, onChange }: { label: string; desc?: string; value: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <div className="flex items-center justify-between py-3 border-b border-outline-variant/10 last:border-0">
+      <div>
+        <p className="text-sm font-medium text-on-surface">{label}</p>
+        {desc && <p className="text-xs text-on-surface-variant/60">{desc}</p>}
+      </div>
+      <button
+        onClick={() => onChange(!value)}
+        className={cn(
+          "relative inline-flex w-10 h-5 rounded-full transition-colors duration-200 shrink-0",
+          value ? "bg-secondary" : "bg-outline-variant/40"
+        )}
+        aria-label={value ? "Disable" : "Enable"}
+      >
+        <span className={cn(
+          "absolute top-0.5 h-4 w-4 bg-white rounded-full shadow transition-transform duration-200",
+          value ? "translate-x-5" : "translate-x-0.5"
+        )} />
+      </button>
+    </div>
+  );
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-[11px] font-bold text-on-surface-variant/50 uppercase tracking-widest mb-3">{children}</p>
+  );
+}
+
 function StudioTab() {
-  const [config, setConfig] = useState({ palette: "parchment", style: "default", font: "default", radius: "default", layout: "default" });
+  const [config, setConfig] = useState(DEFAULT_STUDIO);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     try {
       const stored = localStorage.getItem("mentra-studio-config");
-      if (stored) setConfig(c => ({ ...c, ...JSON.parse(stored) }));
+      if (stored) setConfig(c => ({ ...DEFAULT_STUDIO, ...c, ...JSON.parse(stored) }));
     } catch { /* ignore */ }
   }, []);
+
+  const set = (key: string, value: any) => setConfig(c => ({ ...c, [key]: value }));
 
   const applyAndSave = async () => {
     setSaving(true);
@@ -124,169 +145,349 @@ function StudioTab() {
   };
 
   const reset = () => {
-    const def = { palette: "parchment", style: "default", font: "default", radius: "default", layout: "default" };
-    setConfig(def);
+    setConfig(DEFAULT_STUDIO);
     localStorage.removeItem("mentra-studio-config");
-    fetch("/api/theme", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ themeConfig: JSON.stringify(def) }) });
+    fetch("/api/theme", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ themeConfig: JSON.stringify(DEFAULT_STUDIO) }) });
     window.location.reload();
   };
 
   return (
-    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-      <div className="card p-6">
-        <div className="flex items-center gap-3 mb-1">
-          <Palette className="w-5 h-5 text-secondary" />
-          <h2 className="font-manrope font-semibold text-lg text-primary">Mentra Studio</h2>
-        </div>
-        <p className="text-sm text-on-surface-variant mb-6">Customise Mentra&apos;s look and feel.</p>
+    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
 
-        {/* Palette */}
-        <div className="mb-6">
-          <p className="text-xs font-bold text-on-surface-variant/60 uppercase tracking-widest mb-3">Color Palette</p>
-          <div className="grid grid-cols-3 gap-3">
-            {PALETTES_META.map(p => (
-              <button
-                key={p.id}
-                onClick={() => setConfig(c => ({ ...c, palette: p.id }))}
-                className={cn(
-                  "rounded-2xl p-3 border-2 transition-all hover:scale-105",
-                  config.palette === p.id
-                    ? "border-secondary shadow-md"
-                    : "border-outline-variant/20 hover:border-outline/40"
-                )}
-              >
-                <div className="flex gap-1 mb-2 justify-center">
-                  {p.colors.map((c, i) => (
-                    <div key={i} className="w-6 h-6 rounded-full border border-white/30 shadow-sm" style={{ backgroundColor: c }} />
-                  ))}
+      {/* ── COLOR PALETTE ── */}
+      <div className="card p-5">
+        <div className="flex items-center gap-2 mb-1">
+          <Palette className="w-4 h-4 text-secondary" />
+          <h3 className="font-manrope font-semibold text-base text-primary">Colors</h3>
+        </div>
+        <p className="text-xs text-on-surface-variant mb-4">Choose a preset palette or dial in your own accent and background colors.</p>
+
+        <SectionLabel>Preset palette</SectionLabel>
+        <div className="grid grid-cols-3 gap-2.5 mb-5">
+          {PALETTES_META.map(p => (
+            <button
+              key={p.id}
+              onClick={() => set("palette", p.id)}
+              className={cn(
+                "rounded-2xl p-3 border-2 transition-all hover:scale-[1.03]",
+                config.palette === p.id ? "border-secondary shadow-md" : "border-outline-variant/20 hover:border-outline/40"
+              )}
+            >
+              <div className="flex gap-1 mb-2 justify-center">
+                {p.colors.map((col, i) => (
+                  <div key={i} className="w-5 h-5 rounded-full border border-white/30 shadow-sm" style={{ backgroundColor: col }} />
+                ))}
+              </div>
+              <p className="text-[11px] font-medium text-primary text-center">{p.name}</p>
+              {config.palette === p.id && <p className="text-[10px] text-secondary text-center mt-0.5">Active</p>}
+            </button>
+          ))}
+        </div>
+
+        <SectionLabel>Custom accent color</SectionLabel>
+        <p className="text-xs text-on-surface-variant mb-3">Override the secondary/accent color from your palette.</p>
+        <div className="grid grid-cols-2 gap-3 mb-1">
+          <div>
+            <label className="block text-xs font-medium text-on-surface-variant mb-1.5">Accent / Secondary</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={config.customSecondary || "#D4A84B"}
+                onChange={e => set("customSecondary", e.target.value)}
+                className="w-9 h-9 rounded-xl border border-outline-variant/30 cursor-pointer bg-transparent p-0.5"
+              />
+              <input
+                type="text"
+                value={config.customSecondary}
+                onChange={e => set("customSecondary", e.target.value)}
+                placeholder="e.g. #D4A84B or leave blank"
+                className="flex-1 bg-surface-container border border-outline-variant/30 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-secondary/30"
+              />
+              {config.customSecondary && (
+                <button onClick={() => set("customSecondary", "")} className="text-xs text-on-surface-variant hover:text-primary px-1">✕</button>
+              )}
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-on-surface-variant mb-1.5">Background tint</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={config.customBg || "#FFFBF0"}
+                onChange={e => set("customBg", e.target.value)}
+                className="w-9 h-9 rounded-xl border border-outline-variant/30 cursor-pointer bg-transparent p-0.5"
+              />
+              <input
+                type="text"
+                value={config.customBg}
+                onChange={e => set("customBg", e.target.value)}
+                placeholder="e.g. #F5F5F5 or leave blank"
+                className="flex-1 bg-surface-container border border-outline-variant/30 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-secondary/30"
+              />
+              {config.customBg && (
+                <button onClick={() => set("customBg", "")} className="text-xs text-on-surface-variant hover:text-primary px-1">✕</button>
+              )}
+            </div>
+          </div>
+        </div>
+        <p className="text-[11px] text-on-surface-variant/50 mt-1">Leave blank to use the palette defaults. Custom colors override the palette.</p>
+      </div>
+
+      {/* ── SURFACE STYLE ── */}
+      <div className="card p-5">
+        <div className="flex items-center gap-2 mb-1">
+          <Monitor className="w-4 h-4 text-secondary" />
+          <h3 className="font-manrope font-semibold text-base text-primary">Surface Style</h3>
+        </div>
+        <p className="text-xs text-on-surface-variant mb-4">Controls card shadows and borders. Each option looks exactly like what it represents.</p>
+        <div className="grid grid-cols-3 gap-3">
+          {([
+            { id: "default", name: "Default", desc: "Soft shadows",    shadow: "0 1px 4px rgba(0,0,0,0.08)", border: "1px solid rgba(128,128,128,0.15)", radius: 16 },
+            { id: "elevated", name: "Elevated", desc: "Deep shadows",  shadow: "0 4px 20px rgba(0,0,0,0.14)", border: "1.5px solid rgba(128,128,128,0.18)", radius: 16 },
+            { id: "flat",     name: "Flat",     desc: "Border, no shadow", shadow: "none", border: "1.5px solid rgba(128,128,128,0.30)", radius: 12 },
+          ] as const).map(s => (
+            <button
+              key={s.id}
+              onClick={() => set("style", s.id)}
+              style={{ boxShadow: s.shadow, border: s.border, borderRadius: s.radius, padding: "12px", textAlign: "left", transition: "all 0.18s" }}
+              className={cn(
+                config.style === s.id ? "bg-secondary-container/20 outline outline-2 outline-secondary" : "bg-surface-container-low hover:bg-surface-container"
+              )}
+            >
+              <p className="text-xs font-semibold text-primary">{s.name}</p>
+              <p className="text-[11px] text-on-surface-variant mt-0.5">{s.desc}</p>
+              {config.style === s.id && <p className="text-[10px] text-secondary mt-1">Active</p>}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── TYPOGRAPHY ── */}
+      <div className="card p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <h3 className="font-manrope font-semibold text-base text-primary">Typography</h3>
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          {([
+            { id: "default", name: "Be Vietnam Pro", sample: "Aa", family: "'Be Vietnam Pro', sans-serif" },
+            { id: "manrope", name: "Manrope",         sample: "Aa", family: "'Manrope', sans-serif" },
+            { id: "inter",   name: "Inter",           sample: "Aa", family: "'Inter', sans-serif" },
+          ] as const).map(f => (
+            <button
+              key={f.id}
+              onClick={() => set("font", f.id)}
+              style={{ fontFamily: f.family, borderRadius: 16 }}
+              className={cn(
+                "p-3 border-2 text-left transition-all",
+                config.font === f.id ? "border-secondary bg-secondary-container/20" : "border-outline-variant/20 hover:border-outline/40"
+              )}
+            >
+              <p className="text-xl font-bold text-primary mb-1" style={{ fontFamily: f.family }}>{f.sample}</p>
+              <p className="text-[11px] font-semibold text-on-surface-variant">{f.name}</p>
+              {config.font === f.id && <p className="text-[10px] text-secondary mt-0.5">Active</p>}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── CORNER RADIUS ── */}
+      <div className="card p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <h3 className="font-manrope font-semibold text-base text-primary">Corner Radius</h3>
+        </div>
+        <p className="text-xs text-on-surface-variant mb-4">Each card below uses its own border-radius so you can see exactly what you are picking.</p>
+        <div className="grid grid-cols-3 gap-3">
+          {([
+            { id: "compact", name: "Compact", desc: "Tight, angular",  r: 8 },
+            { id: "default", name: "Default", desc: "Comfortable",     r: 16 },
+            { id: "rounded", name: "Rounded", desc: "Bubbly & soft",   r: 24 },
+          ] as const).map(r => (
+            <button
+              key={r.id}
+              onClick={() => set("radius", r.id)}
+              style={{ borderRadius: r.r, padding: "12px", textAlign: "left", transition: "all 0.18s" }}
+              className={cn(
+                "border-2",
+                config.radius === r.id ? "border-secondary bg-secondary-container/20" : "border-outline-variant/20 hover:border-outline/40"
+              )}
+            >
+              <div className="w-full h-4 mb-2 bg-secondary/20" style={{ borderRadius: r.r / 2 }} />
+              <p className="text-xs font-semibold text-primary">{r.name}</p>
+              <p className="text-[11px] text-on-surface-variant mt-0.5">{r.desc}</p>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── NAVIGATION LAYOUT ── */}
+      <div className="card p-5">
+        <div className="flex items-center gap-2 mb-1">
+          <PanelLeft className="w-4 h-4 text-secondary" />
+          <h3 className="font-manrope font-semibold text-base text-primary">Navigation Style</h3>
+        </div>
+        <p className="text-xs text-on-surface-variant mb-4">Choose how the main navigation is presented across the app.</p>
+        <div className="grid grid-cols-3 gap-3">
+          {([
+            {
+              id: "top", name: "Top Bar", desc: "Classic horizontal nav",
+              preview: (
+                <div className="w-full h-8 bg-surface-container-high rounded-lg flex items-center gap-1.5 px-2 mb-2">
+                  <div className="w-3 h-2 rounded-sm bg-secondary/50" />
+                  <div className="flex gap-1 ml-1">
+                    <div className="w-5 h-1.5 rounded-full bg-outline-variant/50" />
+                    <div className="w-5 h-1.5 rounded-full bg-outline-variant/50" />
+                  </div>
+                  <div className="ml-auto w-3 h-3 rounded-full bg-secondary/40" />
                 </div>
-                <p className="text-xs font-medium text-primary text-center">{p.name}</p>
-                {config.palette === p.id && <p className="text-[10px] text-secondary text-center mt-0.5">Active</p>}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Style */}
-        <div className="mb-6">
-          <p className="text-xs font-bold text-on-surface-variant/60 uppercase tracking-widest mb-3">Surface Style</p>
-          <div className="grid grid-cols-3 gap-3">
-            {STYLES_META.map(s => (
-              <button
-                key={s.id}
-                onClick={() => setConfig(c => ({ ...c, style: s.id }))}
-                className={cn(
-                  "rounded-2xl p-3 border-2 text-left transition-all",
-                  config.style === s.id
-                    ? "border-secondary bg-secondary-container/20"
-                    : "border-outline-variant/20 hover:border-outline/40"
-                )}
-              >
-                <p className="text-xs font-semibold text-primary">{s.name}</p>
-                <p className="text-[11px] text-on-surface-variant mt-0.5">{s.desc}</p>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Font */}
-        <div className="mb-6">
-          <p className="text-xs font-bold text-on-surface-variant/60 uppercase tracking-widest mb-3">Typography</p>
-          <div className="grid grid-cols-3 gap-3">
-            {FONTS_META.map(f => (
-              <button
-                key={f.id}
-                onClick={() => setConfig(c => ({ ...c, font: f.id }))}
-                className={cn(
-                  "rounded-2xl p-3 border-2 text-left transition-all",
-                  config.font === f.id
-                    ? "border-secondary bg-secondary-container/20"
-                    : "border-outline-variant/20 hover:border-outline/40"
-                )}
-              >
-                <p className="text-xs font-semibold text-primary">{f.name}</p>
-                <p className="text-[11px] text-on-surface-variant mt-0.5">{f.desc}</p>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Radius */}
-        <div className="mb-8">
-          <p className="text-xs font-bold text-on-surface-variant/60 uppercase tracking-widest mb-3">Corner Radius</p>
-          <div className="grid grid-cols-3 gap-3">
-            {RADII_META.map(r => (
-              <button
-                key={r.id}
-                onClick={() => setConfig(c => ({ ...c, radius: r.id }))}
-                className={cn(
-                  "border-2 p-3 text-left transition-all",
-                  r.id === "compact" ? "rounded-lg" : r.id === "rounded" ? "rounded-3xl" : "rounded-2xl",
-                  config.radius === r.id
-                    ? "border-secondary bg-secondary-container/20"
-                    : "border-outline-variant/20 hover:border-outline/40"
-                )}
-              >
-                <p className="text-xs font-semibold text-primary">{r.name}</p>
-                <p className="text-[11px] text-on-surface-variant mt-0.5">{r.desc}</p>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Dashboard Layout */}
-        <div className="mb-8">
-          <p className="text-xs font-bold text-on-surface-variant/60 uppercase tracking-widest mb-3">Dashboard Layout</p>
-          <div className="grid grid-cols-3 gap-3">
-            {LAYOUTS_META.map(l => (
-              <button
-                key={l.id}
-                onClick={() => setConfig(c => ({ ...c, layout: l.id }))}
-                className={cn(
-                  "rounded-2xl border-2 p-3 text-left transition-all",
-                  config.layout === l.id
-                    ? "border-secondary bg-secondary-container/20"
-                    : "border-outline-variant/20 hover:border-outline/40"
-                )}
-              >
-                <div className="flex gap-1 mb-2.5">
-                  {l.id === "default" && (
-                    <>
-                      <div className="h-6 rounded bg-secondary/30 flex-[2]" />
-                      <div className="h-6 rounded bg-outline-variant/30 flex-1" />
-                    </>
-                  )}
-                  {l.id === "focus" && (
-                    <div className="h-6 rounded bg-secondary/30 flex-1" />
-                  )}
-                  {l.id === "compact" && (
-                    <div className="flex flex-col gap-1 flex-1">
-                      <div className="h-2 rounded bg-secondary/30 w-full" />
-                      <div className="h-2 rounded bg-outline-variant/30 w-3/4" />
-                      <div className="h-2 rounded bg-outline-variant/20 w-1/2" />
-                    </div>
-                  )}
+              ),
+            },
+            {
+              id: "sidebar", name: "Side Drawer", desc: "All nav in a left panel",
+              preview: (
+                <div className="w-full h-8 flex gap-1 mb-2">
+                  <div className="w-4 h-full bg-secondary/25 rounded-lg flex flex-col justify-center gap-0.5 px-0.5">
+                    <div className="w-full h-0.5 bg-secondary/60 rounded" />
+                    <div className="w-full h-0.5 bg-secondary/60 rounded" />
+                    <div className="w-full h-0.5 bg-secondary/60 rounded" />
+                  </div>
+                  <div className="flex-1 h-full bg-surface-container-high rounded-lg" />
                 </div>
-                <p className="text-xs font-semibold text-primary">{l.name}</p>
-                <p className="text-[11px] text-on-surface-variant mt-0.5">{l.desc}</p>
-              </button>
-            ))}
-          </div>
+              ),
+            },
+            {
+              id: "minimal", name: "Minimal", desc: "Logo + avatar only",
+              preview: (
+                <div className="w-full h-8 bg-surface-container-high rounded-lg flex items-center justify-between px-2 mb-2">
+                  <div className="w-3 h-2 rounded-sm bg-secondary/50" />
+                  <div className="w-3 h-3 rounded-full bg-secondary/40" />
+                </div>
+              ),
+            },
+          ] as const).map(nav => (
+            <button
+              key={nav.id}
+              onClick={() => set("navStyle", nav.id)}
+              className={cn(
+                "rounded-2xl border-2 p-3 text-left transition-all",
+                config.navStyle === nav.id ? "border-secondary bg-secondary-container/20" : "border-outline-variant/20 hover:border-outline/40"
+              )}
+            >
+              {nav.preview}
+              <p className="text-xs font-semibold text-primary">{nav.name}</p>
+              <p className="text-[11px] text-on-surface-variant mt-0.5">{nav.desc}</p>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── DASHBOARD LAYOUT ── */}
+      <div className="card p-5">
+        <div className="flex items-center gap-2 mb-1">
+          <LayoutPanelTop className="w-4 h-4 text-secondary" />
+          <h3 className="font-manrope font-semibold text-base text-primary">Dashboard Layout</h3>
+        </div>
+        <p className="text-xs text-on-surface-variant mb-4">Arrange your dashboard the way that fits you best.</p>
+        <div className="grid grid-cols-3 gap-3">
+          {([
+            { id: "default", name: "Default",  desc: "Main col + sidebar",
+              preview: <div className="flex gap-1 mb-2.5"><div className="h-5 rounded-md bg-secondary/30 flex-[2]" /><div className="h-5 rounded-md bg-outline-variant/25 flex-1" /></div> },
+            { id: "focus",   name: "Focus",    desc: "Full-width, no sidebar",
+              preview: <div className="flex gap-1 mb-2.5"><div className="h-5 rounded-md bg-secondary/30 flex-1" /></div> },
+            { id: "compact", name: "Compact",  desc: "Dense single column",
+              preview: <div className="flex flex-col gap-1 mb-2.5"><div className="h-1.5 rounded bg-secondary/30 w-full" /><div className="h-1.5 rounded bg-outline-variant/25 w-3/4" /><div className="h-1.5 rounded bg-outline-variant/20 w-1/2" /></div> },
+          ] as const).map(l => (
+            <button
+              key={l.id}
+              onClick={() => set("layout", l.id)}
+              className={cn(
+                "rounded-2xl border-2 p-3 text-left transition-all",
+                config.layout === l.id ? "border-secondary bg-secondary-container/20" : "border-outline-variant/20 hover:border-outline/40"
+              )}
+            >
+              {l.preview}
+              <p className="text-xs font-semibold text-primary">{l.name}</p>
+              <p className="text-[11px] text-on-surface-variant mt-0.5">{l.desc}</p>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── DENSITY & ANIMATIONS ── */}
+      <div className="card p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Zap className="w-4 h-4 text-secondary" />
+          <h3 className="font-manrope font-semibold text-base text-primary">Feel & Motion</h3>
+        </div>
+        <SectionLabel>Spacing density</SectionLabel>
+        <div className="grid grid-cols-3 gap-3 mb-5">
+          {([
+            { id: "compact",     name: "Compact",     desc: "Tighter spacing, see more" },
+            { id: "comfortable", name: "Comfortable", desc: "Balanced default" },
+            { id: "spacious",    name: "Spacious",    desc: "Relaxed, airy feel" },
+          ] as const).map(d => (
+            <button
+              key={d.id}
+              onClick={() => set("density", d.id)}
+              className={cn(
+                "rounded-2xl border-2 p-3 text-left transition-all",
+                config.density === d.id ? "border-secondary bg-secondary-container/20" : "border-outline-variant/20 hover:border-outline/40"
+              )}
+            >
+              <p className="text-xs font-semibold text-primary">{d.name}</p>
+              <p className="text-[11px] text-on-surface-variant mt-0.5">{d.desc}</p>
+            </button>
+          ))}
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={applyAndSave}
-            disabled={saving}
-            className="flex items-center gap-2 bg-secondary text-on-secondary px-6 py-2.5 rounded-xl text-sm font-semibold font-manrope hover:opacity-90 disabled:opacity-60 transition-all"
-          >
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? <Check className="w-4 h-4" /> : <Palette className="w-4 h-4" />}
-            {saved ? "Applied!" : "Apply Theme"}
-          </button>
-          <button onClick={reset} className="text-sm text-on-surface-variant hover:text-primary transition-colors hover:underline">
-            Reset to default
-          </button>
+        <SectionLabel>Animations</SectionLabel>
+        <ToggleRow
+          label="Enable animations"
+          desc="Slide-in effects, hover transitions, and motion throughout the app"
+          value={config.animations === "on"}
+          onChange={v => set("animations", v ? "on" : "off")}
+        />
+      </div>
+
+      {/* ── DASHBOARD WIDGETS ── */}
+      <div className="card p-5">
+        <div className="flex items-center gap-2 mb-1">
+          <BarChart2 className="w-4 h-4 text-secondary" />
+          <h3 className="font-manrope font-semibold text-base text-primary">Dashboard Widgets</h3>
         </div>
+        <p className="text-xs text-on-surface-variant mb-4">Choose what appears on your dashboard.</p>
+        <ToggleRow
+          label="Stats cards"
+          desc="Stacks, stars, views and follower counts at the top"
+          value={!config.hideStats}
+          onChange={v => set("hideStats", !v)}
+        />
+        <ToggleRow
+          label="Contribution graph"
+          desc="Activity heatmap chart"
+          value={!config.hideGraph}
+          onChange={v => set("hideGraph", !v)}
+        />
+        <ToggleRow
+          label="Notifications panel"
+          desc="Recent notifications in the right sidebar"
+          value={!config.hideNotifs}
+          onChange={v => set("hideNotifs", !v)}
+        />
+      </div>
+
+      {/* ── ACTIONS ── */}
+      <div className="flex items-center gap-3 pb-4">
+        <button
+          onClick={applyAndSave}
+          disabled={saving}
+          className="flex items-center gap-2 bg-secondary text-on-secondary px-6 py-2.5 rounded-xl text-sm font-semibold font-manrope hover:opacity-90 disabled:opacity-60 transition-all"
+        >
+          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? <Check className="w-4 h-4" /> : <Palette className="w-4 h-4" />}
+          {saved ? "Applied!" : "Apply & Save"}
+        </button>
+        <button onClick={reset} className="text-sm text-on-surface-variant hover:text-primary transition-colors hover:underline">
+          Reset to defaults
+        </button>
       </div>
     </motion.div>
   );

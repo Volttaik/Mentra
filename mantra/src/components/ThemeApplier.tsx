@@ -8,6 +8,16 @@ export interface ThemeConfig {
   style: string;
   font: string;
   radius: string;
+  layout: string;
+  navStyle: string;
+  density: string;
+  animations: string;
+  customPrimary: string;
+  customSecondary: string;
+  customBg: string;
+  hideStats: boolean;
+  hideGraph: boolean;
+  hideNotifs: boolean;
 }
 
 export const DEFAULT_CONFIG: ThemeConfig = {
@@ -15,6 +25,16 @@ export const DEFAULT_CONFIG: ThemeConfig = {
   style: "default",
   font: "default",
   radius: "default",
+  layout: "default",
+  navStyle: "top",
+  density: "comfortable",
+  animations: "on",
+  customPrimary: "",
+  customSecondary: "",
+  customBg: "",
+  hideStats: false,
+  hideGraph: false,
+  hideNotifs: false,
 };
 
 const PALETTES: Record<string, { light: Record<string, string>; dark: Record<string, string> }> = {
@@ -221,6 +241,43 @@ const RADIUS_CSS: Record<string, string> = {
   `,
 };
 
+const DENSITY_CSS: Record<string, string> = {
+  comfortable: "",
+  compact: `
+    .card { padding: 14px !important; }
+    .card-sm { padding: 10px !important; }
+    p, span { line-height: 1.45 !important; }
+    .space-y-8 > * + * { margin-top: 1.25rem !important; }
+    .space-y-6 > * + * { margin-top: 1rem !important; }
+    .mb-10 { margin-bottom: 1.5rem !important; }
+  `,
+  spacious: `
+    .card { padding: 28px !important; }
+    .card-sm { padding: 20px !important; }
+    p, span { line-height: 1.75 !important; }
+    .space-y-8 > * + * { margin-top: 3rem !important; }
+    .space-y-6 > * + * { margin-top: 2rem !important; }
+    .mb-10 { margin-bottom: 3rem !important; }
+  `,
+};
+
+const ANIMATION_CSS: Record<string, string> = {
+  on: "",
+  off: `
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  `,
+};
+
+function hexToRgb(hex: string): string {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex.trim());
+  if (!result) return "";
+  return `${parseInt(result[1], 16)} ${parseInt(result[2], 16)} ${parseInt(result[3], 16)}`;
+}
+
 function applyTheme(config: ThemeConfig) {
   const isDark = document.documentElement.classList.contains("dark");
   const palette = PALETTES[config.palette] ?? PALETTES.parchment;
@@ -229,6 +286,20 @@ function applyTheme(config: ThemeConfig) {
   Object.entries(vars).forEach(([key, value]) => {
     document.documentElement.style.setProperty(key, value);
   });
+
+  if (config.customSecondary) {
+    const rgb = hexToRgb(config.customSecondary);
+    if (rgb) {
+      document.documentElement.style.setProperty("--c-secondary", rgb);
+    }
+  }
+  if (config.customBg) {
+    const rgb = hexToRgb(config.customBg);
+    if (rgb) {
+      document.documentElement.style.setProperty("--c-background", rgb);
+      document.documentElement.style.setProperty("--c-surface", rgb);
+    }
+  }
 
   let styleEl = document.getElementById("mentra-theme-overrides");
   if (!styleEl) {
@@ -240,6 +311,8 @@ function applyTheme(config: ThemeConfig) {
     STYLE_CSS[config.style] ?? "",
     FONT_CSS[config.font] ?? "",
     RADIUS_CSS[config.radius] ?? "",
+    DENSITY_CSS[config.density] ?? "",
+    ANIMATION_CSS[config.animations] ?? "",
   ].join("\n");
 }
 

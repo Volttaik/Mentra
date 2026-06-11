@@ -70,6 +70,9 @@ export default function DashboardPage() {
   const [commName, setCommName]           = useState("");
   const [creating, setCreating]           = useState(false);
   const [dashLayout, setDashLayout]       = useState("default");
+  const [hideStats, setHideStats]         = useState(false);
+  const [hideGraph, setHideGraph]         = useState(false);
+  const [hideNotifs, setHideNotifs]       = useState(false);
 
   useEffect(() => {
     try {
@@ -77,6 +80,9 @@ export default function DashboardPage() {
       if (stored) {
         const cfg = JSON.parse(stored);
         if (cfg.layout) setDashLayout(cfg.layout);
+        if (cfg.hideStats) setHideStats(!!cfg.hideStats);
+        if (cfg.hideGraph) setHideGraph(!!cfg.hideGraph);
+        if (cfg.hideNotifs) setHideNotifs(!!cfg.hideNotifs);
       }
     } catch { /* ignore */ }
   }, []);
@@ -173,7 +179,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+        {!hideStats && <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
           {STAT_CARDS.map((stat, i) => (
             <div
               key={stat.label}
@@ -193,7 +199,7 @@ export default function DashboardPage() {
               <p className="text-xs text-on-surface-variant mt-0.5">{stat.label}</p>
             </div>
           ))}
-        </div>
+        </div>}
 
         <div className={cn(
           "grid grid-cols-1 gap-8",
@@ -206,7 +212,7 @@ export default function DashboardPage() {
             dashLayout === "default" && "lg:col-span-2",
             dashLayout === "compact" && "space-y-5"
           )}>
-            <ContributionGraph totalContributions={stats.totalViews} />
+            {!hideGraph && <ContributionGraph totalContributions={stats.totalViews} />}
 
             {/* Stack Flows */}
             <div>
@@ -416,9 +422,13 @@ export default function DashboardPage() {
                     <Link key={stack.id} href={`/stacks/${stack.slug}`}>
                       <div className="card-sm p-5 cursor-pointer group hover:-translate-y-1 transition-transform duration-150">
                         <div className="flex items-start gap-3 mb-3">
-                          <div className="w-9 h-9 bg-primary-fixed rounded-xl flex items-center justify-center shrink-0">
-                            <BookOpen className="w-4 h-4 text-primary" />
-                          </div>
+                          {(stack.profile || stack.banner) ? (
+                            <img src={stack.profile ?? stack.banner ?? ""} alt="" className="w-9 h-9 rounded-xl object-cover shrink-0 border border-outline-variant/20" />
+                          ) : (
+                            <div className="w-9 h-9 bg-primary-fixed rounded-xl flex items-center justify-center shrink-0">
+                              <BookOpen className="w-4 h-4 text-primary" />
+                            </div>
+                          )}
                           <div className="min-w-0">
                             <p className="font-manrope font-semibold text-sm text-primary group-hover:text-secondary transition-colors leading-snug truncate">
                               {stack.title}
@@ -441,7 +451,7 @@ export default function DashboardPage() {
           {/* Right sidebar — hidden in focus layout */}
           <div className={cn("space-y-6", dashLayout === "focus" && "hidden")}>
             {/* Notifications */}
-            <div className="card p-5">
+            {!hideNotifs && <div className="card p-5">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-manrope font-semibold text-base text-primary">Notifications</h3>
                 <div className="flex items-center gap-2">
@@ -506,7 +516,7 @@ export default function DashboardPage() {
                   })}
                 </div>
               )}
-            </div>
+            </div>}
 
             {/* Quick actions */}
             <div className="card p-5">
