@@ -5,10 +5,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import {
-  Sparkles, X, Send, BarChart2, Zap, MessageSquare,
-  ChevronRight, Loader2, Maximize2, EyeOff, Coins,
+  Sparkles, X, ArrowUp, BarChart2, Zap, MessageSquare,
+  ChevronRight, Maximize2, EyeOff, Coins,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { VerbThinkingIndicator, renderMessage } from "@/components/chat/ChatPrimitives";
 
 interface Message { role: "user" | "agent"; content: string; data?: any; }
 
@@ -164,54 +165,72 @@ export default function FloatingAgent() {
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+            <div className="flex-1 overflow-y-auto px-3 py-3 space-y-1">
               {messages.length === 0 && (
-                <div className="space-y-3">
-                  <div className="bg-secondary-container/20 rounded-2xl rounded-tl-sm p-3 max-w-[85%]">
-                    <p className="text-sm text-on-surface">Hi! I&apos;m {agentName}, your personal AI on Mentra. Ask me anything about your stacks, stats, or communities.</p>
+                <div className="flex gap-2 items-start">
+                  <div className="w-6 h-6 rounded-full bg-secondary-container/60 flex items-center justify-center shrink-0 mt-0.5 border border-outline-variant/15">
+                    <Sparkles className="w-3 h-3 text-secondary" />
+                  </div>
+                  <div className="bg-surface-container rounded-2xl rounded-tl-sm px-3 py-2 max-w-[85%] border border-outline-variant/10">
+                    <p className="text-[12.5px] leading-relaxed text-on-surface">Hi! I&apos;m {agentName}, your personal AI on Mentra. Ask me anything about your stacks, stats, or communities.</p>
                   </div>
                 </div>
               )}
-              {messages.map((msg, i) => (
-                <div key={i} className={cn("flex", msg.role === "user" ? "justify-end" : "justify-start")}>
-                  <div className={cn(
-                    "max-w-[85%] rounded-2xl px-3 py-2.5 text-sm",
-                    msg.role === "user"
-                      ? "bg-secondary text-on-secondary rounded-br-sm"
-                      : "bg-surface-container text-on-surface rounded-bl-sm"
-                  )}>
-                    <p className="leading-relaxed">{msg.content}</p>
-                    {msg.role === "agent" && msg.data && <StatCard data={msg.data} />}
+              {messages.map((msg, i) => {
+                const isAgent = msg.role === "agent";
+                return (
+                  <div key={i} className={cn("flex gap-2 items-start group", isAgent ? "flex-row" : "flex-row-reverse")}>
+                    {isAgent && (
+                      <div className="w-6 h-6 rounded-full bg-secondary-container/60 flex items-center justify-center shrink-0 mt-0.5 border border-outline-variant/15">
+                        <Sparkles className="w-3 h-3 text-secondary" />
+                      </div>
+                    )}
+                    <div className={cn(
+                      "max-w-[85%] rounded-2xl px-3 py-2",
+                      isAgent
+                        ? "bg-surface-container border border-outline-variant/10 text-on-surface rounded-tl-sm"
+                        : "bg-secondary text-on-secondary rounded-br-sm"
+                    )}>
+                      {isAgent ? renderMessage(msg.content) : <p className="text-[12.5px] leading-relaxed">{msg.content}</p>}
+                      {isAgent && msg.data && <StatCard data={msg.data} />}
+                    </div>
                   </div>
-                </div>
-              ))}
-              {loading && (
-                <div className="flex justify-start">
-                  <div className="bg-surface-container rounded-2xl rounded-bl-sm px-3 py-2.5 flex items-center gap-2">
-                    <Loader2 className="w-3.5 h-3.5 text-secondary animate-spin" />
-                    <span className="text-xs text-on-surface-variant">Thinking…</span>
-                  </div>
-                </div>
-              )}
+                );
+              })}
+              <AnimatePresence>
+                {loading && (
+                  <VerbThinkingIndicator
+                    verbs={["Thinking", "Reading your stacks", "Searching Mentra", "Processing"]}
+                    agentIcon={<Sparkles className="w-3 h-3 text-secondary" />}
+                  />
+                )}
+              </AnimatePresence>
               <div ref={messagesEndRef} />
             </div>
 
-            <div className="px-3 py-3 border-t border-outline-variant/10 shrink-0">
-              <div className="flex items-center gap-2 bg-surface-container rounded-xl px-3 py-2">
+            <div className="px-3 py-2.5 border-t border-outline-variant/10 shrink-0">
+              <div className={cn(
+                "flex items-center gap-2 rounded-xl border bg-surface-container-lowest px-3 py-2 transition-all",
+                input.trim() ? "border-secondary/30" : "border-outline-variant/15"
+              )}>
                 <input
                   value={input}
                   onChange={e => setInput(e.target.value)}
                   onKeyDown={e => e.key === "Enter" && !e.shiftKey && sendMessage()}
                   placeholder={`Message ${agentName}…`}
-                  className="flex-1 bg-transparent text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none"
+                  className="flex-1 bg-transparent text-[12.5px] text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none"
                 />
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.88 }}
                   onClick={() => sendMessage()}
                   disabled={!input.trim() || loading}
-                  className="p-1.5 bg-secondary text-on-secondary rounded-lg disabled:opacity-40 transition-all hover:opacity-90"
+                  className={cn(
+                    "w-7 h-7 rounded-lg flex items-center justify-center transition-all",
+                    input.trim() && !loading ? "bg-primary text-on-primary" : "bg-surface-container text-on-surface-variant/30"
+                  )}
                 >
-                  <Send className="w-3.5 h-3.5" />
-                </button>
+                  <ArrowUp className="w-3.5 h-3.5" />
+                </motion.button>
               </div>
             </div>
           </motion.div>
