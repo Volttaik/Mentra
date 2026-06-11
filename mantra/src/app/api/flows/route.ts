@@ -36,7 +36,7 @@ export async function POST(req: Request) {
       userId: session.user.id,
       name: name.trim(),
       description: description?.trim() || null,
-      emoji: emoji || "📚",
+      emoji: emoji || "flow",
     },
   });
 

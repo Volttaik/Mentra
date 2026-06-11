@@ -159,14 +159,16 @@ h1, h2, h3, h4, h5, h6 {
   }
 
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2
+    @apply inline-flex items-center justify-center gap-1.5
+           px-4 py-2 text-sm
            bg-primary text-on-primary font-semibold font-manrope
            rounded-xl transition-all duration-150
            hover:opacity-90 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed;
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2
+    @apply inline-flex items-center justify-center gap-1.5
+           px-4 py-2 text-sm
            bg-surface-container border border-outline-variant/30 text-primary font-semibold font-manrope
            rounded-xl transition-all duration-150
            hover:bg-surface-container-high active:scale-[0.98];

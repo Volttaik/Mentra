@@ -447,7 +447,7 @@ export default function UploadPage() {
                   placeholder="Add a tag and press Enter"
                   className="input-field flex-1"
                 />
-                <button onClick={addTag} className="btn-primary px-4 py-3 rounded-xl"><Plus className="w-4 h-4" /></button>
+                <button onClick={addTag} className="btn-primary px-3"><Plus className="w-4 h-4" /></button>
               </div>
             </div>
 
@@ -803,13 +803,13 @@ export default function UploadPage() {
             </div>
 
             <div className="flex gap-3">
-              <button onClick={() => setStep(3)} className="btn-secondary px-6">Back</button>
+              <button onClick={() => setStep(3)} className="btn-secondary">Back</button>
               <button
                 onClick={handlePublish}
                 disabled={publishing}
-                className="flex-1 flex items-center justify-center gap-2 bg-primary text-on-primary py-3.5 rounded-xl font-semibold font-manrope hover:opacity-90 disabled:opacity-60 transition-all"
+                className="flex-1 btn-primary"
               >
-                {publishing ? <><Loader2 className="w-5 h-5 animate-spin" />Creating…</> : "Publish stack"}
+                {publishing ? <><Loader2 className="w-4 h-4 animate-spin" />Creating…</> : "Publish stack"}
               </button>
             </div>
           </motion.div>

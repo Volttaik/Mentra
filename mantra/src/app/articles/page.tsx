@@ -100,7 +100,7 @@ export default function ArticlesPage() {
             <h1 className="text-2xl font-bold font-manrope text-on-surface">Articles</h1>
             <p className="text-sm text-on-surface-variant mt-1">Written knowledge — authored, versioned, and owned</p>
           </div>
-          <Link href="/editor" className="btn-primary px-5 py-2.5 text-sm gap-2">
+          <Link href="/editor" className="btn-primary">
             <PenLine className="h-4 w-4" /> Write Article
           </Link>
         </div>
@@ -142,7 +142,7 @@ export default function ArticlesPage() {
             <p className="text-sm text-on-surface-variant mb-6 max-w-xs mx-auto">
               {tab === "mine" ? "Write your first article using the Mentra Editor." : "Be the first to write an article."}
             </p>
-            <Link href="/editor" className="btn-primary px-6 py-3 text-sm gap-2 inline-flex items-center">
+            <Link href="/editor" className="btn-primary inline-flex items-center">
               <PenLine className="h-4 w-4" /> Write an Article
             </Link>
           </div>

@@ -338,7 +338,7 @@ export default function ExplorePage() {
               </p>
             </div>
             {!query && (
-              <Link href="/upload" className="btn-primary px-5 py-2.5 rounded-xl text-sm mt-2">
+              <Link href="/upload" className="btn-primary mt-2">
                 Publish your stack
               </Link>
             )}

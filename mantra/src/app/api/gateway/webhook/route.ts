@@ -18,14 +18,14 @@ export async function POST(req: Request) {
 
   if (!apiKey) {
     return NextResponse.json({
-      reply: "👋 Welcome to Mentra! Please send your API key to get started. You can find it in your Mentra settings under API Keys.",
+      reply: "Welcome to Mentra! Please send your API key to get started. You can find it in your Mentra settings under API Keys.",
     });
   }
 
   const keyRecord = await prisma.apiKey.findFirst({ where: { key: apiKey, isActive: true } });
   if (!keyRecord) {
     waSessions.delete(from);
-    return NextResponse.json({ reply: "❌ Invalid API key. Please send a valid Mentra API key." });
+    return NextResponse.json({ reply: "Invalid API key. Please send a valid Mentra API key." });
   }
 
   if (!waSessions.has(from)) {

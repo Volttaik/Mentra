@@ -1011,7 +1011,7 @@ export default function StackStudioPage() {
                               : "bg-secondary text-on-secondary hover:opacity-90"
                           )}
                         >
-                          {contributingTo === comm.slug ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : contributedTo.has(comm.slug) ? "Contributed ✓" : "Contribute"}
+                          {contributingTo === comm.slug ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : contributedTo.has(comm.slug) ? "Contributed" : "Contribute"}
                         </button>
                       </div>
                     ))}

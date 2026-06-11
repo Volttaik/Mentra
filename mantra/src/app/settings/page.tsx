@@ -1168,7 +1168,7 @@ export default function SettingsPage() {
                 <div className="card p-6 border border-secondary/10 bg-secondary-container/5">
                   <p className="text-sm font-semibold text-primary mb-2">How to use your agent</p>
                   <ul className="text-sm text-on-surface-variant space-y-1.5 list-disc list-inside">
-                    <li>Click the <strong>✦ sparkle button</strong> floating in the bottom-right of any page</li>
+                    <li>Click the <strong>sparkle button</strong> floating in the bottom-right of any page</li>
                     <li>Long-press (or hold click) the button for quick actions menu</li>
                     <li>Ask your agent to manage flows, check stats, explore communities, and more</li>
                     <li>Click <strong>Maximize</strong> in the mini chat to open the full AI chat experience</li>

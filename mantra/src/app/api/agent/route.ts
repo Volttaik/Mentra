@@ -70,7 +70,7 @@ async function handleIntent(intent: string, args: any, user: any) {
     case "createStackFlow": {
       if (!args.name) return { error: "Flow name is required" };
       const flow = await prisma.stackFlow.create({
-        data: { userId: user.id, name: args.name, description: args.description, emoji: args.emoji ?? "📚" },
+        data: { userId: user.id, name: args.name, description: args.description, emoji: args.emoji ?? "flow" },
       });
       return { flow, message: `Created Stack Flow "${flow.name}" successfully.` };
     }
@@ -151,7 +151,7 @@ Available intents: ${CAPABILITIES.intents.join(", ")}
 - getMyStats: {} — returns stack count, stars, views, credits
 - searchStacks: {"query": "..."} — search public stacks  
 - listMyFlows: {} — list user's Stack Flows
-- createStackFlow: {"name": "...", "description": "...", "emoji": "📚"} — create a new Stack Flow
+- createStackFlow: {"name": "...", "description": "..."} — create a new Stack Flow
 - addStackToFlow: {"flowId": "...", "stackId": "..."} — add a stack to a flow
 - listMyCommunities: {} — list communities the user is in
 - contributeStackToCommunity: {"communitySlug": "...", "stackId": "..."} — contribute a stack

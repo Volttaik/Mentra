@@ -26,8 +26,8 @@ interface Agent {
   knowledgeFiles: { id: string; name: string }[];
 }
 
-const DOMAIN_ICONS: Record<string, string> = {
-  education: "🎓", research: "🔬", business: "💼", general: "🧠",
+const DOMAIN_LABELS: Record<string, string> = {
+  education: "Education", research: "Research", business: "Business", general: "General",
 };
 
 const NAV_ITEMS = [
@@ -102,7 +102,7 @@ function AgentCard({ agent, index, onDelete }: { agent: Agent; index: number; on
           <BookOpen className="h-3 w-3" />
           {agent.knowledgeFiles.length} files
         </span>
-        <span className="ml-auto text-base">{DOMAIN_ICONS[agent.domain] || "🧠"}</span>
+        <span className="ml-auto text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wide">{DOMAIN_LABELS[agent.domain] || agent.domain}</span>
       </div>
 
       <div className="absolute bottom-5 right-5 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -128,18 +128,18 @@ function CreateAgentDialog({ onClose, onCreate }: { onClose: () => void; onCreat
   const SUBJECTS = ["Biology","Chemistry","Physics","Mathematics","History","Literature","Economics","Psychology","Computer Science","Philosophy","Law","Medicine","Engineering","Business","Other"];
   const LEVELS = ["High School","Undergraduate","Graduate","Self-study","Professional"];
   const TONES = [
-    { value: "patient", label: "Patient & thorough", emoji: "🎓" },
-    { value: "concise", label: "Concise & direct", emoji: "⚡" },
-    { value: "socratic", label: "Socratic", emoji: "🤔" },
-    { value: "friendly", label: "Friendly & warm", emoji: "😊" },
-    { value: "strict", label: "Strict & rigorous", emoji: "🎯" },
-    { value: "motivational", label: "Motivational", emoji: "🔥" },
+    { value: "patient", label: "Patient & thorough" },
+    { value: "concise", label: "Concise & direct" },
+    { value: "socratic", label: "Socratic" },
+    { value: "friendly", label: "Friendly & warm" },
+    { value: "strict", label: "Strict & rigorous" },
+    { value: "motivational", label: "Motivational" },
   ];
   const DOMAINS = [
-    { value: "education", label: "Education", emoji: "🎓" },
-    { value: "research", label: "Research", emoji: "🔬" },
-    { value: "business", label: "Business", emoji: "💼" },
-    { value: "general", label: "General", emoji: "🧠" },
+    { value: "education", label: "Education" },
+    { value: "research", label: "Research" },
+    { value: "business", label: "Business" },
+    { value: "general", label: "General" },
   ];
 
   const resolvedSubject = subject === "Other" ? customSubject : subject;
@@ -187,7 +187,7 @@ function CreateAgentDialog({ onClose, onCreate }: { onClose: () => void; onCreat
             {subject === "Other" && (
               <input value={customSubject} onChange={e => setCustomSubject(e.target.value)} placeholder="Enter subject…" className="input-field" />
             )}
-            <button onClick={() => setStep(2)} disabled={!resolvedSubject.trim()} className="btn-primary w-full py-3 text-sm">Continue →</button>
+            <button onClick={() => setStep(2)} disabled={!resolvedSubject.trim()} className="btn-primary w-full">Continue</button>
           </div>
         )}
 
@@ -208,8 +208,8 @@ function CreateAgentDialog({ onClose, onCreate }: { onClose: () => void; onCreat
               </div>
             </div>
             <div className="flex gap-2">
-              <button onClick={() => setStep(1)} className="btn-secondary flex-1 py-3 text-sm">← Back</button>
-              <button onClick={() => setStep(3)} disabled={!name.trim() || !level} className="btn-primary flex-1 py-3 text-sm">Continue →</button>
+              <button onClick={() => setStep(1)} className="btn-secondary flex-1">Back</button>
+              <button onClick={() => setStep(3)} disabled={!name.trim() || !level} className="btn-primary flex-1">Continue</button>
             </div>
           </div>
         )}
@@ -221,7 +221,7 @@ function CreateAgentDialog({ onClose, onCreate }: { onClose: () => void; onCreat
               <div className="grid grid-cols-2 gap-2">
                 {TONES.map(t => (
                   <button key={t.value} onClick={() => setTone(t.value)} className={cn("px-3 py-2.5 rounded-xl text-xs font-medium border transition-all text-left", tone === t.value ? "bg-secondary-container/60 border-secondary/40 text-on-secondary-container" : "border-outline-variant/20 text-on-surface-variant hover:border-outline-variant/40 hover:bg-surface-container-high")}>
-                    {t.emoji} {t.label}
+                    {t.label}
                   </button>
                 ))}
               </div>
@@ -231,7 +231,7 @@ function CreateAgentDialog({ onClose, onCreate }: { onClose: () => void; onCreat
               <div className="grid grid-cols-2 gap-2">
                 {DOMAINS.map(d => (
                   <button key={d.value} onClick={() => setDomain(d.value)} className={cn("px-3 py-2.5 rounded-xl text-xs font-medium border transition-all text-left", domain === d.value ? "bg-secondary-container/60 border-secondary/40 text-on-secondary-container" : "border-outline-variant/20 text-on-surface-variant hover:border-outline-variant/40 hover:bg-surface-container-high")}>
-                    {d.emoji} {d.label}
+                    {d.label}
                   </button>
                 ))}
               </div>
@@ -241,9 +241,9 @@ function CreateAgentDialog({ onClose, onCreate }: { onClose: () => void; onCreat
               <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="What does this agent specialise in?" rows={2} className="input-field resize-none" />
             </div>
             <div className="flex gap-2">
-              <button onClick={() => setStep(2)} className="btn-secondary flex-1 py-3 text-sm">← Back</button>
-              <button onClick={handleCreate} disabled={creating} className="btn-primary flex-1 py-3 text-sm">
-                {creating ? "Creating…" : "Create Agent ✨"}
+              <button onClick={() => setStep(2)} className="btn-secondary flex-1">Back</button>
+              <button onClick={handleCreate} disabled={creating} className="btn-primary flex-1">
+                {creating ? "Creating…" : "Create Agent"}
               </button>
             </div>
           </div>
@@ -338,8 +338,8 @@ export default function AgentsPage() {
             </div>
             <h2 className="text-xl font-bold font-manrope text-on-surface mb-2">No agents yet</h2>
             <p className="text-sm text-on-surface-variant mb-6 max-w-xs mx-auto">Create your first AI agent. It will have full access to your stacks, flows, and articles.</p>
-            <button onClick={() => setShowCreate(true)} className="btn-primary px-6 py-3 text-sm gap-2">
-              <Sparkles className="h-4 w-4" /> Create your first agent — free
+            <button onClick={() => setShowCreate(true)} className="btn-primary">
+              <Sparkles className="h-4 w-4" /> Create your first agent
             </button>
           </motion.div>
         ) : (

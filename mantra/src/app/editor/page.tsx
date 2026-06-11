@@ -271,7 +271,7 @@ function EditorInner() {
         body: JSON.stringify({ isPublished: true }),
       });
       setShowPublish(false);
-      setSavedMsg("Published! ✓");
+      setSavedMsg("Published!");
       setTimeout(() => setSavedMsg(""), 3000);
       if (!articleSlug && slug) router.replace(`/editor?article=${slug}`);
     } finally {
@@ -290,7 +290,7 @@ function EditorInner() {
       fd.append("file", file);
       await fetch(`/api/custom-agents/${agentId}/files`, { method: "POST", body: fd });
       setShowTeach(false);
-      setSavedMsg("Saved to agent ✓");
+      setSavedMsg("Saved to agent");
       setTimeout(() => setSavedMsg(""), 3000);
     } finally {
       setSaving(false);
@@ -382,7 +382,7 @@ function EditorInner() {
                         <button key={c} onClick={() => { c === "transparent" ? editor.chain().focus().unsetHighlight().run() : editor.chain().focus().setHighlight({ color: c }).run(); setHighlightOpen(false); }}
                           className="w-6 h-6 rounded border border-outline-variant/30 hover:scale-110 transition-transform text-[9px] font-bold"
                           style={{ background: c || "white" }}>
-                          {c === "transparent" && "✕"}
+                          {c === "transparent" && "×"}
                         </button>
                       ))}
                     </div>

@@ -174,7 +174,7 @@ export default function AgentPage() {
     setInput("");
     clearImage();
 
-    const userMsg: Message = { role: "user", content: msg || "📷 Image sent", imageUrl: imgPreview ?? undefined };
+    const userMsg: Message = { role: "user", content: msg || "Image sent", imageUrl: imgPreview ?? undefined };
     setMessages(prev => [...prev, userMsg]);
     setSending(true);
 

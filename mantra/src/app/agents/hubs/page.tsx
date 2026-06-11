@@ -25,7 +25,7 @@ interface Hub {
   _count: { members: number; stacks: number };
 }
 
-const DOMAIN_ICONS: Record<string, string> = { general: "🌐", education: "🎓", research: "🔬", business: "💼", science: "🧪", arts: "🎨" };
+const DOMAIN_LABELS: Record<string, string> = { general: "General", education: "Education", research: "Research", business: "Business", science: "Science", arts: "Arts" };
 
 function HubCard({ hub, index, isMine }: { hub: Hub; index: number; isMine?: boolean }) {
   const router = useRouter();
@@ -35,8 +35,8 @@ function HubCard({ hub, index, isMine }: { hub: Hub; index: number; isMine?: boo
       style={{ "--shimmer-delay": `${index * 0.7}s` } as React.CSSProperties}
       className="glow-border elevated-surface rounded-2xl p-5 hover:shadow-elevation-lg transition-all cursor-pointer hover:-translate-y-0.5 group">
       <div className="flex items-start justify-between mb-3">
-        <div className="w-10 h-10 rounded-xl bg-secondary-container/40 flex items-center justify-center text-xl">
-          {DOMAIN_ICONS[hub.domain] || "🌐"}
+        <div className="w-10 h-10 rounded-xl bg-secondary-container/40 flex items-center justify-center">
+          <BookOpen className="h-4 w-4 text-on-secondary-container" />
         </div>
         <div className="flex items-center gap-1.5">
           {hub.isPublic ? <Globe className="h-3.5 w-3.5 text-on-surface-variant" /> : <Lock className="h-3.5 w-3.5 text-on-surface-variant" />}
@@ -150,9 +150,9 @@ export default function KnowledgeHubsPage() {
                 <div><label className="text-sm font-medium text-on-surface block mb-1.5">Description</label><textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={2} className="input-field resize-none" /></div>
                 <div><label className="text-sm font-medium text-on-surface block mb-1.5">Domain</label>
                   <div className="grid grid-cols-3 gap-2">
-                    {Object.entries(DOMAIN_ICONS).map(([d, emoji]) => (
+                    {Object.entries(DOMAIN_LABELS).map(([d, label]) => (
                       <button key={d} onClick={() => setForm(f => ({ ...f, domain: d }))} className={cn("px-3 py-2 rounded-xl text-xs font-medium border capitalize transition-all", form.domain === d ? "bg-secondary-container/60 border-secondary/40 text-on-secondary-container" : "border-outline-variant/20 text-on-surface-variant hover:border-outline-variant/40")}>
-                        {emoji} {d}
+                        {label}
                       </button>
                     ))}
                   </div>

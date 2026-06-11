@@ -111,7 +111,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
         <div className="flex-1 flex flex-col items-center justify-center gap-4">
           <h2 className="font-manrope font-bold text-2xl text-primary">Profile not found</h2>
           <p className="text-on-surface-variant">{error || `@${username} doesn't exist on Mentra.`}</p>
-          <Link href="/explore" className="btn-primary px-6 py-3 rounded-xl text-sm font-semibold">Explore stacks</Link>
+          <Link href="/explore" className="btn-primary">Explore stacks</Link>
         </div>
         <Footer />
       </div>

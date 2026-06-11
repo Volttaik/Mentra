@@ -214,7 +214,7 @@ export default function ArticlePage() {
               </div>
               <h3 className="font-bold font-manrope text-on-surface text-lg mb-2">This article is paid</h3>
               <p className="text-sm text-on-surface-variant mb-6">Purchase for <strong className="text-secondary">{article.price} credits</strong> to read and own this article.</p>
-              <button onClick={purchase} disabled={purchasing || status !== "authenticated"} className="btn-primary px-8 py-3 text-sm gap-2">
+              <button onClick={purchase} disabled={purchasing || status !== "authenticated"} className="btn-primary px-6">
                 {purchasing ? <><Loader2 className="h-4 w-4 animate-spin" /> Processing…</> : <><ShoppingBag className="h-4 w-4" /> Purchase for {article.price} credits</>}
               </button>
             </motion.div>
@@ -227,7 +227,7 @@ export default function ArticlePage() {
             ) : (
               <div className="text-center py-16 text-on-surface-variant">
                 <p>No content published yet.</p>
-                {article.isOwner && <Link href={`/editor?article=${slug}`} className="btn-primary mt-4 px-6 py-2.5 text-sm inline-flex">Start writing</Link>}
+                {article.isOwner && <Link href={`/editor?article=${slug}`} className="btn-primary mt-4 inline-flex">Start writing</Link>}
               </div>
             )
           )}

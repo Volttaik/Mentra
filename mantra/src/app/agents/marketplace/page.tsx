@@ -23,7 +23,7 @@ interface Listing {
   agent: { name: string; subject: string; domain: string; owner: { name: string; username: string; image: string | null }; _count: { subscriptions: number } };
 }
 
-const DOMAIN_ICONS: Record<string, string> = { education: "🎓", research: "🔬", business: "💼", general: "🧠" };
+const DOMAIN_LABELS: Record<string, string> = { education: "Education", research: "Research", business: "Business", general: "General" };
 
 export default function MarketplacePage() {
   const { status } = useSession();
@@ -66,7 +66,7 @@ export default function MarketplacePage() {
             <p className="text-sm text-on-surface-variant max-w-sm mx-auto mb-6">
               Creators can publish their trained agents here. Build an agent, teach it using the Mentra Editor, and list it for others to subscribe.
             </p>
-            <Link href="/agents" className="btn-primary px-6 py-3 text-sm gap-2 inline-flex items-center">
+            <Link href="/agents" className="btn-primary inline-flex items-center">
               <Brain className="h-4 w-4" /> Build your own agent
             </Link>
           </div>
@@ -83,7 +83,7 @@ export default function MarketplacePage() {
                     <h3 className="font-semibold font-manrope text-on-surface text-sm">{listing.title}</h3>
                     <p className="text-[11px] text-on-surface-variant">{listing.agent.subject}</p>
                   </div>
-                  <span className="ml-auto text-xl">{DOMAIN_ICONS[listing.agent.domain] || "🧠"}</span>
+                  <span className="ml-auto text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wide">{DOMAIN_LABELS[listing.agent.domain] || listing.agent.domain}</span>
                 </div>
                 {listing.description && <p className="text-xs text-on-surface-variant mb-3 line-clamp-2">{listing.description}</p>}
                 <div className="flex items-center justify-between">
