@@ -7,7 +7,7 @@ import {
   BookOpen, Star, GitFork, Plus, Bell, Activity,
   ChevronRight, Bookmark, CheckCircle, MessageSquare,
   Users, Eye, Loader2, BookMarked, FolderOpen, Trash2, Camera,
-  Brain, PenLine, ArrowRight,
+  Brain, PenLine, ArrowRight, Globe,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import ContributionGraph from "@/components/ui/ContributionGraph";
@@ -673,8 +673,8 @@ export default function DashboardPage() {
                 <Link href="/agents" className="flex items-center gap-2 text-xs text-on-surface-variant bg-surface-container/60 px-3 py-2 rounded-lg hover:bg-surface-container transition-colors">
                   <Brain className="w-3 h-3 text-secondary" /> My Agents
                 </Link>
-                <Link href="/agents/hubs" className="flex items-center gap-2 text-xs text-on-surface-variant bg-surface-container/60 px-3 py-2 rounded-lg hover:bg-surface-container transition-colors">
-                  <BookOpen className="w-3 h-3 text-secondary" /> Knowledge Hubs
+                <Link href="/agents/marketplace" className="flex items-center gap-2 text-xs text-on-surface-variant bg-surface-container/60 px-3 py-2 rounded-lg hover:bg-surface-container transition-colors">
+                  <Globe className="w-3 h-3 text-secondary" /> Marketplace
                 </Link>
               </div>
             </div>

@@ -112,7 +112,6 @@ export default function Navbar() {
         { href: "/explore",     label: "Explore Stacks",  icon: Compass,   desc: "Find public stacks" },
         { href: "/communities", label: "Communities",     icon: Users,     desc: "Join knowledge groups" },
         { href: "/articles",    label: "Articles",        icon: BookOpen,  desc: "Read & buy articles" },
-        { href: "/agents/hubs", label: "Knowledge Hubs", icon: Brain,     desc: "Collaborative learning spaces" },
       ],
     },
     {

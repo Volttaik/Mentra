@@ -4,19 +4,15 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { LayoutGrid, Plus, Pin, Trash2, X, Edit3, Save, Brain, BookOpen, FolderKanban, Calendar, BarChart2, MessageCircle } from "lucide-react";
+import { LayoutGrid, Plus, Pin, Trash2, X, Edit3, Save, Brain, Globe } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
   { label: "My Agents", href: "/agents", icon: Brain },
-  { label: "Knowledge Hubs", href: "/agents/hubs", icon: BookOpen },
-  { label: "Projects", href: "/agents/projects", icon: FolderKanban },
+  { label: "Marketplace", href: "/agents/marketplace", icon: Globe },
   { label: "Workspace", href: "/agents/workspace", icon: LayoutGrid },
-  { label: "Schedule", href: "/agents/schedule", icon: Calendar },
-  { label: "Analytics", href: "/agents/analytics", icon: BarChart2 },
-  { label: "WhatsApp", href: "/agents/whatsapp", icon: MessageCircle },
 ];
 
 interface WorkspaceItem { id: string; title: string; content: string; type: string; pinned: boolean; updatedAt: string; }

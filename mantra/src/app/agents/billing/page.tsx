@@ -5,8 +5,8 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
-  CreditCard, Zap, Brain, BookOpen, FolderKanban, LayoutGrid,
-  Calendar, BarChart2, MessageCircle, Check, Loader2, ArrowUpRight,
+  CreditCard, Zap, Brain, Globe, LayoutGrid,
+  Check, Loader2, ArrowUpRight,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Link from "next/link";
@@ -14,12 +14,8 @@ import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
   { label: "My Agents", href: "/agents", icon: Brain },
-  { label: "Knowledge Hubs", href: "/agents/hubs", icon: BookOpen },
-  { label: "Projects", href: "/agents/projects", icon: FolderKanban },
+  { label: "Marketplace", href: "/agents/marketplace", icon: Globe },
   { label: "Workspace", href: "/agents/workspace", icon: LayoutGrid },
-  { label: "Schedule", href: "/agents/schedule", icon: Calendar },
-  { label: "Analytics", href: "/agents/analytics", icon: BarChart2 },
-  { label: "WhatsApp", href: "/agents/whatsapp", icon: MessageCircle },
 ];
 
 const CREDIT_PACKS = [
