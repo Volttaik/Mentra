@@ -300,7 +300,7 @@ export default function AgentPage() {
                       key={c.id}
                       onClick={() => loadConversation(c.id)}
                       className={cn(
-                        "w-full text-left px-3 py-2.5 rounded-xl transition-all group flex items-start gap-2",
+                        "w-full text-left px-2.5 py-2 rounded-xl transition-all group flex items-start gap-2",
                         activeId === c.id
                           ? "bg-secondary-container/60 text-on-secondary-container"
                           : "hover:bg-surface-container text-on-surface"
@@ -386,7 +386,7 @@ export default function AgentPage() {
                     <button
                       key={label}
                       onClick={() => { setInput(message); inputRef.current?.focus(); }}
-                      className="flex items-center gap-2 px-4 py-2.5 bg-surface-container hover:bg-surface-container-high border border-outline-variant/10 rounded-full text-sm font-medium text-on-surface-variant hover:text-primary transition-all"
+                      className="flex items-center gap-2 px-3 py-1.5 bg-surface-container hover:bg-surface-container-high border border-outline-variant/10 rounded-full text-xs font-medium text-on-surface-variant hover:text-primary transition-all"
                     >
                       <Icon className="w-3.5 h-3.5" /> {label}
                     </button>

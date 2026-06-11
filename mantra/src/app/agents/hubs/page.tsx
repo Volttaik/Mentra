@@ -109,10 +109,10 @@ export default function KnowledgeHubsPage() {
         </div>
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold font-manrope text-on-surface">Knowledge Hubs</h1>
-            <p className="text-sm text-on-surface-variant mt-1">Group learning spaces powered by Stacks</p>
+            <h1 className="text-lg font-bold font-manrope text-on-surface">Knowledge Hubs</h1>
+            <p className="text-xs text-on-surface-variant mt-0.5">Group learning spaces powered by Stacks</p>
           </div>
-          <button onClick={() => setShowCreate(true)} className="btn-primary px-5 py-2.5 text-sm gap-2"><Plus className="h-4 w-4" /> New Hub</button>
+          <button onClick={() => setShowCreate(true)} className="btn-primary"><Plus className="h-4 w-4" /> New Hub</button>
         </div>
         <div className="flex items-center gap-3 mb-6">
           <div className="flex-1 relative">

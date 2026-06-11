@@ -114,7 +114,7 @@ function LoginForm() {
             <span className="font-manrope font-bold text-lg text-primary">Mentra</span>
           </Link>
 
-          <h1 className="font-manrope font-bold text-2xl md:text-3xl text-primary mb-2">Welcome back</h1>
+          <h1 className="font-manrope font-bold text-xl md:text-2xl text-primary mb-2">Welcome back</h1>
           <p className="text-on-surface-variant mb-8">Sign in to your account to continue learning.</p>
 
           {error && (
@@ -163,7 +163,7 @@ function LoginForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 bg-primary text-on-primary py-2.5 rounded-xl font-semibold font-manrope text-sm hover:opacity-90 disabled:opacity-60 transition-all shadow-card active:scale-[0.99] mt-2"
+              className="w-full flex items-center justify-center gap-2 bg-primary text-on-primary py-2 rounded-xl font-semibold font-manrope text-sm hover:opacity-90 disabled:opacity-60 transition-all shadow-card active:scale-[0.99] mt-2"
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-on-primary/30 border-t-on-primary rounded-full animate-spin" />

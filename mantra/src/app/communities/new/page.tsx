@@ -87,7 +87,7 @@ export default function NewCommunityPage() {
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div>
-            <h1 className="font-manrope font-bold text-2xl text-primary">Create a Community</h1>
+            <h1 className="font-manrope font-bold text-lg text-primary">Create a Community</h1>
             <p className="text-sm text-on-surface-variant mt-0.5">
               Bring learners together around a subject, course, or topic.
             </p>

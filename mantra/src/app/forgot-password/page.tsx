@@ -87,7 +87,7 @@ export default function ForgotPasswordPage() {
             {step === 1 && (
               <motion.div key="step1" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-5">
                 <div>
-                  <h1 className="font-manrope font-bold text-2xl text-primary mb-1">Forgot password?</h1>
+                  <h1 className="font-manrope font-bold text-lg text-primary mb-1">Forgot password?</h1>
                   <p className="text-on-surface-variant text-sm">Enter your email and we&apos;ll send a reset code.</p>
                 </div>
 
@@ -108,7 +108,7 @@ export default function ForgotPasswordPage() {
                 <button
                   onClick={handleSendCode}
                   disabled={loading}
-                  className="w-full flex items-center justify-center gap-2 bg-primary text-on-primary py-2.5 rounded-xl font-semibold font-manrope text-sm hover:opacity-90 disabled:opacity-60 transition-all mt-2"
+                  className="w-full flex items-center justify-center gap-2 bg-primary text-on-primary py-2 rounded-xl font-semibold font-manrope text-sm hover:opacity-90 disabled:opacity-60 transition-all mt-2"
                 >
                   {loading ? <div className="w-5 h-5 border-2 border-on-primary/30 border-t-on-primary rounded-full animate-spin" /> : <>Send reset code <ArrowRight className="w-4 h-4" /></>}
                 </button>
@@ -123,7 +123,7 @@ export default function ForgotPasswordPage() {
             {step === 2 && (
               <motion.div key="step2" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-5">
                 <div>
-                  <h1 className="font-manrope font-bold text-2xl text-primary mb-1">Enter reset code</h1>
+                  <h1 className="font-manrope font-bold text-lg text-primary mb-1">Enter reset code</h1>
                   <p className="text-on-surface-variant text-sm">
                     We sent a 6-digit code to <strong className="text-primary">{email}</strong>
                   </p>
@@ -174,7 +174,7 @@ export default function ForgotPasswordPage() {
                 <button
                   onClick={handleResetPassword}
                   disabled={loading || code.length < 6 || newPassword.length < 8}
-                  className="w-full flex items-center justify-center gap-2 bg-primary text-on-primary py-2.5 rounded-xl font-semibold font-manrope text-sm hover:opacity-90 disabled:opacity-60 transition-all"
+                  className="w-full flex items-center justify-center gap-2 bg-primary text-on-primary py-2 rounded-xl font-semibold font-manrope text-sm hover:opacity-90 disabled:opacity-60 transition-all"
                 >
                   {loading ? <div className="w-5 h-5 border-2 border-on-primary/30 border-t-on-primary rounded-full animate-spin" /> : <>Reset password <ArrowRight className="w-4 h-4" /></>}
                 </button>
@@ -192,12 +192,12 @@ export default function ForgotPasswordPage() {
                   <Check className="w-8 h-8 text-green-600 dark:text-green-400" />
                 </div>
                 <div>
-                  <h1 className="font-manrope font-bold text-2xl text-primary mb-2">Password reset!</h1>
+                  <h1 className="font-manrope font-bold text-lg text-primary mb-2">Password reset!</h1>
                   <p className="text-on-surface-variant text-sm">Your password has been updated. You can now sign in with your new password.</p>
                 </div>
                 <button
                   onClick={() => router.push("/login")}
-                  className="w-full flex items-center justify-center gap-2 bg-primary text-on-primary py-2.5 rounded-xl font-semibold font-manrope text-sm hover:opacity-90 transition-all"
+                  className="w-full flex items-center justify-center gap-2 bg-primary text-on-primary py-2 rounded-xl font-semibold font-manrope text-sm hover:opacity-90 transition-all"
                 >
                   Sign in <ArrowRight className="w-4 h-4" />
                 </button>

@@ -73,13 +73,13 @@ export default function EditionsPage({ params }: { params: { slug: string } }) {
 
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="font-manrope font-bold text-2xl text-primary">Edition History</h1>
-            <p className="text-sm text-on-surface-variant mt-1">Version control for this stack&apos;s knowledge evolution.</p>
+            <h1 className="font-manrope font-bold text-lg text-primary">Edition History</h1>
+            <p className="text-xs text-on-surface-variant mt-0.5">Version control for this stack&apos;s knowledge evolution.</p>
           </div>
           {isOwner && (
             <button
               onClick={() => setShowForm(!showForm)}
-              className="flex items-center gap-2 bg-primary text-on-primary px-4 py-2.5 rounded-xl text-sm font-semibold font-manrope hover:opacity-90 transition-all"
+              className="btn-primary"
             >
               <Plus className="w-4 h-4" />New Edition
             </button>
@@ -104,7 +104,7 @@ export default function EditionsPage({ params }: { params: { slug: string } }) {
                     key={opt.value}
                     onClick={() => setVersionType(opt.value)}
                     className={cn(
-                      "flex-1 py-2.5 rounded-xl text-sm font-medium transition-all border",
+                      "flex-1 py-1.5 rounded-xl text-xs font-medium transition-all border",
                       versionType === opt.value
                         ? "bg-secondary-container border-secondary/30 text-on-secondary-container font-semibold"
                         : "border-outline-variant/30 text-on-surface-variant hover:bg-surface-container"

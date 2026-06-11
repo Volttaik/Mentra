@@ -191,7 +191,7 @@ export default function DashboardPage() {
         {/* Welcome */}
         <div className="mb-10 flex items-start justify-between animate-fade-in">
           <div>
-            <h1 className="font-manrope font-bold text-2xl md:text-3xl text-primary mb-1">
+            <h1 className="font-manrope font-bold text-xl md:text-2xl text-primary mb-1">
               {greeting}, {displayName}
             </h1>
             <p className="text-on-surface-variant text-sm">
@@ -203,7 +203,7 @@ export default function DashboardPage() {
           </div>
           <Link
             href="/upload"
-            className="hidden md:flex items-center gap-2 bg-primary text-on-primary px-5 py-3 rounded-xl font-semibold font-manrope text-sm hover:opacity-90 transition-all shadow-card"
+            className="btn-primary hidden md:inline-flex"
           >
             <Plus className="w-4 h-4" />
             New Stack
@@ -478,7 +478,7 @@ export default function DashboardPage() {
                   </p>
                   <Link
                     href="/upload"
-                    className="inline-flex items-center gap-2 bg-primary text-on-primary px-5 py-3 rounded-xl text-sm font-semibold font-manrope hover:opacity-90 transition-all"
+                    className="btn-primary"
                   >
                     <Plus className="w-4 h-4" /> Create first stack
                   </Link>

@@ -178,7 +178,7 @@ export default function ArticlePage() {
           {article.editions.length > 1 && (
             <div className="relative mb-6">
               <button onClick={() => setShowEditions(v => !v)}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-secondary-container/30 border border-secondary/20 text-sm font-medium text-on-secondary-container hover:bg-secondary-container/50 transition-colors">
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary-container/30 border border-secondary/20 text-xs font-medium text-on-secondary-container hover:bg-secondary-container/50 transition-colors">
                 <Sparkles className="h-3.5 w-3.5" />
                 {activeEdition?.label || "Edition 1"}
                 <ChevronDown className="h-3.5 w-3.5" />

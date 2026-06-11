@@ -177,7 +177,7 @@ export default function CreatorDashboardPage() {
               <CircleDollarSign className="w-5 h-5 text-on-secondary-container" />
             </div>
             <div>
-              <h1 className="font-manrope font-bold text-2xl text-primary">Creator Dashboard</h1>
+              <h1 className="font-manrope font-bold text-lg text-primary">Creator Dashboard</h1>
               <p className="text-sm text-on-surface-variant">Track your revenue, buyers, and manage payouts</p>
             </div>
           </div>
@@ -479,7 +479,7 @@ export default function CreatorDashboardPage() {
                 <button
                   onClick={handleAddBank}
                   disabled={bankLoading || !bankForm.accountNumber || !bankForm.bankCode || !bankForm.verificationCode}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary text-on-primary text-sm font-semibold font-manrope hover:opacity-90 disabled:opacity-50 transition-all"
+                  className="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-primary text-on-primary text-xs font-semibold font-manrope hover:opacity-90 disabled:opacity-50 transition-all"
                 >
                   {bankLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                   Verify & Save Account
@@ -510,7 +510,7 @@ export default function CreatorDashboardPage() {
                 <button
                   onClick={handlePayout}
                   disabled={payoutLoading || !payoutAmount}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary text-on-primary text-sm font-semibold font-manrope hover:opacity-90 disabled:opacity-50 transition-all"
+                  className="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-primary text-on-primary text-xs font-semibold font-manrope hover:opacity-90 disabled:opacity-50 transition-all"
                 >
                   {payoutLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowUpRight className="w-4 h-4" />}
                   Request Payout

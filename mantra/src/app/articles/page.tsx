@@ -97,8 +97,8 @@ export default function ArticlesPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold font-manrope text-on-surface">Articles</h1>
-            <p className="text-sm text-on-surface-variant mt-1">Written knowledge — authored, versioned, and owned</p>
+            <h1 className="text-lg font-bold font-manrope text-on-surface">Articles</h1>
+            <p className="text-xs text-on-surface-variant mt-0.5">Written knowledge — authored, versioned, and owned</p>
           </div>
           <Link href="/editor" className="btn-primary">
             <PenLine className="h-4 w-4" /> Write Article

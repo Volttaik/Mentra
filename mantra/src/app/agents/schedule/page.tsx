@@ -70,12 +70,12 @@ export default function AgentSchedulePage() {
           {NAV_ITEMS.map(item => <Link key={item.href} href={item.href} className={cn("px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all", item.href === "/agents/schedule" ? "bg-secondary-container/60 text-on-secondary-container" : "text-on-surface-variant hover:bg-surface-container hover:text-on-surface")}>{item.label}</Link>)}
         </div>
         <div className="flex items-center justify-between mb-8">
-          <div><h1 className="text-2xl font-bold font-manrope text-on-surface">Study Schedule</h1><p className="text-sm text-on-surface-variant mt-1">Plan and track your study sessions</p></div>
-          <button onClick={() => setShowCreate(true)} className="btn-primary px-5 py-2.5 text-sm gap-2"><Plus className="h-4 w-4" /> New Session</button>
+          <div><h1 className="text-lg font-bold font-manrope text-on-surface">Study Schedule</h1><p className="text-xs text-on-surface-variant mt-0.5">Plan and track your study sessions</p></div>
+          <button onClick={() => setShowCreate(true)} className="btn-primary"><Plus className="h-4 w-4" /> New Session</button>
         </div>
         {loading ? <div className="space-y-3">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="elevated-surface rounded-2xl p-5 h-20 animate-pulse" />)}</div>
           : sessions.length === 0 ? (
-            <div className="text-center py-20"><Calendar className="h-12 w-12 text-outline-variant mx-auto mb-4" /><p className="text-on-surface-variant mb-4">No sessions scheduled</p><button onClick={() => setShowCreate(true)} className="btn-primary px-6 py-2.5 text-sm">Schedule a session</button></div>
+            <div className="text-center py-20"><Calendar className="h-12 w-12 text-outline-variant mx-auto mb-4" /><p className="text-on-surface-variant mb-4">No sessions scheduled</p><button onClick={() => setShowCreate(true)} className="btn-primary">Schedule a session</button></div>
           ) : (
             <div className="space-y-6">
               {upcoming.length > 0 && (

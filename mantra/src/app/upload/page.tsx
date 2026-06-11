@@ -302,7 +302,7 @@ export default function UploadPage() {
           <Link href="/dashboard" className="flex items-center gap-2 text-sm text-on-surface-variant hover:text-primary transition-colors mb-6">
             <ArrowLeft className="w-4 h-4" />Back to dashboard
           </Link>
-          <h1 className="font-manrope font-bold text-2xl md:text-3xl text-primary mb-2">Create a new stack</h1>
+          <h1 className="font-manrope font-bold text-xl md:text-2xl text-primary mb-2">Create a new stack</h1>
           <p className="text-on-surface-variant text-sm">Share your academic knowledge with the world.</p>
         </div>
 
@@ -825,7 +825,7 @@ export default function UploadPage() {
                     <CheckCircle2 className="w-8 h-8 text-secondary" />
                   </motion.div>
                   <h2 className="font-manrope font-bold text-xl text-primary">Stack published!</h2>
-                  <p className="text-sm text-on-surface-variant mt-1">Your content has been secured and is ready to view.</p>
+                  <p className="text-xs text-on-surface-variant mt-0.5">Your content has been secured and is ready to view.</p>
                 </>
               ) : processing.phase === "error" && !processing.stackSlug ? (
                 <>
@@ -843,7 +843,7 @@ export default function UploadPage() {
                   <h2 className="font-manrope font-bold text-xl text-primary">
                     {processing.phase === "creating" ? "Creating your stack…" : "Processing content…"}
                   </h2>
-                  <p className="text-sm text-on-surface-variant mt-1">
+                  <p className="text-xs text-on-surface-variant mt-0.5">
                     {processing.phase === "creating" ? "Setting up your stack in the database." : "Preparing and securing your files."}
                   </p>
                 </>
@@ -897,7 +897,7 @@ export default function UploadPage() {
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col gap-3">
                 <button
                   onClick={() => router.push(`/stacks/${processing.stackSlug}`)}
-                  className="w-full flex items-center justify-center gap-2 bg-primary text-on-primary py-2.5 rounded-xl font-semibold font-manrope text-sm hover:opacity-90 transition-all"
+                  className="w-full flex items-center justify-center gap-2 bg-primary text-on-primary py-2 rounded-xl font-semibold font-manrope text-sm hover:opacity-90 transition-all"
                 >
                   View your stack <ChevronRight className="w-4 h-4" />
                 </button>

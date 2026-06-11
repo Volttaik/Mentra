@@ -84,7 +84,7 @@ export default function ForksPage() {
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div className="flex-1 min-w-0">
-            <h1 className="font-manrope font-bold text-2xl text-primary flex items-center gap-2">
+            <h1 className="font-manrope font-bold text-lg text-primary flex items-center gap-2">
               <GitFork className="w-5 h-5 text-secondary" /> Fork Management
             </h1>
             <p className="text-sm text-on-surface-variant mt-0.5">

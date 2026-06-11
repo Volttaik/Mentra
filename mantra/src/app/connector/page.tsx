@@ -74,7 +74,7 @@ export default function ConnectorPage() {
           {pwError && <p className="text-xs text-red-400 text-center">Incorrect password.</p>}
           <button
             onClick={unlock}
-            className="w-full py-3 bg-amber-500 hover:bg-amber-400 text-black font-semibold rounded-xl text-sm transition-all"
+            className="w-full py-2 bg-amber-500 hover:bg-amber-400 text-black font-semibold rounded-xl text-xs transition-all"
           >
             Unlock
           </button>
@@ -87,7 +87,7 @@ export default function ConnectorPage() {
     <div className="min-h-screen bg-[#0d0d0d] text-white p-6">
       <div className="max-w-2xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold font-manrope text-white">Mentra Gateway Connector</h1>
+          <h1 className="text-lg font-bold font-manrope text-white">Mentra Gateway Connector</h1>
           <p className="text-white/50 text-sm mt-1">Connect a WhatsApp gateway to enable WhatsApp AI integration.</p>
         </div>
 
@@ -117,7 +117,7 @@ export default function ConnectorPage() {
           <a
             href="/api/gateway/download"
             download="mentra-gateway.zip"
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-black font-semibold rounded-xl text-sm transition-all"
+            className="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-black font-semibold rounded-xl text-xs transition-all"
           >
             <Download className="w-4 h-4" /> Download mentra-gateway.zip
           </a>
@@ -169,7 +169,7 @@ export default function ConnectorPage() {
             <button
               onClick={saveConfig}
               disabled={saving}
-              className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-black font-semibold rounded-xl text-sm transition-all disabled:opacity-60"
+              className="flex items-center gap-2 px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-black font-semibold rounded-xl text-xs transition-all disabled:opacity-60"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? <Check className="w-4 h-4" /> : null}
               {saved ? "Saved!" : "Save & Connect"}

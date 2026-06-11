@@ -201,7 +201,7 @@ function CreateAgentDialog({ onClose, onCreate }: { onClose: () => void; onCreat
               <label className="text-sm font-medium text-on-surface block mb-2">Level</label>
               <div className="grid grid-cols-2 gap-2">
                 {LEVELS.map(l => (
-                  <button key={l} onClick={() => setLevel(l)} className={cn("px-3 py-2.5 rounded-xl text-xs font-medium border transition-all text-left", level === l ? "bg-secondary-container/60 border-secondary/40 text-on-secondary-container" : "border-outline-variant/20 text-on-surface-variant hover:border-outline-variant/40 hover:bg-surface-container-high")}>
+                  <button key={l} onClick={() => setLevel(l)} className={cn("px-2.5 py-1.5 rounded-xl text-xs font-medium border transition-all text-left", level === l ? "bg-secondary-container/60 border-secondary/40 text-on-secondary-container" : "border-outline-variant/20 text-on-surface-variant hover:border-outline-variant/40 hover:bg-surface-container-high")}>
                     {l}
                   </button>
                 ))}
@@ -220,7 +220,7 @@ function CreateAgentDialog({ onClose, onCreate }: { onClose: () => void; onCreat
               <label className="text-sm font-medium text-on-surface block mb-2">Communication style</label>
               <div className="grid grid-cols-2 gap-2">
                 {TONES.map(t => (
-                  <button key={t.value} onClick={() => setTone(t.value)} className={cn("px-3 py-2.5 rounded-xl text-xs font-medium border transition-all text-left", tone === t.value ? "bg-secondary-container/60 border-secondary/40 text-on-secondary-container" : "border-outline-variant/20 text-on-surface-variant hover:border-outline-variant/40 hover:bg-surface-container-high")}>
+                  <button key={t.value} onClick={() => setTone(t.value)} className={cn("px-2.5 py-1.5 rounded-xl text-xs font-medium border transition-all text-left", tone === t.value ? "bg-secondary-container/60 border-secondary/40 text-on-secondary-container" : "border-outline-variant/20 text-on-surface-variant hover:border-outline-variant/40 hover:bg-surface-container-high")}>
                     {t.label}
                   </button>
                 ))}
@@ -230,7 +230,7 @@ function CreateAgentDialog({ onClose, onCreate }: { onClose: () => void; onCreat
               <label className="text-sm font-medium text-on-surface block mb-2">Domain</label>
               <div className="grid grid-cols-2 gap-2">
                 {DOMAINS.map(d => (
-                  <button key={d.value} onClick={() => setDomain(d.value)} className={cn("px-3 py-2.5 rounded-xl text-xs font-medium border transition-all text-left", domain === d.value ? "bg-secondary-container/60 border-secondary/40 text-on-secondary-container" : "border-outline-variant/20 text-on-surface-variant hover:border-outline-variant/40 hover:bg-surface-container-high")}>
+                  <button key={d.value} onClick={() => setDomain(d.value)} className={cn("px-2.5 py-1.5 rounded-xl text-xs font-medium border transition-all text-left", domain === d.value ? "bg-secondary-container/60 border-secondary/40 text-on-secondary-container" : "border-outline-variant/20 text-on-surface-variant hover:border-outline-variant/40 hover:bg-surface-container-high")}>
                     {d.label}
                   </button>
                 ))}
@@ -290,8 +290,8 @@ export default function AgentsPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold font-manrope text-on-surface">Mentra Agents</h1>
-            <p className="text-sm text-on-surface-variant mt-1">Build AI agents that know your stacks, flows, and articles</p>
+            <h1 className="text-lg font-bold font-manrope text-on-surface">Mentra Agents</h1>
+            <p className="text-xs text-on-surface-variant mt-0.5">Build AI agents that know your stacks, flows, and articles</p>
           </div>
           <motion.button onClick={() => setShowCreate(true)} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="btn-primary">
             <Plus className="h-4 w-4" /> New Agent

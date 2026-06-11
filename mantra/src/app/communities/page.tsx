@@ -58,8 +58,8 @@ export default function CommunitiesPage() {
       <main className="flex-1 max-w-[900px] mx-auto px-4 md:px-6 py-10 w-full">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="font-manrope font-bold text-2xl md:text-3xl text-primary">Communities</h1>
-            <p className="text-sm text-on-surface-variant mt-1">Learn and collaborate with your peers</p>
+            <h1 className="font-manrope font-bold text-xl md:text-2xl text-primary">Communities</h1>
+            <p className="text-xs text-on-surface-variant mt-0.5">Learn and collaborate with your peers</p>
           </div>
           {session?.user && (
             <button

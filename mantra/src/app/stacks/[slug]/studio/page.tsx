@@ -325,7 +325,7 @@ export default function StackStudioPage() {
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 p-8 text-center">
         <AlertTriangle className="w-10 h-10 text-error" />
         <p className="font-manrope font-bold text-xl text-primary">{error || "Stack not found"}</p>
-        <Link href="/dashboard" className="btn-primary px-5 py-2.5 rounded-xl text-sm">Back to dashboard</Link>
+        <Link href="/dashboard" className="btn-primary">Back to dashboard</Link>
       </div>
     );
   }
@@ -336,7 +336,7 @@ export default function StackStudioPage() {
         <Lock className="w-10 h-10 text-error" />
         <p className="font-manrope font-bold text-xl text-primary">Not authorized</p>
         <p className="text-on-surface-variant">Only the stack owner can access Studio.</p>
-        <Link href={`/stacks/${slug}`} className="btn-primary px-5 py-2.5 rounded-xl text-sm">View stack</Link>
+        <Link href={`/stacks/${slug}`} className="btn-primary">View stack</Link>
       </div>
     );
   }
@@ -1026,7 +1026,7 @@ export default function StackStudioPage() {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold font-manrope bg-primary text-on-primary hover:opacity-90 disabled:opacity-60 transition-all"
+                className="btn-primary"
               >
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                 Save changes

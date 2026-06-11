@@ -205,12 +205,12 @@ function AgentChatInner() {
               </div>
 
               <div className="flex-1 overflow-y-auto p-3 space-y-1">
-                <button onClick={newConversation} className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl bg-secondary-container/30 hover:bg-secondary-container/50 text-sm font-medium text-on-surface transition-colors mb-3">
+                <button onClick={newConversation} className="w-full flex items-center gap-2 px-3 py-1.5 rounded-xl bg-secondary-container/30 hover:bg-secondary-container/50 text-xs font-medium text-on-surface transition-colors mb-3">
                   <Plus className="h-4 w-4" /> New Chat
                 </button>
                 {conversations.map(conv => (
                   <div key={conv.id} onClick={() => loadConversation(conv.id)}
-                    className={cn("group flex items-center gap-2 px-3 py-2.5 rounded-xl cursor-pointer transition-colors text-sm", activeConvId === conv.id ? "bg-secondary-container/40 text-on-surface" : "text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface")}>
+                    className={cn("group flex items-center gap-2 px-3 py-1.5 rounded-xl cursor-pointer transition-colors text-xs", activeConvId === conv.id ? "bg-secondary-container/40 text-on-surface" : "text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface")}>
                     <MessageSquare className="h-3.5 w-3.5 shrink-0" />
                     <span className="flex-1 truncate">{conv.title}</span>
                     <button onClick={e => deleteConversation(conv.id, e)} className="opacity-0 group-hover:opacity-100 hover:text-error transition-all">
@@ -221,7 +221,7 @@ function AgentChatInner() {
               </div>
 
               <div className="p-3 border-t border-outline-variant/15">
-                <button onClick={() => setKnowledgeOpen(true)} className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl hover:bg-surface-container-high text-sm text-on-surface-variant hover:text-on-surface transition-colors">
+                <button onClick={() => setKnowledgeOpen(true)} className="w-full flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-surface-container-high text-xs text-on-surface-variant hover:text-on-surface transition-colors">
                   <BookOpen className="h-4 w-4" />
                   Knowledge Files ({agent.knowledgeFiles.length})
                 </button>
@@ -253,7 +253,7 @@ function AgentChatInner() {
                 <div className="flex flex-wrap gap-2 justify-center">
                   {QUICK_PROMPTS.map(p => (
                     <button key={p.label} onClick={() => { setInput(p.msg); textareaRef.current?.focus(); }}
-                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl elevated-surface text-sm text-on-surface-variant hover:text-on-surface transition-colors border border-outline-variant/20">
+                      className="flex items-center gap-2 px-3 py-1.5 rounded-xl elevated-surface text-xs text-on-surface-variant hover:text-on-surface transition-colors border border-outline-variant/20">
                       <p.icon className="h-3.5 w-3.5" /> {p.label}
                     </button>
                   ))}

@@ -208,7 +208,7 @@ export default function ExplorePage() {
       <section className="border-b border-outline-variant/10 py-10">
         <div className="max-w-[1200px] mx-auto px-4 md:px-6">
           <div className="max-w-2xl mx-auto text-center mb-7">
-            <h1 className="font-manrope font-bold text-3xl md:text-4xl text-primary mb-2">
+            <h1 className="font-manrope font-bold text-xl md:text-2xl text-primary mb-2">
               Explore Stacks
             </h1>
             <p className="text-on-surface-variant text-sm md:text-base">
@@ -356,7 +356,7 @@ export default function ExplorePage() {
                 <button
                   onClick={() => fetchStacks(false, page + 1)}
                   disabled={loading}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-surface-container border border-outline-variant/30 rounded-xl text-sm font-medium text-on-surface-variant hover:bg-surface-container-high transition-all disabled:opacity-60"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-surface-container border border-outline-variant/30 rounded-lg text-xs font-medium text-on-surface-variant hover:bg-surface-container-high transition-all disabled:opacity-60"
                 >
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ChevronRight className="w-4 h-4" />}
                   Load more

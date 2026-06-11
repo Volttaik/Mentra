@@ -558,7 +558,7 @@ export default function RegisterPage() {
                 exit={{ opacity: 0, x: 16 }}
                 transition={{ duration: 0.28 }}
               >
-                <h1 className="font-manrope font-bold text-2xl text-primary mb-1">Who are you?</h1>
+                <h1 className="font-manrope font-bold text-lg text-primary mb-1">Who are you?</h1>
                 <p className="text-on-surface-variant text-sm mb-6">This helps us set up the right experience for you.</p>
                 <div className="space-y-3">
                   {USER_TYPES.map(t => (
@@ -602,7 +602,7 @@ export default function RegisterPage() {
                 transition={{ duration: 0.28 }}
                 className="space-y-4"
               >
-                <h1 className="font-manrope font-bold text-2xl text-primary mb-1">Create your account</h1>
+                <h1 className="font-manrope font-bold text-lg text-primary mb-1">Create your account</h1>
                 <p className="text-on-surface-variant text-sm mb-2">Start for free. No credit card required.</p>
                 <div>
                   <label className="block text-sm font-medium text-primary mb-1.5">Full name</label>
@@ -667,7 +667,7 @@ export default function RegisterPage() {
                 transition={{ duration: 0.28 }}
                 className="space-y-4"
               >
-                <h1 className="font-manrope font-bold text-2xl text-primary mb-1">Tell us more</h1>
+                <h1 className="font-manrope font-bold text-lg text-primary mb-1">Tell us more</h1>
                 <p className="text-on-surface-variant text-sm mb-2">Help others understand your background.</p>
 
                 {userType === "student" && (
@@ -694,7 +694,7 @@ export default function RegisterPage() {
                             key={level}
                             type="button"
                             onClick={() => update("level", level)}
-                            className={`px-3 py-2.5 rounded-xl text-sm font-medium transition-all border ${form.level === level ? "bg-secondary-container border-secondary/30 text-on-secondary-container font-semibold" : "border-outline-variant/30 text-on-surface-variant hover:bg-surface-container"}`}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all border ${form.level === level ? "bg-secondary-container border-secondary/30 text-on-secondary-container font-semibold" : "border-outline-variant/30 text-on-surface-variant hover:bg-surface-container"}`}
                           >
                             {level}
                           </button>
@@ -749,7 +749,7 @@ export default function RegisterPage() {
                 transition={{ duration: 0.28 }}
                 className="space-y-5"
               >
-                <h1 className="font-manrope font-bold text-2xl text-primary mb-1">Set up your profile</h1>
+                <h1 className="font-manrope font-bold text-lg text-primary mb-1">Set up your profile</h1>
                 <p className="text-on-surface-variant text-sm mb-2">This can be changed later in settings.</p>
 
                 {/* Avatar */}
@@ -809,7 +809,7 @@ export default function RegisterPage() {
                     <Check className="w-7 h-7 text-on-secondary-container" />
                   </div>
                   <div>
-                    <h1 className="font-manrope font-bold text-2xl text-primary mb-1">Verify your email</h1>
+                    <h1 className="font-manrope font-bold text-lg text-primary mb-1">Verify your email</h1>
                     <p className="text-on-surface-variant text-sm">
                       We sent a 6-digit code to <strong className="text-primary">{form.email}</strong>
                     </p>
@@ -845,7 +845,7 @@ export default function RegisterPage() {
           <button
             onClick={handleNext}
             disabled={loading || codeSending}
-            className="w-full flex items-center justify-center gap-2 bg-primary text-on-primary py-3.5 rounded-xl font-semibold font-manrope text-sm hover:opacity-90 disabled:opacity-60 transition-all shadow-card mt-6 active:scale-[0.99]"
+            className="w-full flex items-center justify-center gap-2 bg-primary text-on-primary py-2 rounded-xl font-semibold font-manrope text-sm hover:opacity-90 disabled:opacity-60 transition-all shadow-card mt-6 active:scale-[0.99]"
           >
             {(loading || codeSending) ? (
               <div className="w-5 h-5 border-2 border-on-primary/30 border-t-on-primary rounded-full animate-spin" />

@@ -48,8 +48,8 @@ export default function MarketplacePage() {
           {NAV_ITEMS.map(item => <Link key={item.href} href={item.href} className={cn("px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all", item.href === "/agents/marketplace" ? "bg-secondary-container/60 text-on-secondary-container" : "text-on-surface-variant hover:bg-surface-container hover:text-on-surface")}>{item.label}</Link>)}
         </div>
         <div className="mb-8">
-          <h1 className="text-2xl font-bold font-manrope text-on-surface">Agent Marketplace</h1>
-          <p className="text-sm text-on-surface-variant mt-1">Subscribe to expert AI agents built and trained by creators</p>
+          <h1 className="text-lg font-bold font-manrope text-on-surface">Agent Marketplace</h1>
+          <p className="text-xs text-on-surface-variant mt-0.5">Subscribe to expert AI agents built and trained by creators</p>
         </div>
         <div className="relative mb-8">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-on-surface-variant" />

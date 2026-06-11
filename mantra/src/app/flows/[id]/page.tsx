@@ -84,9 +84,9 @@ export default function FlowDetailPage() {
               <div className="w-9 h-9 bg-secondary-container rounded-xl flex items-center justify-center shrink-0">
                 <BookMarked className="w-5 h-5 text-on-secondary-container" />
               </div>
-              <h1 className="font-manrope font-bold text-2xl text-primary truncate">{flow.name}</h1>
+              <h1 className="font-manrope font-bold text-lg text-primary truncate">{flow.name}</h1>
             </div>
-            {flow.description && <p className="text-sm text-on-surface-variant mt-1">{flow.description}</p>}
+            {flow.description && <p className="text-xs text-on-surface-variant mt-0.5">{flow.description}</p>}
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-on-surface-variant bg-surface-container px-3 py-1.5 rounded-full">

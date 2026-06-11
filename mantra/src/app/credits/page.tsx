@@ -118,7 +118,7 @@ export default function CreditsPage() {
           <div className="w-14 h-14 bg-secondary-container rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Coins className="w-7 h-7 text-on-secondary-container" />
           </div>
-          <h1 className="font-manrope font-bold text-2xl text-primary mb-2">Buy AI Credits</h1>
+          <h1 className="font-manrope font-bold text-lg text-primary mb-2">Buy AI Credits</h1>
           <p className="text-sm text-on-surface-variant max-w-md mx-auto">
             Credits power every AI interaction on Mentra — from stack chat to smart quizzes and personalised recommendations.
           </p>
@@ -197,7 +197,7 @@ export default function CreditsPage() {
         <button
           onClick={handlePurchase}
           disabled={loading}
-          className="w-full py-4 bg-secondary text-on-secondary rounded-2xl font-manrope font-semibold text-base hover:opacity-90 disabled:opacity-60 transition-all flex items-center justify-center gap-2"
+          className="w-full py-2.5 bg-secondary text-on-secondary rounded-xl font-manrope font-semibold text-sm hover:opacity-90 disabled:opacity-60 transition-all flex items-center justify-center gap-2"
         >
           {loading ? (
             <Loader2 className="w-5 h-5 animate-spin" />

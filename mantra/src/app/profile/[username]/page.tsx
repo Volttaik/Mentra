@@ -161,7 +161,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
             {/* Name + actions */}
             <div className="flex-1 flex flex-col md:flex-row md:items-end justify-between gap-4">
               <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-                <h1 className="font-manrope font-bold text-2xl md:text-3xl text-primary leading-tight">{user.name}</h1>
+                <h1 className="font-manrope font-bold text-xl md:text-2xl text-primary leading-tight">{user.name}</h1>
                 <p className="text-on-surface-variant text-sm mt-1">@{user.username}</p>
               </motion.div>
 
@@ -171,7 +171,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
                     onClick={handleFollow}
                     disabled={followLoading}
                     className={cn(
-                      "flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold font-manrope transition-all",
+                      "flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold font-manrope transition-all",
                       isFollowing
                         ? "bg-surface-container border border-outline-variant/30 text-primary hover:bg-surface-container-high"
                         : "bg-primary text-on-primary hover:opacity-90"
@@ -182,13 +182,13 @@ export default function ProfilePage({ params }: { params: { username: string } }
                   </button>
                 )}
                 {isOwnProfile && (
-                  <Link href="/settings" className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold font-manrope bg-surface-container border border-outline-variant/30 text-primary hover:bg-surface-container-high transition-all">
+                  <Link href="/settings" className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold font-manrope bg-surface-container border border-outline-variant/30 text-primary hover:bg-surface-container-high transition-all">
                     Edit profile
                   </Link>
                 )}
                 <button
                   onClick={() => navigator.clipboard?.writeText(window.location.href)}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm border border-outline-variant/30 text-on-surface-variant hover:bg-surface-container transition-all"
+                  className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs border border-outline-variant/30 text-on-surface-variant hover:bg-surface-container transition-all"
                   title="Copy profile link"
                 >
                   <Share2 className="w-4 h-4" />
@@ -247,7 +247,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={cn(
-                "px-5 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap",
+                "px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap",
                 activeTab === tab
                   ? "bg-surface-container-lowest text-primary shadow-card font-semibold"
                   : "text-on-surface-variant hover:text-primary"
@@ -326,7 +326,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
                 <p className="text-xs text-on-surface-variant">Used for AI chat and quiz generation.</p>
                 <button
                   onClick={() => setShowBuyCredits(true)}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold font-manrope bg-secondary-container text-on-secondary-container hover:opacity-90 transition-all"
+                  className="w-full flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold font-manrope bg-secondary-container text-on-secondary-container hover:opacity-90 transition-all"
                 >
                   <Zap className="w-4 h-4" /> Buy Credits
                 </button>
@@ -336,13 +336,13 @@ export default function ProfilePage({ params }: { params: { username: string } }
             {isOwnProfile && (
               <div className="card p-5 space-y-3">
                 <h3 className="font-manrope font-semibold text-sm text-primary">Quick actions</h3>
-                <Link href="/upload" className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-on-surface-variant hover:bg-surface-container hover:text-primary transition-colors">
+                <Link href="/upload" className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-on-surface-variant hover:bg-surface-container hover:text-primary transition-colors">
                   <Activity className="w-4 h-4" /> Create a stack
                 </Link>
-                <Link href="/settings" className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-on-surface-variant hover:bg-surface-container hover:text-primary transition-colors">
+                <Link href="/settings" className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-on-surface-variant hover:bg-surface-container hover:text-primary transition-colors">
                   <ChevronRight className="w-4 h-4" /> Edit profile
                 </Link>
-                <Link href="/creator" className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-on-surface-variant hover:bg-surface-container hover:text-primary transition-colors">
+                <Link href="/creator" className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-on-surface-variant hover:bg-surface-container hover:text-primary transition-colors">
                   <ChevronRight className="w-4 h-4" /> Creator dashboard
                 </Link>
               </div>

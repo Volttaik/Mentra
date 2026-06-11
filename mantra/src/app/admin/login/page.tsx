@@ -106,7 +106,7 @@ export default function AdminLoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 bg-primary text-on-primary py-3 rounded-xl font-semibold font-manrope text-sm hover:opacity-90 disabled:opacity-60 transition-all mt-2"
+              className="w-full flex items-center justify-center gap-2 bg-primary text-on-primary py-2 rounded-xl font-semibold font-manrope text-sm hover:opacity-90 disabled:opacity-60 transition-all mt-2"
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

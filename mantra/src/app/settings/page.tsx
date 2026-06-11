@@ -657,7 +657,7 @@ function StudioTab() {
         <button
           onClick={applyAndSave}
           disabled={saving}
-          className="flex items-center gap-2 bg-secondary text-on-secondary px-6 py-2.5 rounded-xl text-sm font-semibold font-manrope hover:opacity-90 disabled:opacity-60 transition-all"
+          className="btn-primary"
         >
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? <Check className="w-4 h-4" /> : <Palette className="w-4 h-4" />}
           {saved ? "Applied!" : "Apply & Save"}
@@ -926,7 +926,7 @@ export default function SettingsPage() {
           <Link href="/dashboard" className="flex items-center gap-2 text-sm text-on-surface-variant hover:text-primary transition-colors mb-4">
             <ArrowLeft className="w-4 h-4" />Back to dashboard
           </Link>
-          <h1 className="font-manrope font-bold text-2xl md:text-3xl text-primary">Settings</h1>
+          <h1 className="font-manrope font-bold text-xl md:text-2xl text-primary">Settings</h1>
         </div>
 
         <div className="flex gap-8 flex-col md:flex-row">
@@ -944,7 +944,7 @@ export default function SettingsPage() {
                   key={label}
                   onClick={() => setTab(label)}
                   className={cn(
-                    "flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap",
+                    "flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all whitespace-nowrap",
                     tab === label
                       ? "bg-secondary-container text-on-secondary-container font-semibold"
                       : "text-on-surface-variant hover:bg-surface-container"
@@ -1110,7 +1110,7 @@ export default function SettingsPage() {
                     <button
                       onClick={handleSaveProfile}
                       disabled={saving}
-                      className="flex items-center gap-2 bg-primary text-on-primary px-6 py-2.5 rounded-xl text-sm font-semibold font-manrope hover:opacity-90 disabled:opacity-60 transition-all"
+                      className="btn-primary"
                     >
                       {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
                       {saved ? "Saved!" : "Save changes"}
@@ -1157,7 +1157,7 @@ export default function SettingsPage() {
                           setTimeout(() => setSavedAgent(false), 3000);
                         }}
                         disabled={savingAgent}
-                        className="flex items-center gap-2 bg-secondary text-on-secondary px-5 py-2.5 rounded-xl text-sm font-semibold font-manrope hover:opacity-90 disabled:opacity-60 transition-all"
+                        className="btn-primary"
                       >
                         {savingAgent ? <Loader2 className="w-4 h-4 animate-spin" /> : savedAgent ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
                         {savedAgent ? "Saved!" : "Save name"}
@@ -1208,7 +1208,7 @@ export default function SettingsPage() {
                     <button
                       onClick={handleCreateKey}
                       disabled={creatingKey || !newKeyName.trim()}
-                      className="flex items-center gap-2 bg-primary text-on-primary px-4 py-2.5 rounded-xl text-sm font-semibold font-manrope hover:opacity-90 disabled:opacity-60 transition-all shrink-0"
+                      className="flex items-center gap-2 bg-primary text-on-primary px-3 py-1.5 rounded-lg text-xs font-semibold font-manrope hover:opacity-90 disabled:opacity-60 transition-all shrink-0"
                     >
                       {creatingKey ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                       Generate
@@ -1284,7 +1284,7 @@ export default function SettingsPage() {
                       <label className="block text-sm font-medium text-primary mb-1.5">Confirm new password</label>
                       <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="input-field" placeholder="Re-enter new password" required />
                     </div>
-                    <button type="submit" disabled={savingPassword} className="flex items-center gap-2 bg-primary text-on-primary px-6 py-2.5 rounded-xl text-sm font-semibold font-manrope hover:opacity-90 disabled:opacity-60 transition-all">
+                    <button type="submit" disabled={savingPassword} className="btn-primary">
                       {savingPassword ? <Loader2 className="w-4 h-4 animate-spin" /> : <Shield className="w-4 h-4" />}
                       Update password
                     </button>
@@ -1297,7 +1297,7 @@ export default function SettingsPage() {
                     Permanently delete your account and all your stacks. This cannot be undone.
                   </p>
                   {!showDeleteConfirm ? (
-                    <button onClick={() => setShowDeleteConfirm(true)} className="flex items-center gap-2 border border-error/30 text-error px-4 py-2.5 rounded-xl text-sm font-semibold font-manrope hover:bg-error-container/20 transition-all">
+                    <button onClick={() => setShowDeleteConfirm(true)} className="flex items-center gap-2 border border-error/30 text-error px-3 py-1.5 rounded-lg text-xs font-semibold font-manrope hover:bg-error-container/20 transition-all">
                       <Trash2 className="w-4 h-4" />Delete account
                     </button>
                   ) : (
@@ -1310,7 +1310,7 @@ export default function SettingsPage() {
                       <input type="password" value={deletePassword} onChange={e => setDeletePassword(e.target.value)} placeholder="Your current password" className="input-field border-error/30" />
                       <div className="flex gap-3">
                         <button onClick={() => { setShowDeleteConfirm(false); setDeletePassword(""); setDeleteError(""); }} className="px-4 py-2 text-sm text-on-surface-variant hover:text-primary transition-colors">Cancel</button>
-                        <button onClick={handleDeleteAccount} disabled={deletingAccount || !deletePassword} className="flex items-center gap-2 bg-error text-on-error px-5 py-2 rounded-xl text-sm font-semibold font-manrope hover:opacity-90 disabled:opacity-60 transition-all">
+                        <button onClick={handleDeleteAccount} disabled={deletingAccount || !deletePassword} className="flex items-center gap-2 bg-error text-on-error px-3 py-1.5 rounded-lg text-xs font-semibold font-manrope hover:opacity-90 disabled:opacity-60 transition-all">
                           {deletingAccount ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                           Delete my account
                         </button>

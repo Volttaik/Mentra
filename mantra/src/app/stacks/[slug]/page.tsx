@@ -556,7 +556,7 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                   </span>
                 )}
               </div>
-              <h1 className="font-manrope font-bold text-2xl md:text-3xl text-primary mb-3 leading-tight">{stack.title}</h1>
+              <h1 className="font-manrope font-bold text-xl md:text-2xl text-primary mb-3 leading-tight">{stack.title}</h1>
               <p className="text-on-surface-variant leading-relaxed mb-4 max-w-2xl">{stack.description}</p>
 
               <div className="flex flex-wrap gap-2 mb-5">
@@ -971,7 +971,7 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                   <div className="card p-12 text-center">
                     <BookOpen className="w-10 h-10 text-outline-variant mx-auto mb-3" />
                     <p className="font-manrope font-semibold text-primary">No modules yet</p>
-                    <p className="text-sm text-on-surface-variant mt-1">Modules will appear here once they&apos;re added.</p>
+                    <p className="text-xs text-on-surface-variant mt-0.5">Modules will appear here once they&apos;re added.</p>
                   </div>
                 ) : (
                   stack.modules.map((module, i) => (
@@ -1101,7 +1101,7 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                   <div className="card p-12 text-center">
                     <MessageSquare className="w-10 h-10 text-outline-variant mx-auto mb-3" />
                     <p className="font-manrope font-semibold text-primary">No discussions yet</p>
-                    <p className="text-sm text-on-surface-variant mt-1">Start a discussion to ask questions or share ideas.</p>
+                    <p className="text-xs text-on-surface-variant mt-0.5">Start a discussion to ask questions or share ideas.</p>
                   </div>
                 ) : (
                   stack.discussionsList.map((disc, i) => (
@@ -1253,7 +1253,7 @@ export default function StackPage({ params }: { params: { slug: string } }) {
                 </div>
                 <button
                   onClick={() => setShowAiChat(true)}
-                  className="w-full flex items-center justify-center gap-2 bg-secondary text-on-secondary py-2.5 rounded-xl text-xs font-semibold font-manrope hover:opacity-90 transition-all"
+                  className="w-full flex items-center justify-center gap-2 bg-secondary text-on-secondary py-1.5 rounded-lg text-xs font-semibold font-manrope hover:opacity-90 transition-all"
                 >
                   <Bot className="w-3.5 h-3.5" />Ask AI
                 </button>

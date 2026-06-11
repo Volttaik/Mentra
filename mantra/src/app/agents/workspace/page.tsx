@@ -67,12 +67,12 @@ export default function AgentWorkspacePage() {
           {NAV_ITEMS.map(item => <Link key={item.href} href={item.href} className={cn("px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all", item.href === "/agents/workspace" ? "bg-secondary-container/60 text-on-secondary-container" : "text-on-surface-variant hover:bg-surface-container hover:text-on-surface")}>{item.label}</Link>)}
         </div>
         <div className="flex items-center justify-between mb-8">
-          <div><h1 className="text-2xl font-bold font-manrope text-on-surface">Workspace</h1><p className="text-sm text-on-surface-variant mt-1">Notes, ideas, references, and summaries</p></div>
-          <button onClick={() => setShowCreate(true)} className="btn-primary px-5 py-2.5 text-sm gap-2"><Plus className="h-4 w-4" /> New Item</button>
+          <div><h1 className="text-lg font-bold font-manrope text-on-surface">Workspace</h1><p className="text-xs text-on-surface-variant mt-0.5">Notes, ideas, references, and summaries</p></div>
+          <button onClick={() => setShowCreate(true)} className="btn-primary"><Plus className="h-4 w-4" /> New Item</button>
         </div>
         {loading ? <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4">{Array.from({ length: 6 }).map((_, i) => <div key={i} className="elevated-surface rounded-2xl p-5 h-32 animate-pulse break-inside-avoid" />)}</div>
           : items.length === 0 ? (
-            <div className="text-center py-20"><LayoutGrid className="h-12 w-12 text-outline-variant mx-auto mb-4" /><p className="text-on-surface-variant mb-4">Your workspace is empty</p><button onClick={() => setShowCreate(true)} className="btn-primary px-6 py-2.5 text-sm">Add your first note</button></div>
+            <div className="text-center py-20"><LayoutGrid className="h-12 w-12 text-outline-variant mx-auto mb-4" /><p className="text-on-surface-variant mb-4">Your workspace is empty</p><button onClick={() => setShowCreate(true)} className="btn-primary">Add your first note</button></div>
           ) : (
             <div className="columns-1 sm:columns-2 lg:columns-3 gap-4">
               {items.map((item, i) => (

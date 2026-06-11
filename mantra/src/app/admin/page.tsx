@@ -174,7 +174,7 @@ export default function AdminPage() {
 
       <main className="flex-1 max-w-[1200px] mx-auto px-4 md:px-6 py-10 w-full">
         <div className="mb-8">
-          <h1 className="font-manrope font-bold text-2xl md:text-3xl text-primary">Platform Management</h1>
+          <h1 className="font-manrope font-bold text-xl md:text-2xl text-primary">Platform Management</h1>
           <p className="text-on-surface-variant text-sm mt-1">Real-time data from the production database.</p>
         </div>
 
@@ -184,7 +184,7 @@ export default function AdminPage() {
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={cn(
-                "px-5 py-2 rounded-xl text-sm font-medium transition-all",
+                "px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
                 activeTab === tab
                   ? "bg-surface-container-lowest text-primary shadow-card font-semibold"
                   : "text-on-surface-variant hover:text-primary"
