@@ -64,7 +64,7 @@ export async function DELETE(req: Request) {
   if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
 
   await (prisma as any).whatsAppAgentCode.deleteMany({
-    where: { id: Number(id), userId: session.user.id },
+    where: { id, userId: session.user.id },
   });
 
   return NextResponse.json({ deleted: true });

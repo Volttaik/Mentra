@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "cockroachdb"
   url      = env("DATABASE_URL")
 }
 
@@ -900,7 +900,7 @@ model ArticlePurchase {
 // ─── WhatsApp Agent Codes ─────────────────────────────────────────────────────
 
 model WhatsAppAgentCode {
-  id          Int       @id @default(autoincrement())
+  id          String    @id @default(cuid())
   code        String    @unique
   agentId     String
   userId      String
