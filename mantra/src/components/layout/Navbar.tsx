@@ -26,7 +26,10 @@ export default function Navbar() {
   const [aiCredits, setAiCredits] = useState<number | null>(null);
   const [navStyle, setNavStyle] = useState("top");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [scrollHidden, setScrollHidden] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const lastScrollY = useRef(0);
+  const scrollTimer = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
     try {
@@ -36,6 +39,22 @@ export default function Navbar() {
         if (parsed.navStyle) setNavStyle(parsed.navStyle);
       }
     } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const current = window.scrollY;
+      if (current > lastScrollY.current && current > 80) {
+        setScrollHidden(true);
+      } else if (current < lastScrollY.current) {
+        setScrollHidden(false);
+      }
+      lastScrollY.current = current;
+      clearTimeout(scrollTimer.current);
+      scrollTimer.current = setTimeout(() => setScrollHidden(false), 400);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => { window.removeEventListener("scroll", handleScroll); clearTimeout(scrollTimer.current); };
   }, []);
 
   useEffect(() => {
@@ -256,7 +275,7 @@ export default function Navbar() {
   if (navStyle === "sidebar") {
     return (
       <>
-        <header className="fixed top-0 left-0 right-0 w-full z-50 parchment-blur border-b border-outline-variant/20">
+        <header className={cn("fixed top-0 left-0 right-0 w-full z-50 parchment-blur border-b border-outline-variant/20 transition-transform duration-300", scrollHidden && "-translate-y-full")}>
           <nav className="max-w-[1200px] mx-auto px-4 md:px-6 h-16 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               {isAuth && (
@@ -368,7 +387,7 @@ export default function Navbar() {
 
   if (navStyle === "minimal") {
     return (
-      <header className="fixed top-0 left-0 right-0 w-full z-50 parchment-blur border-b border-outline-variant/20">
+      <header className={cn("fixed top-0 left-0 right-0 w-full z-50 parchment-blur border-b border-outline-variant/20 transition-transform duration-300", scrollHidden && "-translate-y-full")}>
         <nav className="max-w-[1200px] mx-auto px-4 md:px-6 h-16 flex items-center justify-between gap-4">
           <Link href="/" className="flex items-center gap-2 shrink-0">
             <img src="/icons/icon-192.png" alt="Mentra" className="w-8 h-8 rounded-lg object-cover" />
@@ -434,7 +453,7 @@ export default function Navbar() {
   }
 
   return (
-    <header className="fixed top-0 left-0 right-0 w-full z-50 parchment-blur border-b border-outline-variant/20">
+    <header className={cn("fixed top-0 left-0 right-0 w-full z-50 parchment-blur border-b border-outline-variant/20 transition-transform duration-300", scrollHidden && "-translate-y-full")}>
       <nav className="max-w-[1200px] mx-auto px-4 md:px-6 h-16 flex items-center justify-between gap-4">
         <Link href="/" className="flex items-center gap-2 shrink-0">
           <img src="/icons/icon-192.png" alt="Mentra" className="w-8 h-8 rounded-lg object-cover" />

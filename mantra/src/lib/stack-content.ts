@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { decryptMtContent, EncryptedMtPacket } from "@/lib/mt-engine";
 
 export interface AssembledStackContent {
   id: string;
@@ -43,8 +44,18 @@ export async function assembleStackContent(stackId: string): Promise<AssembledSt
     prisma.mtContent.findMany({
       where: { stackId },
       orderBy: { createdAt: "desc" },
-      take: 5,
-      select: { rawContent: true, summary: true, concepts: true, fileName: true },
+      take: 8,
+      select: {
+        rawContent: true,
+        summary: true,
+        concepts: true,
+        sections: true,
+        fileName: true,
+        isEncrypted: true,
+        encryptedData: true,
+        encryptedIv: true,
+        authTag: true,
+      },
     }),
     prisma.stackFile.findMany({
       where: { stackId },
@@ -57,21 +68,69 @@ export async function assembleStackContent(stackId: string): Promise<AssembledSt
   if (!stack) return null;
 
   const tags = stack.tags.map((t: any) => t.tag.name);
-  const concepts = mtContents.flatMap(mt =>
-    Array.isArray(mt.concepts) ? (mt.concepts as string[]) : []
-  );
-  const uniqueConcepts = [...new Set(concepts)];
 
-  const rawChunks = mtContents
+  const processedContents: {
+    rawContent: string;
+    summary: string | null;
+    concepts: string[];
+    fileName: string | null;
+    sections: any[];
+  }[] = mtContents.map(mt => {
+    let sections: any[] = [];
+    let concepts: string[] = Array.isArray(mt.concepts) ? (mt.concepts as string[]) : [];
+    let summary: string | null = mt.summary;
+
+    if (mt.isEncrypted && mt.encryptedData && mt.encryptedIv && mt.authTag) {
+      try {
+        const packet: EncryptedMtPacket = {
+          version: "MT1",
+          encryptedData: mt.encryptedData,
+          iv: mt.encryptedIv,
+          authTag: mt.authTag,
+        };
+        const decrypted = decryptMtContent(packet, stackId);
+        sections = Array.isArray(decrypted.sections) ? decrypted.sections : [];
+        if (Array.isArray(decrypted.concepts)) concepts = decrypted.concepts as string[];
+        if (decrypted.summary) summary = decrypted.summary;
+      } catch { /* fall through to rawContent */ }
+    } else if (mt.sections) {
+      sections = Array.isArray(mt.sections) ? (mt.sections as any[]) : [];
+    }
+
+    return {
+      rawContent: mt.rawContent ?? "",
+      summary,
+      concepts,
+      fileName: mt.fileName,
+      sections,
+    };
+  });
+
+  const allConcepts = processedContents.flatMap(mt => mt.concepts);
+  const uniqueConcepts = [...new Set(allConcepts)];
+
+  const sectionTexts = processedContents.flatMap(mt =>
+    mt.sections
+      .map((s: any) => {
+        const heading = s.heading ?? s.title ?? "";
+        const body = s.body ?? s.content ?? s.text ?? "";
+        return heading && body ? `## ${heading}\n${body}` : body || heading;
+      })
+      .filter(Boolean)
+  ).join("\n\n").slice(0, 12000);
+
+  const rawChunks = processedContents
     .map(mt => mt.rawContent?.trim())
     .filter(Boolean)
     .join("\n\n---\n\n")
-    .slice(0, 8000);
+    .slice(0, sectionTexts.length > 200 ? 4000 : 8000);
 
-  const summaries = mtContents
+  const summaries = processedContents
     .map(mt => mt.summary?.trim())
     .filter(Boolean)
     .join("\n");
+
+  const fileNames = files.map(f => f.name);
 
   const richContext = [
     `Stack: ${stack.title}`,
@@ -82,11 +141,12 @@ export async function assembleStackContent(stackId: string): Promise<AssembledSt
     stack.description ? `Description: ${stack.description}` : "",
     tags.length ? `Topics: ${tags.join(", ")}` : "",
     stack.modules.length ? `Modules: ${stack.modules.map(m => `${m.title} (${m.type})`).join(", ")}` : "",
-    stack.readme ? `README:\n${stack.readme.slice(0, 800)}` : "",
-    uniqueConcepts.length ? `Key concepts: ${uniqueConcepts.slice(0, 30).join(", ")}` : "",
-    summaries ? `Content summary:\n${summaries.slice(0, 1200)}` : "",
-    rawChunks ? `Full content:\n${rawChunks}` : "",
-    files.length ? `Files: ${files.map(f => f.name).join(", ")}` : "",
+    stack.readme ? `README:\n${stack.readme.slice(0, 1000)}` : "",
+    uniqueConcepts.length ? `Key concepts: ${uniqueConcepts.slice(0, 40).join(", ")}` : "",
+    summaries ? `Content summaries:\n${summaries.slice(0, 1500)}` : "",
+    sectionTexts ? `Structured content:\n${sectionTexts}` : "",
+    rawChunks && !sectionTexts ? `Full content:\n${rawChunks}` : rawChunks ? `Additional raw content:\n${rawChunks}` : "",
+    fileNames.length ? `Files: ${fileNames.join(", ")}` : "",
   ].filter(Boolean).join("\n\n");
 
   return {
@@ -103,10 +163,10 @@ export async function assembleStackContent(stackId: string): Promise<AssembledSt
     tags,
     modules: stack.modules,
     files,
-    mtContents: mtContents.map(mt => ({
+    mtContents: processedContents.map(mt => ({
       rawContent: mt.rawContent,
       summary: mt.summary,
-      concepts: Array.isArray(mt.concepts) ? (mt.concepts as string[]) : [],
+      concepts: mt.concepts,
       fileName: mt.fileName,
     })),
     richContext,

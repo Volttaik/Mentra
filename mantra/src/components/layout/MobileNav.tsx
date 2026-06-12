@@ -31,6 +31,27 @@ export default function MobileNav() {
     } catch { /* ignore */ }
   }, []);
 
+  const [scrollHidden, setScrollHidden] = useState(false);
+  const lastScrollY = useRef(0);
+  const scrollTimer = useRef<ReturnType<typeof setTimeout>>();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const current = window.scrollY;
+      if (current > lastScrollY.current && current > 60) {
+        setScrollHidden(true);
+        setHidden(false);
+      } else if (current < lastScrollY.current) {
+        setScrollHidden(false);
+      }
+      lastScrollY.current = current;
+      clearTimeout(scrollTimer.current);
+      scrollTimer.current = setTimeout(() => setScrollHidden(false), 400);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => { window.removeEventListener("scroll", handleScroll); clearTimeout(scrollTimer.current); };
+  }, []);
+
   if (status !== "authenticated") return null;
   if (navStyle === "sidebar") return null;
   if (pathname.endsWith("/chat") || pathname.includes("/chat/")) return null;
@@ -79,7 +100,7 @@ export default function MobileNav() {
       </div>
 
       <motion.nav
-        animate={{ y: hidden ? "100%" : "0%" }}
+        animate={{ y: hidden || scrollHidden ? "100%" : "0%" }}
         transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
         className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-surface-container-lowest/95 backdrop-blur-md border-t border-outline-variant/20 pb-safe"
       >

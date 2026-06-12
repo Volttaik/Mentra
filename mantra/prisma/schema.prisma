@@ -375,8 +375,11 @@ model Quiz {
   stackId         String
   title           String
   description     String?
+  instructions    String?
   durationMinutes Int            @default(0)
   expiresAt       DateTime?
+  isPaid          Boolean        @default(false)
+  price           Decimal?       @default(0) @db.Decimal(10, 2)
   createdAt       DateTime       @default(now())
   stack           Stack          @relation(fields: [stackId], references: [id], onDelete: Cascade)
   questions       QuizQuestion[]
