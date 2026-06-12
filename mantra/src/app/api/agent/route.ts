@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { assembleStackContent } from "@/lib/stack-content";
 
 export const dynamic = "force-dynamic";
 
@@ -138,10 +139,24 @@ export async function POST(req: Request) {
     }, { status: 402 });
   }
 
-  const { message, context } = await req.json();
+  const { message, context, stackSlug } = await req.json();
   if (!message) return NextResponse.json({ error: "message required" }, { status: 400 });
 
   const agentName = user.agentName ?? "Mia";
+
+  let stackContextBlock = "";
+  if (stackSlug) {
+    const targetStack = await prisma.stack.findUnique({
+      where: { slug: stackSlug },
+      select: { id: true, isPublic: true, ownerId: true },
+    });
+    if (targetStack && (targetStack.isPublic || targetStack.ownerId === user.id)) {
+      const assembled = await assembleStackContent(targetStack.id);
+      if (assembled) {
+        stackContextBlock = `\n\nYou are currently on the stack page for "${assembled.title}". The user is studying this stack. You have read all of its content:\n\n${assembled.richContext}\n\nUse this knowledge to give specific, accurate answers about this stack's content.`;
+      }
+    }
+  }
 
   const systemPrompt = `You are ${agentName}, a personal AI agent for ${user.name} on Mentra — an academic knowledge platform.
 You have full access to the user's account. When the user asks you to perform an action, respond with JSON in this exact format:
@@ -160,7 +175,7 @@ Available intents: ${CAPABILITIES.intents.join(", ")}
 - general: {} — for general questions, just reply naturally
 
 If the user is asking a general question, use intent "general".
-Context: ${context ? JSON.stringify(context) : "none"}`;
+Context: ${context ? JSON.stringify(context) : "none"}${stackContextBlock}`;
 
   try {
     const groq = getGroq();

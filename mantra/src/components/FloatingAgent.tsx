@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import {
   Sparkles, X, ArrowUp, BarChart2, Zap, MessageSquare,
   ChevronRight, Maximize2, EyeOff, Coins,
@@ -37,6 +37,7 @@ type MenuMode = "actions" | "hide" | null;
 export default function FloatingAgent() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const pathname = usePathname();
   const [visible, setVisible] = useState(true);
   const [open, setOpen] = useState(false);
   const [menuMode, setMenuMode] = useState<MenuMode>(null);
@@ -77,11 +78,13 @@ export default function FloatingAgent() {
     setInput("");
     setMessages(prev => [...prev, { role: "user", content: text }]);
     setLoading(true);
+    const pathParts = pathname?.split("/") ?? [];
+    const stackSlug = pathParts[1] === "stacks" && pathParts[2] ? pathParts[2] : null;
     try {
       const res = await fetch("/api/agent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({ message: text, ...(stackSlug ? { stackSlug } : {}) }),
       });
       const data = await res.json();
       setAgentName(data.agentName ?? agentName);

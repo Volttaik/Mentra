@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   BrainCircuit, Loader2, CheckCircle2, XCircle, AlertCircle,
   ChevronRight, Trophy, RotateCcw, Zap, Plus, Clock,
-  TrendingUp, TrendingDown, Timer,
+  TrendingUp, TrendingDown, Timer, Share2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { timeAgo } from "@/lib/utils";
@@ -74,6 +74,13 @@ export default function QuizSection({ slug, isOwner, credits, onBuyCredits, onCr
   const [results, setResults] = useState<ResultData | null>(null);
 
   const creditCost = questionCount;
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const copyQuizLink = (quizId: string) => {
+    navigator.clipboard.writeText(`${window.location.origin}/quiz/${quizId}`);
+    setCopiedId(quizId);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
 
   const loadQuizzes = useCallback(() => {
     fetch(`/api/stacks/${slug}/quiz`)
@@ -461,10 +468,23 @@ export default function QuizSection({ slug, isOwner, credits, onBuyCredits, onCr
                     )}
                   </div>
                 </div>
-                <button onClick={() => startQuiz(quiz)}
-                  className="flex items-center gap-1.5 text-xs font-semibold font-manrope bg-primary text-on-primary px-3 py-2 rounded-xl hover:opacity-90 transition-all shrink-0">
-                  {quiz.myAttempts.length > 0 ? <><RotateCcw className="w-3 h-3" />Retry</> : <><Plus className="w-3 h-3" />Start</>}
-                </button>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button onClick={() => copyQuizLink(quiz.id)}
+                    title="Copy challenge link"
+                    className={cn(
+                      "flex items-center gap-1 text-xs px-2.5 py-2 rounded-xl border transition-all",
+                      copiedId === quiz.id
+                        ? "border-secondary/50 bg-secondary-container/30 text-secondary"
+                        : "border-outline-variant/20 text-on-surface-variant hover:text-primary hover:bg-surface-container"
+                    )}>
+                    <Share2 className="w-3 h-3" />
+                    <span className="hidden sm:inline">{copiedId === quiz.id ? "Copied!" : "Share"}</span>
+                  </button>
+                  <button onClick={() => startQuiz(quiz)}
+                    className="flex items-center gap-1.5 text-xs font-semibold font-manrope bg-primary text-on-primary px-3 py-2 rounded-xl hover:opacity-90 transition-all">
+                    {quiz.myAttempts.length > 0 ? <><RotateCcw className="w-3 h-3" />Retry</> : <><Plus className="w-3 h-3" />Start</>}
+                  </button>
+                </div>
               </motion.div>
             );
           })}
