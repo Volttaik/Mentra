@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
-const QUIZ_CREDIT_COST = 5;
+const CREDIT_PER_QUESTION = 1;
 
 function getGroq() {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -10,18 +10,23 @@ function getGroq() {
   return new Groq({ apiKey: process.env.GROQ_API_KEY ?? "" });
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { slug: string } }
-) {
+async function deleteExpiredQuizzes(stackId: string) {
+  const now = new Date();
+  await prisma.quiz.deleteMany({
+    where: { stackId, expiresAt: { lt: now } },
+  });
+}
+
+export async function GET(req: NextRequest, { params }: { params: { slug: string } }) {
   const session = await auth();
 
   const stack = await prisma.stack.findUnique({
     where: { slug: params.slug },
     select: { id: true, isPublic: true, ownerId: true },
   });
-
   if (!stack) return NextResponse.json({ error: "Stack not found" }, { status: 404 });
+
+  await deleteExpiredQuizzes(stack.id);
 
   const quizzes = await prisma.quiz.findMany({
     where: { stackId: stack.id },
@@ -35,10 +40,7 @@ export async function GET(
   const myAttempts: Record<string, any[]> = {};
   if (session?.user?.id) {
     const attempts = await prisma.quizAttempt.findMany({
-      where: {
-        userId: session.user.id,
-        quizId: { in: quizzes.map((q) => q.id) },
-      },
+      where: { userId: session.user.id, quizId: { in: quizzes.map(q => q.id) } },
       orderBy: { createdAt: "desc" },
     });
     for (const a of attempts) {
@@ -48,30 +50,18 @@ export async function GET(
   }
 
   return NextResponse.json({
-    quizzes: quizzes.map((q) => ({
-      ...q,
-      myAttempts: myAttempts[q.id] ?? [],
-    })),
+    quizzes: quizzes.map(q => ({ ...q, myAttempts: myAttempts[q.id] ?? [] })),
   });
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { slug: string } }
-) {
+export async function POST(req: NextRequest, { params }: { params: { slug: string } }) {
   const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const stack = await prisma.stack.findUnique({
     where: { slug: params.slug },
     select: {
-      id: true,
-      ownerId: true,
-      title: true,
-      description: true,
-      courseCode: true,
+      id: true, ownerId: true, title: true, description: true, courseCode: true,
       tags: { select: { tag: { select: { name: true } } } },
       modules: { select: { title: true } },
     },
@@ -82,20 +72,18 @@ export async function POST(
     return NextResponse.json({ error: "Only the owner can generate quizzes" }, { status: 403 });
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { aiCredits: true },
-  });
+  const body = await req.json().catch(() => ({}));
+  const questionCount = Math.min(Math.max(Number(body.questionCount) || 10, 5), 20);
+  const durationMinutes = Math.max(Number(body.durationMinutes) || 0, 0);
+  const creditCost = questionCount * CREDIT_PER_QUESTION;
 
-  if (!user || user.aiCredits < QUIZ_CREDIT_COST) {
+  const user = await prisma.user.findUnique({ where: { id: session.user.id }, select: { aiCredits: true } });
+  if (!user || user.aiCredits < creditCost) {
     return NextResponse.json(
-      { error: `Insufficient credits. Quiz generation costs ${QUIZ_CREDIT_COST} credits.` },
+      { error: `Insufficient credits. This quiz costs ${creditCost} credits (${CREDIT_PER_QUESTION} per question).` },
       { status: 402 }
     );
   }
-
-  const { questionCount = 10 } = await req.json().catch(() => ({}));
-  const count = Math.min(Math.max(Number(questionCount) || 10, 5), 20);
 
   const latestMt = await prisma.mtContent.findFirst({
     where: { stackId: stack.id },
@@ -104,13 +92,8 @@ export async function POST(
   });
 
   const tagNames = stack.tags.map((t: any) => t.tag.name).join(", ");
-  const concepts = Array.isArray(latestMt?.concepts)
-    ? (latestMt.concepts as string[]).join(", ")
-    : "";
-
-  const contextText = latestMt?.rawContent
-    ? latestMt.rawContent.slice(0, 3000)
-    : latestMt?.summary ?? stack.description ?? "";
+  const concepts = Array.isArray(latestMt?.concepts) ? (latestMt.concepts as string[]).join(", ") : "";
+  const contextText = latestMt?.rawContent ? latestMt.rawContent.slice(0, 3000) : latestMt?.summary ?? stack.description ?? "";
 
   const prompt = `You are a university-level quiz generator. Generate a multiple-choice quiz for the educational stack titled "${stack.title}".
 
@@ -121,7 +104,8 @@ Context:
 - Key concepts: ${concepts || "N/A"}
 - Content: ${contextText}
 
-Generate exactly ${count} multiple-choice questions. Each question must have exactly 4 options.
+Generate exactly ${questionCount} multiple-choice questions. Each question must have exactly 4 options.
+Assign a short topic label (1-4 words) to each question that describes what concept it tests.
 
 Return ONLY a valid JSON object in this exact format (no markdown, no explanation):
 {
@@ -132,7 +116,8 @@ Return ONLY a valid JSON object in this exact format (no markdown, no explanatio
       "question": "Question text",
       "options": ["Option A", "Option B", "Option C", "Option D"],
       "correctIndex": 0,
-      "explanation": "Brief explanation of why this answer is correct"
+      "explanation": "Brief explanation of why this answer is correct",
+      "topic": "Short topic label"
     }
   ]
 }`;
@@ -157,18 +142,23 @@ Return ONLY a valid JSON object in this exact format (no markdown, no explanatio
     return NextResponse.json({ error: "AI did not return valid questions." }, { status: 500 });
   }
 
-  const quiz = await prisma.$transaction(async (tx) => {
+  const expiresAt = durationMinutes > 0 ? new Date(Date.now() + durationMinutes * 60 * 1000) : null;
+
+  const quiz = await prisma.$transaction(async tx => {
     const created = await tx.quiz.create({
       data: {
         stackId: stack.id,
         title: parsed.title || `${stack.title} Quiz`,
         description: parsed.description || null,
+        durationMinutes,
+        expiresAt,
         questions: {
           create: parsed.questions.map((q: any, i: number) => ({
             question: q.question,
             options: q.options,
             correctIndex: q.correctIndex,
             explanation: q.explanation || null,
+            topic: q.topic || null,
             order: i,
           })),
         },
@@ -176,27 +166,21 @@ Return ONLY a valid JSON object in this exact format (no markdown, no explanatio
       include: { questions: { orderBy: { order: "asc" } } },
     });
 
-    await tx.user.update({
-      where: { id: session.user.id },
-      data: { aiCredits: { decrement: QUIZ_CREDIT_COST } },
-    });
+    await tx.user.update({ where: { id: session.user.id }, data: { aiCredits: { decrement: creditCost } } });
 
     await tx.creditTransaction.create({
       data: {
         userId: session.user.id,
-        amount: -QUIZ_CREDIT_COST,
+        amount: -creditCost,
         type: "quiz_generation",
-        description: `Generated quiz for "${stack.title}"`,
+        description: `Generated ${questionCount}-question quiz for "${stack.title}"`,
       },
     });
 
     return created;
   });
 
-  const updatedUser = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { aiCredits: true },
-  });
+  const updatedUser = await prisma.user.findUnique({ where: { id: session.user.id }, select: { aiCredits: true } });
 
   return NextResponse.json({ quiz, creditsRemaining: updatedUser?.aiCredits ?? 0 });
 }

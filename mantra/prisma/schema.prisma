@@ -371,27 +371,30 @@ model LearningProgress {
 }
 
 model Quiz {
-  id          String         @id @default(cuid())
-  stackId     String
-  title       String
-  description String?
-  createdAt   DateTime       @default(now())
-  stack       Stack          @relation(fields: [stackId], references: [id], onDelete: Cascade)
-  questions   QuizQuestion[]
-  attempts    QuizAttempt[]
+  id              String         @id @default(cuid())
+  stackId         String
+  title           String
+  description     String?
+  durationMinutes Int            @default(0)
+  expiresAt       DateTime?
+  createdAt       DateTime       @default(now())
+  stack           Stack          @relation(fields: [stackId], references: [id], onDelete: Cascade)
+  questions       QuizQuestion[]
+  attempts        QuizAttempt[]
 
   @@map("quizzes")
 }
 
 model QuizQuestion {
-  id           String @id @default(cuid())
+  id           String  @id @default(cuid())
   quizId       String
   question     String
   options      Json
   correctIndex Int
   explanation  String?
-  order        Int    @default(0)
-  quiz         Quiz   @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  topic        String?
+  order        Int     @default(0)
+  quiz         Quiz    @relation(fields: [quizId], references: [id], onDelete: Cascade)
 
   @@map("quiz_questions")
 }
