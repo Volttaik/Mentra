@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { assembleStackContent } from "@/lib/stack-content";
 
 const CREDIT_PER_QUESTION = 1;
 
@@ -11,9 +12,8 @@ function getGroq() {
 }
 
 async function deleteExpiredQuizzes(stackId: string) {
-  const now = new Date();
   await prisma.quiz.deleteMany({
-    where: { stackId, expiresAt: { lt: now } },
+    where: { stackId, expiresAt: { lt: new Date() } },
   });
 }
 
@@ -60,11 +60,7 @@ export async function POST(req: NextRequest, { params }: { params: { slug: strin
 
   const stack = await prisma.stack.findUnique({
     where: { slug: params.slug },
-    select: {
-      id: true, ownerId: true, title: true, description: true, courseCode: true,
-      tags: { select: { tag: { select: { name: true } } } },
-      modules: { select: { title: true } },
-    },
+    select: { id: true, ownerId: true },
   });
 
   if (!stack) return NextResponse.json({ error: "Stack not found" }, { status: 404 });
@@ -85,29 +81,25 @@ export async function POST(req: NextRequest, { params }: { params: { slug: strin
     );
   }
 
-  const latestMt = await prisma.mtContent.findFirst({
-    where: { stackId: stack.id },
-    orderBy: { createdAt: "desc" },
-    select: { summary: true, concepts: true, rawContent: true },
-  });
+  const content = await assembleStackContent(stack.id);
+  if (!content) return NextResponse.json({ error: "Stack not found" }, { status: 404 });
 
-  const tagNames = stack.tags.map((t: any) => t.tag.name).join(", ");
-  const concepts = Array.isArray(latestMt?.concepts) ? (latestMt.concepts as string[]).join(", ") : "";
-  const contextText = latestMt?.rawContent ? latestMt.rawContent.slice(0, 3000) : latestMt?.summary ?? stack.description ?? "";
+  if (!content.richContext || content.mtContents.length === 0) {
+    return NextResponse.json(
+      { error: "No content found in this stack. Upload study materials first before generating a quiz." },
+      { status: 422 }
+    );
+  }
 
-  const prompt = `You are a university-level quiz generator. Generate a multiple-choice quiz for the educational stack titled "${stack.title}".
+  const prompt = `You are a university-level quiz generator. Generate a multiple-choice quiz for the educational stack titled "${content.title}".
 
-Context:
-- Course: ${stack.courseCode || "General"}
-- Topics: ${tagNames || "N/A"}
-- Modules: ${stack.modules.map((m: any) => m.title).join(", ") || "N/A"}
-- Key concepts: ${concepts || "N/A"}
-- Content: ${contextText}
+${content.richContext}
 
-Generate exactly ${questionCount} multiple-choice questions. Each question must have exactly 4 options.
-Assign a short topic label (1-4 words) to each question that describes what concept it tests.
+Generate exactly ${questionCount} multiple-choice questions based on the actual content above.
+Each question must have exactly 4 answer options.
+Assign a short topic label (1-4 words) to each question describing the concept it tests.
 
-Return ONLY a valid JSON object in this exact format (no markdown, no explanation):
+Return ONLY a valid JSON object (no markdown, no explanation):
 {
   "title": "Quiz title based on the content",
   "description": "Brief description of what this quiz covers",
@@ -116,7 +108,7 @@ Return ONLY a valid JSON object in this exact format (no markdown, no explanatio
       "question": "Question text",
       "options": ["Option A", "Option B", "Option C", "Option D"],
       "correctIndex": 0,
-      "explanation": "Brief explanation of why this answer is correct",
+      "explanation": "Why this answer is correct",
       "topic": "Short topic label"
     }
   ]
@@ -148,7 +140,7 @@ Return ONLY a valid JSON object in this exact format (no markdown, no explanatio
     const created = await tx.quiz.create({
       data: {
         stackId: stack.id,
-        title: parsed.title || `${stack.title} Quiz`,
+        title: parsed.title || `${content.title} Quiz`,
         description: parsed.description || null,
         durationMinutes,
         expiresAt,
@@ -166,21 +158,27 @@ Return ONLY a valid JSON object in this exact format (no markdown, no explanatio
       include: { questions: { orderBy: { order: "asc" } } },
     });
 
-    await tx.user.update({ where: { id: session.user.id }, data: { aiCredits: { decrement: creditCost } } });
+    await tx.user.update({
+      where: { id: session.user.id },
+      data: { aiCredits: { decrement: creditCost } },
+    });
 
     await tx.creditTransaction.create({
       data: {
         userId: session.user.id,
         amount: -creditCost,
         type: "quiz_generation",
-        description: `Generated ${questionCount}-question quiz for "${stack.title}"`,
+        description: `Generated ${questionCount}-question quiz for "${content.title}"`,
       },
     });
 
     return created;
   });
 
-  const updatedUser = await prisma.user.findUnique({ where: { id: session.user.id }, select: { aiCredits: true } });
+  const updatedUser = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { aiCredits: true },
+  });
 
   return NextResponse.json({ quiz, creditsRemaining: updatedUser?.aiCredits ?? 0 });
 }
