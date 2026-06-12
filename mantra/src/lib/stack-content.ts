@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { decryptMtContent, EncryptedMtPacket } from "@/lib/mt-engine";
+import { extractTextFromFile } from "@/lib/mt-extractor";
 
 export interface AssembledStackContent {
   id: string;
@@ -61,13 +62,30 @@ export async function assembleStackContent(stackId: string): Promise<AssembledSt
       where: { stackId },
       orderBy: { createdAt: "asc" },
       take: 30,
-      select: { name: true, mimeType: true, size: true },
+      select: { name: true, mimeType: true, size: true, rawPath: true },
     }),
   ]);
 
   if (!stack) return null;
 
   const tags = stack.tags.map((t: any) => t.tag.name);
+
+  // Fetch and extract text from PDFs stored in Vercel Blob (rawPath URLs)
+  const pdfFiles = files.filter(f => f.rawPath && f.rawPath.startsWith("https://"));
+  const pdfTexts: { name: string; text: string }[] = await Promise.all(
+    pdfFiles.slice(0, 5).map(async (f) => {
+      try {
+        const res = await fetch(f.rawPath as string);
+        if (!res.ok) return { name: f.name, text: "" };
+        const arrayBuf = await res.arrayBuffer();
+        const buffer = Buffer.from(arrayBuf);
+        const text = await extractTextFromFile(buffer, f.mimeType, f.name);
+        return { name: f.name, text: text.slice(0, 6000) };
+      } catch {
+        return { name: f.name, text: "" };
+      }
+    })
+  );
 
   const processedContents: {
     rawContent: string;
@@ -132,6 +150,11 @@ export async function assembleStackContent(stackId: string): Promise<AssembledSt
 
   const fileNames = files.map(f => f.name);
 
+  const pdfContextBlocks = pdfTexts
+    .filter(p => p.text && p.text.trim().length > 0)
+    .map(p => `PDF — ${p.name}:\n${p.text}`)
+    .join("\n\n---\n\n");
+
   const richContext = [
     `Stack: ${stack.title}`,
     stack.courseCode ? `Course: ${stack.courseCode}` : "",
@@ -146,6 +169,7 @@ export async function assembleStackContent(stackId: string): Promise<AssembledSt
     summaries ? `Content summaries:\n${summaries.slice(0, 1500)}` : "",
     sectionTexts ? `Structured content:\n${sectionTexts}` : "",
     rawChunks && !sectionTexts ? `Full content:\n${rawChunks}` : rawChunks ? `Additional raw content:\n${rawChunks}` : "",
+    pdfContextBlocks ? `PDF file contents:\n${pdfContextBlocks}` : "",
     fileNames.length ? `Files: ${fileNames.join(", ")}` : "",
   ].filter(Boolean).join("\n\n");
 
