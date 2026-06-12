@@ -115,16 +115,16 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       orderBy: { createdAt: "desc" },
       select: {
         title: true, slug: true, description: true, courseCode: true,
-        university: true, department: true,
+        university: true, department: true, views: true,
         owner: { select: { name: true, username: true } },
         tags: { select: { tag: { select: { name: true } } } },
-        _count: { select: { stars: true, views: true } },
+        _count: { select: { stars: true } },
       },
       take: 30,
     }),
     // All public communities
     prisma.community.findMany({
-      where: { isPublic: true },
+      where: {},
       select: {
         name: true, slug: true, description: true,
         _count: { select: { members: true, stacks: true } },
@@ -135,7 +135,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     // Recent published articles
     prisma.article.findMany({
       where: { isPublished: true },
-      orderBy: { publishedAt: "desc" },
+      orderBy: { createdAt: "desc" },
       select: {
         title: true, slug: true, summary: true,
         author: { select: { name: true, username: true } },
@@ -158,7 +158,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   const platformContext = [
     publicStacks.length > 0
       ? `PUBLIC STACKS ON MENTRA (${publicStacks.length} total shown):\n${publicStacks.map(s =>
-          `• "${s.title}"${s.courseCode ? ` (${s.courseCode})` : ""}${s.university ? ` — ${s.university}` : ""}${s.department ? `, ${s.department}` : ""} by ${s.owner.name} [@${s.owner.username}] | tags: ${s.tags.map(t => t.tag.name).join(", ") || "none"} | ⭐${s._count.stars} 👁${s._count.views}`
+          `• "${s.title}"${s.courseCode ? ` (${s.courseCode})` : ""}${s.university ? ` — ${s.university}` : ""}${s.department ? `, ${s.department}` : ""} by ${s.owner.name} [@${s.owner.username}] | tags: ${s.tags.map((t: { tag: { name: string } }) => t.tag.name).join(", ") || "none"} | ⭐${s._count.stars} 👁${s.views}`
         ).join("\n")}`
       : "",
     topStacks.length > 0

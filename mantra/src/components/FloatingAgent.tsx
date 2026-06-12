@@ -37,7 +37,7 @@ type MenuMode = "actions" | "hide" | null;
 export default function FloatingAgent() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const pathname = usePathname();
+  usePathname();
   const [visible, setVisible] = useState(true);
   const [open, setOpen] = useState(false);
   const [menuMode, setMenuMode] = useState<MenuMode>(null);
@@ -45,7 +45,7 @@ export default function FloatingAgent() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [agentName, setAgentName] = useState("Mia");
-  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [_conversationId, setConversationId] = useState<string | null>(null);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   const didLongPress = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);

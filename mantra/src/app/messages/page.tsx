@@ -5,10 +5,9 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  MessageCircle, Search, Plus, X, ArrowLeft,
+  MessageCircle, Search, Plus, X,
   CheckCheck, Clock, BadgeCheck,
 } from "lucide-react";
-import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
 import { cn } from "@/lib/utils";
 import { timeAgo } from "@/lib/utils";
@@ -41,7 +40,7 @@ function Avatar({ user, size = "md" }: { user: { name: string; image: string | n
 }
 
 export default function MessagesPage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
   const [conversations, setConversations] = useState<Convo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -213,7 +212,7 @@ export default function MessagesPage() {
               </div>
               <div className="flex-1 overflow-y-auto px-4 pb-6">
                 {searchResults.length === 0 && searchQuery && !searching ? (
-                  <p className="text-center text-sm text-on-surface-variant py-8">No mutual follows found for "{searchQuery}"</p>
+                  <p className="text-center text-sm text-on-surface-variant py-8">No mutual follows found for &quot;{searchQuery}&quot;</p>
                 ) : searchResults.length === 0 && !searchQuery ? (
                   <p className="text-center text-sm text-on-surface-variant/50 py-8">Type to search people you follow (and follow you back)</p>
                 ) : (

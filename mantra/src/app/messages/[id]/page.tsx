@@ -6,8 +6,8 @@ import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, Send, Pencil, Trash2, Reply, Copy, Eye,
-  EyeOff, Check, CheckCheck, Palette, X, MoreVertical,
-  ImageIcon, Hash, Users, BrainCircuit, BadgeCheck, Upload,
+  EyeOff, Check, CheckCheck, Palette, X,
+  Hash, Users, BrainCircuit, BadgeCheck, Upload,
   AtSign,
 } from "lucide-react";
 import Link from "next/link";
