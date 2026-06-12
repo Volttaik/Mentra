@@ -38,13 +38,6 @@ interface Agent {
   knowledgeFiles: { id: string; name: string; size: number }[];
 }
 
-const AGENT_VERBS = [
-  "Thinking",
-  "Reading knowledge base",
-  "Searching stacks",
-  "Checking articles",
-  "Preparing response",
-];
 
 function AgentChatInner() {
   const { status } = useSession();
@@ -293,7 +286,7 @@ function AgentChatInner() {
                   })}
                 </AnimatePresence>
                 <AnimatePresence>
-                  {sending && <VerbThinkingIndicator verbs={AGENT_VERBS} agentIcon={agentIcon} />}
+                  {sending && <VerbThinkingIndicator agentIcon={agentIcon} />}
                 </AnimatePresence>
                 <div ref={messagesEndRef} />
               </>

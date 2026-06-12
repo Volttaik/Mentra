@@ -5,58 +5,161 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// ─── Verb thinking indicator ───────────────────────────────────────────────
+// ─── Agent thinking states with icons ──────────────────────────────────────
 
-const DEFAULT_VERBS = [
-  "Thinking",
-  "Reading Mentra",
-  "Searching stacks",
-  "Checking articles",
-  "Processing",
+type ThinkingState = "thinking" | "reading" | "searching" | "processing";
+
+interface VerbEntry {
+  label: string;
+  state: ThinkingState;
+}
+
+const DEFAULT_VERBS: VerbEntry[] = [
+  { label: "Thinking",         state: "thinking"   },
+  { label: "Reading Mentra",   state: "reading"    },
+  { label: "Searching stacks", state: "searching"  },
+  { label: "Checking articles",state: "reading"    },
+  { label: "Processing",       state: "processing" },
 ];
 
+// Three-dot wave animation (like iMessage / Notion AI)
+function WaveDots() {
+  return (
+    <span className="flex items-center gap-[3px]">
+      {[0, 1, 2].map(i => (
+        <motion.span
+          key={i}
+          className="block w-[5px] h-[5px] rounded-full bg-secondary"
+          animate={{ y: [0, -5, 0], opacity: [0.4, 1, 0.4] }}
+          transition={{
+            duration: 0.9,
+            repeat: Infinity,
+            delay: i * 0.18,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
+    </span>
+  );
+}
+
+// Horizontal bar scan animation — used for "reading"
+function ScanBars() {
+  return (
+    <span className="flex items-center gap-[2px]">
+      {[3, 5, 4, 6, 3, 5].map((h, i) => (
+        <motion.span
+          key={i}
+          className="block w-[2.5px] rounded-full bg-secondary"
+          style={{ height: h * 1.5 }}
+          animate={{ scaleY: [0.4, 1.6, 0.4], opacity: [0.3, 1, 0.3] }}
+          transition={{
+            duration: 0.85,
+            repeat: Infinity,
+            delay: i * 0.1,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
+    </span>
+  );
+}
+
+// Orbit spinner — used for "searching"
+function OrbitRing() {
+  return (
+    <span className="relative flex items-center justify-center w-[18px] h-[18px]">
+      <motion.span
+        className="absolute w-[14px] h-[14px] rounded-full border-2 border-transparent border-t-secondary"
+        animate={{ rotate: 360 }}
+        transition={{ duration: 0.9, repeat: Infinity, ease: "linear" }}
+      />
+      <span className="block w-[5px] h-[5px] rounded-full bg-secondary/50" />
+    </span>
+  );
+}
+
+// Pulse ripple — used for "processing"
+function PulseRipple() {
+  return (
+    <span className="relative flex items-center justify-center w-[18px] h-[18px]">
+      <motion.span
+        className="absolute block w-[14px] h-[14px] rounded-full border border-secondary/40"
+        animate={{ scale: [0.6, 1.5], opacity: [0.8, 0] }}
+        transition={{ duration: 1.1, repeat: Infinity, ease: "easeOut" }}
+      />
+      <span className="block w-[6px] h-[6px] rounded-full bg-secondary" />
+    </span>
+  );
+}
+
+function StateIcon({ state }: { state: ThinkingState }) {
+  switch (state) {
+    case "reading":    return <ScanBars />;
+    case "searching":  return <OrbitRing />;
+    case "processing": return <PulseRipple />;
+    default:           return <WaveDots />;
+  }
+}
+
+// ─── Main VerbThinkingIndicator ─────────────────────────────────────────────
+
 export function VerbThinkingIndicator({
-  verbs = DEFAULT_VERBS,
+  verbs: verbsProp,
   agentIcon,
 }: {
   verbs?: string[];
   agentIcon: React.ReactNode;
 }) {
+  const verbs: VerbEntry[] = verbsProp
+    ? verbsProp.map(v => ({ label: v, state: "thinking" as ThinkingState }))
+    : DEFAULT_VERBS;
+
   const [idx, setIdx] = useState(0);
 
   useEffect(() => {
-    const t = setInterval(() => setIdx(i => (i + 1) % verbs.length), 2200);
+    const t = setInterval(() => setIdx(i => (i + 1) % verbs.length), 2400);
     return () => clearInterval(t);
   }, [verbs.length]);
 
+  const current = verbs[idx];
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 6 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 6 }}
-      transition={{ duration: 0.22 }}
+      transition={{ duration: 0.2 }}
       className="flex items-center gap-2.5 px-1 py-1"
     >
       <div className="w-7 h-7 rounded-full bg-secondary-container/50 border border-outline-variant/20 flex items-center justify-center shrink-0">
         {agentIcon}
       </div>
-      <div className="flex items-center gap-2 px-3 py-2 rounded-2xl rounded-tl-sm bg-surface-container border border-outline-variant/10">
-        {/* Pulse dot */}
-        <motion.span
-          className="block w-[5px] h-[5px] rounded-full bg-secondary/70 shrink-0"
-          animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.1, 0.8] }}
-          transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
-        />
+
+      <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl rounded-tl-sm bg-surface-container border border-outline-variant/10 min-w-[140px]">
         <AnimatePresence mode="wait">
           <motion.span
-            key={idx}
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
-            className="text-[12px] text-on-surface-variant font-medium tracking-wide"
+            key={`icon-${idx}`}
+            initial={{ opacity: 0, scale: 0.7 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.7 }}
+            transition={{ duration: 0.2 }}
+            className="flex items-center justify-center shrink-0"
           >
-            {verbs[idx]}…
+            <StateIcon state={current.state} />
+          </motion.span>
+        </AnimatePresence>
+
+        <AnimatePresence mode="wait">
+          <motion.span
+            key={`label-${idx}`}
+            initial={{ opacity: 0, x: 6 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -6 }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
+            className="text-[12px] text-on-surface-variant font-medium tracking-wide whitespace-nowrap"
+          >
+            {current.label}
           </motion.span>
         </AnimatePresence>
       </div>

@@ -79,7 +79,7 @@ export default function FloatingAgent() {
     setInput("");
     setMessages(prev => [...prev, { role: "user", content: text }]);
     setLoading(true);
-    const pathParts = pathname?.split("/") ?? [];
+    const pathParts = window.location.pathname?.split("/") ?? [];
     const stackSlug = pathParts[1] === "stacks" && pathParts[2] ? pathParts[2] : null;
     try {
       const res = await fetch("/api/agent", {
@@ -88,12 +88,11 @@ export default function FloatingAgent() {
         body: JSON.stringify({
           message: text,
           ...(stackSlug ? { stackSlug } : {}),
-          ...(conversationId ? { conversationId } : {}),
         }),
       });
       const data = await res.json();
       setAgentName(data.agentName ?? agentName);
-      if (data.conversationId && !conversationId) setConversationId(data.conversationId);
+      if (data.conversationId) setConversationId(data.conversationId);
       setMessages(prev => [...prev, { role: "agent", content: data.reply ?? "Sorry, I couldn't process that.", data: data.data }]);
     } catch {
       setMessages(prev => [...prev, { role: "agent", content: "Something went wrong. Please try again." }]);
@@ -209,7 +208,6 @@ export default function FloatingAgent() {
               <AnimatePresence>
                 {loading && (
                   <VerbThinkingIndicator
-                    verbs={["Thinking", "Reading your stacks", "Searching Mentra", "Processing"]}
                     agentIcon={<Sparkles className="w-3 h-3 text-secondary" />}
                   />
                 )}

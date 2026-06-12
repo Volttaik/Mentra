@@ -151,8 +151,12 @@ export async function assembleStackContent(stackId: string): Promise<AssembledSt
   const fileNames = files.map(f => f.name);
 
   const pdfContextBlocks = pdfTexts
-    .filter(p => p.text && p.text.trim().length > 0)
-    .map(p => `PDF — ${p.name}:\n${p.text}`)
+    .map(p => {
+      const trimmed = p.text?.trim() ?? "";
+      if (trimmed.length > 80) return `PDF — ${p.name}:\n${trimmed}`;
+      // Image-only or design PDFs yield no extractable text; note them so the AI knows the file exists
+      return `PDF — ${p.name}: [This PDF contains visual/design content with no extractable text. It is available in the stack for students to view.]`;
+    })
     .join("\n\n---\n\n");
 
   const richContext = [

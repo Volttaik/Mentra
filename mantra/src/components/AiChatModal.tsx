@@ -3,10 +3,11 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  X, Bot, Copy, Check, Zap, ArrowUp,
-  AlertCircle, Loader2, BookOpen, Coins,
+  X, Bot, Zap, ArrowUp,
+  AlertCircle, BookOpen, Coins,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { VerbThinkingIndicator, CopyBtn, renderMessage } from "@/components/chat/ChatPrimitives";
 
 interface Message {
   id: string;
@@ -28,94 +29,6 @@ interface Props {
   onClose: () => void;
   onBuyCredits: () => void;
   onCreditsUpdate: (n: number) => void;
-}
-
-function PulseDot({ delay }: { delay: number }) {
-  return (
-    <motion.span
-      className="block w-[5px] h-[5px] rounded-full bg-secondary/60"
-      animate={{ opacity: [0.2, 0.9, 0.2], scale: [0.85, 1.1, 0.85] }}
-      transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut", delay }}
-    />
-  );
-}
-
-function ThinkingIndicator() {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 6 }}
-      transition={{ duration: 0.25 }}
-      className="flex items-center gap-2.5 px-4 py-2"
-    >
-      <div className="w-7 h-7 rounded-full bg-secondary-container/50 border border-outline-variant/20 flex items-center justify-center shrink-0">
-        <Bot className="w-3.5 h-3.5 text-secondary" />
-      </div>
-      <div className="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-surface-container border border-outline-variant/10">
-        <PulseDot delay={0} />
-        <PulseDot delay={0.18} />
-        <PulseDot delay={0.36} />
-      </div>
-    </motion.div>
-  );
-}
-
-function CopyBtn({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false);
-  return (
-    <motion.button
-      whileTap={{ scale: 0.88 }}
-      onClick={() => { navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
-      className="p-1 rounded-lg text-on-surface-variant/30 hover:text-on-surface-variant hover:bg-surface-container transition-all"
-      title="Copy"
-    >
-      {copied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
-    </motion.button>
-  );
-}
-
-function renderMessage(content: string): React.ReactNode {
-  const parts = content.split(/(```[\s\S]*?```|`[^`]+`)/g);
-  return (
-    <div className="space-y-1.5">
-      {parts.map((part, i) => {
-        if (part.startsWith("```") && part.endsWith("```")) {
-          const inner = part.slice(3, -3);
-          const lines = inner.split("\n");
-          const lang = lines[0].trim();
-          const code = lines.slice(1).join("\n");
-          return (
-            <div key={i} className="my-2 rounded-xl bg-surface-container border border-outline-variant/20 overflow-hidden">
-              {lang && <div className="px-3 py-1.5 border-b border-outline-variant/10 text-[10px] font-medium text-on-surface-variant/50 uppercase tracking-wider">{lang}</div>}
-              <pre className="p-3 text-[11.5px] font-mono text-on-surface/80 overflow-x-auto leading-relaxed">{code}</pre>
-            </div>
-          );
-        }
-        if (part.startsWith("`") && part.endsWith("`")) {
-          return <code key={i} className="px-1.5 py-0.5 rounded-md bg-surface-container text-xs font-mono text-secondary">{part.slice(1, -1)}</code>;
-        }
-        if (!part.trim()) return null;
-        return (
-          <div key={i}>
-            {part.split("\n").map((line, j) => {
-              if (!line.trim()) return <div key={j} className="h-2" />;
-              if (line.startsWith("- ") || line.startsWith("• "))
-                return (
-                  <p key={j} className="flex gap-2 text-[13px] leading-relaxed py-[1px]">
-                    <span className="text-on-surface-variant/40 shrink-0 mt-[2px]">–</span>
-                    <span dangerouslySetInnerHTML={{ __html: line.slice(2).replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>") }} />
-                  </p>
-                );
-              if (/^\*\*[^*]+\*\*/.test(line))
-                return <p key={j} className="text-[13px] leading-relaxed py-[1px]" dangerouslySetInnerHTML={{ __html: line.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>") }} />;
-              return <p key={j} className="text-[13px] leading-relaxed py-[1px]" dangerouslySetInnerHTML={{ __html: line.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>") }} />;
-            })}
-          </div>
-        );
-      })}
-    </div>
-  );
 }
 
 const SUGGESTIONS = [
@@ -201,6 +114,7 @@ export default function AiChatModal({ stack, credits: initialCredits, onClose, o
   };
 
   const canSend = !!input.trim() && !isThinking && credits > 0;
+  const stackAiIcon = <Bot className="w-3.5 h-3.5 text-secondary" />;
 
   return (
     <motion.div
@@ -320,7 +234,12 @@ export default function AiChatModal({ stack, credits: initialCredits, onClose, o
           </AnimatePresence>
 
           <AnimatePresence>
-            {isThinking && <ThinkingIndicator />}
+            {isThinking && (
+              <VerbThinkingIndicator
+                agentIcon={stackAiIcon}
+                verbs={["Thinking", "Reading stack content", "Searching knowledge", "Preparing answer"]}
+              />
+            )}
           </AnimatePresence>
 
           <AnimatePresence>
@@ -388,29 +307,24 @@ export default function AiChatModal({ stack, credits: initialCredits, onClose, o
                 {credits} credit{credits !== 1 ? "s" : ""} remaining · 1 per message
               </p>
               <AnimatePresence mode="wait">
-                {isThinking ? (
-                  <motion.div key="thinking" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} transition={{ duration: 0.15 }}>
-                    <div className="w-8 h-8 rounded-xl bg-surface-container flex items-center justify-center">
-                      <Loader2 className="w-3.5 h-3.5 text-on-surface-variant/50 animate-spin" />
-                    </div>
-                  </motion.div>
-                ) : (
-                  <motion.div key="send" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} transition={{ duration: 0.15 }}>
-                    <motion.button
-                      whileTap={{ scale: 0.88 }}
-                      onClick={() => handleSend(input)}
-                      disabled={!canSend}
-                      className={cn(
-                        "w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200",
-                        canSend
-                          ? "bg-primary text-on-primary hover:opacity-90 shadow-sm"
-                          : "bg-surface-container text-on-surface-variant/30"
-                      )}
-                    >
-                      <ArrowUp className="w-3.5 h-3.5" />
-                    </motion.button>
-                  </motion.div>
-                )}
+                <motion.button
+                  key={canSend ? "send" : "idle"}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{ duration: 0.15 }}
+                  whileTap={{ scale: 0.88 }}
+                  onClick={() => handleSend(input)}
+                  disabled={!canSend}
+                  className={cn(
+                    "w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200",
+                    canSend
+                      ? "bg-primary text-on-primary hover:opacity-90 shadow-sm"
+                      : "bg-surface-container text-on-surface-variant/30"
+                  )}
+                >
+                  <ArrowUp className="w-3.5 h-3.5" />
+                </motion.button>
               </AnimatePresence>
             </div>
           </div>

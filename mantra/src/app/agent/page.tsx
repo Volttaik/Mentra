@@ -53,13 +53,6 @@ const QUICK_ACTIONS = [
   { label: "My Communities", message: "What communities am I in?", icon: MessageSquare },
 ];
 
-const PERSONAL_VERBS = [
-  "Thinking",
-  "Reading your stacks",
-  "Checking your articles",
-  "Searching Mentra",
-  "Processing",
-];
 
 function formatRelative(dateStr: string) {
   const date = new Date(dateStr);
@@ -195,7 +188,7 @@ export default function AgentPage() {
     });
 
     try {
-      const body: Record<string, string> = { message: msg || "What's in this image?" };
+      const body: Record<string, string> = { message: msg || "What's in this image?", conversationId: convId! };
       if (imgPreview) body.image = imgPreview;
       const res = await fetch("/api/agent", {
         method: "POST",
@@ -207,11 +200,6 @@ export default function AgentPage() {
       const agentReply = data.reply ?? "Sorry, I couldn't process that.";
       const agentMsg: Message = { role: "agent", content: agentReply, ...(data.data ? { data: data.data } : {}) };
       setMessages(prev => [...prev, agentMsg]);
-      await fetch(`/api/agent/conversations/${convId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ addMessage: { role: "agent", content: agentReply } }),
-      });
       setConversations(prev => prev.map(c =>
         c.id === convId
           ? { ...c, updatedAt: new Date().toISOString(), messages: [{ role: "agent", content: agentReply }] }
@@ -397,7 +385,7 @@ export default function AgentPage() {
             )}
 
             <AnimatePresence>
-              {sending && <VerbThinkingIndicator verbs={PERSONAL_VERBS} agentIcon={agentIcon} />}
+              {sending && <VerbThinkingIndicator agentIcon={agentIcon} />}
             </AnimatePresence>
             <div ref={messagesEndRef} />
           </div>
