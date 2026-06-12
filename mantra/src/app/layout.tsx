@@ -25,6 +25,20 @@ export const metadata: Metadata = {
     description: "Where academic knowledge lives and grows.",
     type: "website",
     siteName: "Mentra",
+    images: [
+      {
+        url: "/icons/icon-192.png",
+        width: 192,
+        height: 192,
+        alt: "Mentra",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary",
+    title: "Mentra — The Collaborative Academic OS",
+    description: "Where academic knowledge lives and grows.",
+    images: ["/icons/icon-192.png"],
   },
   manifest: "/manifest.json",
   appleWebApp: {
