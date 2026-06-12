@@ -6,7 +6,7 @@ import {
   BrainCircuit, Loader2, CheckCircle2, XCircle, AlertCircle,
   ChevronRight, Trophy, RotateCcw, Zap, Plus, Clock,
   TrendingUp, TrendingDown, Timer, Share2, Lock, Unlock,
-  BookOpen, Target, Sparkles, ChevronDown,
+  BookOpen, Target, Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { timeAgo } from "@/lib/utils";
