@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { assembleStackContent } from "@/lib/stack-content";
 
 const CHAT_CREDIT_COST = 1;
 
@@ -37,60 +38,41 @@ export async function POST(
       );
     }
 
-    const stack = await prisma.stack.findUnique({
+    const stackRow = await prisma.stack.findUnique({
       where: { slug: params.slug },
-      select: {
-        title: true,
-        description: true,
-        courseCode: true,
-        university: true,
-        department: true,
-        semester: true,
-        tags: { select: { tag: { select: { name: true } } } },
-        readme: true,
-        modules: { select: { title: true, type: true } },
-      },
+      select: { id: true, isPublic: true, ownerId: true },
     });
 
-    if (!stack) {
+    if (!stackRow) {
       return NextResponse.json({ error: "Stack not found" }, { status: 404 });
     }
 
-    const latestMt = await prisma.mtContent.findFirst({
-      where: { stackId: (await prisma.stack.findUnique({ where: { slug: params.slug }, select: { id: true } }))!.id },
-      orderBy: { createdAt: "desc" },
-      select: { summary: true, concepts: true },
-    });
+    const canAccess = stackRow.isPublic || stackRow.ownerId === session.user.id;
+    if (!canAccess) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+    }
 
-    const tagNames = stack.tags.map((t: any) => t.tag.name).join(", ");
-    const conceptsList = Array.isArray(latestMt?.concepts)
-      ? (latestMt.concepts as string[]).slice(0, 20).join(", ")
-      : "";
+    const assembled = await assembleStackContent(stackRow.id);
+    if (!assembled) {
+      return NextResponse.json({ error: "Stack not found" }, { status: 404 });
+    }
 
-    const systemPrompt = `You are an AI study assistant for the Mentra educational stack titled "${stack.title}".
+    const systemPrompt = `You are an AI study assistant for the Mentra educational stack titled "${assembled.title}".
 
-Stack details:
-- Course: ${stack.courseCode || "N/A"}
-- University: ${stack.university || "N/A"}
-- Department: ${stack.department || "N/A"}
-- Semester: ${stack.semester || "N/A"}
-- Topics: ${tagNames || "N/A"}
-- Description: ${stack.description || "N/A"}
-${stack.readme ? `- README: ${stack.readme.slice(0, 500)}` : ""}
-${stack.modules?.length ? `- Modules: ${stack.modules.map((m: any) => m.title).join(", ")}` : ""}
-${latestMt?.summary ? `- Content summary: ${latestMt.summary.slice(0, 600)}` : ""}
-${conceptsList ? `- Key concepts: ${conceptsList}` : ""}
+You have full access to this stack's content. Use it to give specific, accurate answers.
 
-Help students understand this stack's content. Answer questions about the material, explain key concepts, summarise topics, clarify difficult points, and help students study. Be concise, clear, and academically helpful.`;
+${assembled.richContext}
+
+Help students understand this stack's content. Answer questions about the material, explain key concepts, summarise topics, clarify difficult points, and help students study effectively. Be concise, clear, and academically helpful. When referencing specific content from the stack, be precise and cite the relevant section or concept.`;
 
     const completion = await getGroq().chat.completions.create({
-      model: "llama-3.1-8b-instant",
+      model: "llama-3.3-70b-versatile",
       messages: [
         { role: "system", content: systemPrompt },
         ...messages.slice(-20),
       ],
       max_tokens: 1024,
-      temperature: 0.7,
+      temperature: 0.6,
     });
 
     const reply = completion.choices[0]?.message?.content ?? "";
@@ -105,7 +87,7 @@ Help students understand this stack's content. Answer questions about the materi
           userId: session.user.id,
           amount: -CHAT_CREDIT_COST,
           type: "ai_chat",
-          description: `AI chat in "${stack.title}"`,
+          description: `AI chat in "${assembled.title}"`,
         },
       }),
     ]);

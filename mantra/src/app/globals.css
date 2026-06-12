@@ -206,7 +206,7 @@ h1, h2, h3, h4, h5, h6 {
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
   .parchment-blur {
-    background: rgba(var(--c-background), 0.96);
+    background: rgb(var(--c-background));
   }
 
   .glass {

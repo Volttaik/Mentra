@@ -139,10 +139,35 @@ export async function POST(req: Request) {
     }, { status: 402 });
   }
 
-  const { message, context, stackSlug } = await req.json();
+  const { message, context, stackSlug, conversationId } = await req.json();
   if (!message) return NextResponse.json({ error: "message required" }, { status: 400 });
 
   const agentName = user.agentName ?? "Mia";
+
+  // Resolve or create a conversation for persistence
+  let conv = null;
+  if (conversationId) {
+    conv = await prisma.agentConversation.findFirst({
+      where: { id: conversationId, userId: user.id },
+    });
+  }
+  if (!conv) {
+    conv = await prisma.agentConversation.create({
+      data: { userId: user.id, title: message.slice(0, 60) },
+    });
+  }
+
+  // Load conversation history
+  const history = await prisma.agentMessage.findMany({
+    where: { conversationId: conv.id },
+    orderBy: { createdAt: "asc" },
+    take: 20,
+  });
+
+  // Save the user message
+  await prisma.agentMessage.create({
+    data: { conversationId: conv.id, role: "user", content: message },
+  });
 
   let stackContextBlock = "";
   if (stackSlug) {
@@ -172,9 +197,10 @@ Available intents: ${CAPABILITIES.intents.join(", ")}
 - contributeStackToCommunity: {"communitySlug": "...", "stackId": "..."} — contribute a stack
 - getNotifications: {} — get recent notifications
 - updateStackMeta: {"stackId": "...", "title": "...", "description": "..."} — update stack info
-- general: {} — for general questions, just reply naturally
+- general: {} — for general questions, just reply naturally WITHOUT JSON wrapping
 
-If the user is asking a general question, use intent "general".
+IMPORTANT: For general conversation questions, do NOT wrap your reply in JSON. Just respond naturally.
+Only use JSON format when performing an action from the list above (not "general").
 Context: ${context ? JSON.stringify(context) : "none"}${stackContextBlock}`;
 
   try {
@@ -183,6 +209,7 @@ Context: ${context ? JSON.stringify(context) : "none"}${stackContextBlock}`;
       model: "llama-3.3-70b-versatile",
       messages: [
         { role: "system", content: systemPrompt },
+        ...history.map(m => ({ role: m.role as "user" | "assistant", content: m.content })),
         { role: "user", content: message },
       ],
       temperature: 0.4,
@@ -191,16 +218,40 @@ Context: ${context ? JSON.stringify(context) : "none"}${stackContextBlock}`;
 
     const raw = completion.choices[0]?.message?.content ?? "";
     let parsed: any = { intent: "general", args: {}, reply: raw };
-
-    try {
-      const jsonMatch = raw.match(/\{[\s\S]*\}/);
-      if (jsonMatch) parsed = JSON.parse(jsonMatch[0]);
-    } catch { /* keep raw as reply */ }
-
     let actionResult = null;
+
+    // Only try to parse JSON if it looks like an intent response
+    const jsonMatch = raw.match(/^\s*\{[\s\S]*\}\s*$/);
+    if (jsonMatch) {
+      try {
+        const candidate = JSON.parse(raw.trim());
+        // Only treat as intent JSON if it has a valid non-general intent
+        if (candidate.intent && candidate.intent !== "general" && candidate.reply) {
+          parsed = candidate;
+        } else if (candidate.intent === "general" && candidate.reply) {
+          // Use only the reply field, not the JSON envelope
+          parsed = { intent: "general", args: {}, reply: candidate.reply };
+        }
+      } catch { /* not JSON — use raw as plain reply */ }
+    }
+
     if (parsed.intent && parsed.intent !== "general") {
       actionResult = await handleIntent(parsed.intent, parsed.args ?? {}, user);
     }
+
+    // Save assistant reply
+    await prisma.agentMessage.create({
+      data: { conversationId: conv.id, role: "assistant", content: parsed.reply ?? raw },
+    });
+
+    // Update conversation timestamp and title
+    await prisma.agentConversation.update({
+      where: { id: conv.id },
+      data: {
+        updatedAt: new Date(),
+        title: conv.title === "New Chat" ? message.slice(0, 60) : conv.title,
+      },
+    });
 
     await prisma.user.update({
       where: { id: user.id },
@@ -212,6 +263,7 @@ Context: ${context ? JSON.stringify(context) : "none"}${stackContextBlock}`;
       intent: parsed.intent,
       data: actionResult,
       agentName,
+      conversationId: conv.id,
       creditsRemaining: Math.max(0, (user.aiCredits ?? 1) - 1),
     });
   } catch (e: any) {

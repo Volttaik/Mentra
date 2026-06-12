@@ -45,6 +45,7 @@ export default function FloatingAgent() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [agentName, setAgentName] = useState("Mia");
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   const didLongPress = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -84,10 +85,15 @@ export default function FloatingAgent() {
       const res = await fetch("/api/agent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text, ...(stackSlug ? { stackSlug } : {}) }),
+        body: JSON.stringify({
+          message: text,
+          ...(stackSlug ? { stackSlug } : {}),
+          ...(conversationId ? { conversationId } : {}),
+        }),
       });
       const data = await res.json();
       setAgentName(data.agentName ?? agentName);
+      if (data.conversationId && !conversationId) setConversationId(data.conversationId);
       setMessages(prev => [...prev, { role: "agent", content: data.reply ?? "Sorry, I couldn't process that.", data: data.data }]);
     } catch {
       setMessages(prev => [...prev, { role: "agent", content: "Something went wrong. Please try again." }]);
