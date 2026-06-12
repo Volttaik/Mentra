@@ -14,6 +14,7 @@ function getGroq() {
 function buildSystemPrompt(
   agent: { name: string; subject: string; level: string; domain: string; tone: string; personality: string | null },
   knowledge: string,
+  userContext: string,
   platformContext: string,
   stackContext?: string
 ) {
@@ -26,20 +27,29 @@ function buildSystemPrompt(
     motivational: "You are energetic, uplifting, and action-oriented.",
   };
 
-  return `You are ${agent.name}, a specialized AI agent on Mentra.
+  return `You are ${agent.name}, a specialized AI agent on Mentra — a collaborative academic knowledge platform.
 Subject: ${agent.subject} | Level: ${agent.level} | Domain: ${agent.domain}
 Communication style: ${toneMap[agent.tone] || toneMap.patient}
 ${agent.personality ? `\nPersonality: ${agent.personality}` : ""}
 
-You have full access to the user's Mentra platform context:
+You have full access to the ENTIRE Mentra platform, not just one user's account. You can reference and discuss any publicly available stacks, articles, communities, and knowledge on the platform. You are different from the personal AI agent because you have a specialised subject focus AND platform-wide reach.
+
+USER'S PERSONAL CONTEXT:
+${userContext}
+
+PLATFORM-WIDE CONTEXT (public data you can reference):
 ${platformContext}
 
 ${stackContext ? `\nYou are currently helping with a specific stack. Read this content carefully before responding:\n\n${stackContext}\n` : ""}
 
-${knowledge ? `\nYour knowledge base:\n${knowledge}\n` : ""}
+${knowledge ? `\nYour uploaded knowledge base:\n${knowledge}\n` : ""}
 
-You can reference the user's stacks, stack flows, articles, and communities when relevant.
-Always stay in character as ${agent.name}. Be helpful, accurate, and engaged.`;
+When helping users:
+- You can search and reference any public stack on Mentra, not just the user's own stacks
+- You can suggest relevant communities, articles, and learning resources from across the platform
+- You can help create study materials, workspace content, quizzes, summaries based on any public content
+- Reference specific stacks by name and suggest users explore them
+- Always stay in character as ${agent.name}. Be helpful, accurate, and engaged.`;
 }
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
@@ -65,48 +75,113 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   });
   if (!agent) return NextResponse.json({ error: "Agent not found" }, { status: 404 });
 
-  const [stacks, flows, articles, communities] = await Promise.all([
+  // ── User's personal context ──────────────────────────────────────────────
+  const [userStacks, userFlows, userArticles, userCommunities] = await Promise.all([
     prisma.stack.findMany({
       where: { ownerId: session.user.id },
       select: { title: true, description: true, slug: true, courseCode: true },
-      take: 10,
+      take: 15,
     }),
     prisma.stackFlow.findMany({
       where: { userId: session.user.id },
       select: { name: true, description: true, emoji: true, _count: { select: { items: true } } },
-      take: 5,
+      take: 8,
     }),
     prisma.article.findMany({
       where: { authorId: session.user.id, isPublished: true },
       select: { title: true, summary: true, slug: true },
-      take: 5,
+      take: 8,
     }),
     prisma.communityMember.findMany({
       where: { userId: session.user.id },
       select: { community: { select: { name: true, slug: true } } },
-      take: 5,
+      take: 8,
+    }),
+  ]);
+
+  const userContext = [
+    `Name: ${user.name}`,
+    userStacks.length ? `My Stacks (${userStacks.length}): ${userStacks.map(s => `"${s.title}"${s.courseCode ? ` (${s.courseCode})` : ""}`).join(", ")}` : "No stacks yet",
+    userFlows.length ? `My Stack Flows: ${userFlows.map(f => `${f.emoji} "${f.name}" (${f._count.items} stacks)`).join(", ")}` : "",
+    userArticles.length ? `My Articles: ${userArticles.map(a => `"${a.title}"`).join(", ")}` : "",
+    userCommunities.length ? `My Communities: ${userCommunities.map(c => c.community.name).join(", ")}` : "",
+  ].filter(Boolean).join("\n");
+
+  // ── Platform-wide context (public data) ──────────────────────────────────
+  const [publicStacks, allCommunities, trendingArticles, topStacks] = await Promise.all([
+    // Recent public stacks across the whole platform
+    prisma.stack.findMany({
+      where: { isPublic: true },
+      orderBy: { createdAt: "desc" },
+      select: {
+        title: true, slug: true, description: true, courseCode: true,
+        university: true, department: true,
+        owner: { select: { name: true, username: true } },
+        tags: { select: { tag: { select: { name: true } } } },
+        _count: { select: { stars: true, views: true } },
+      },
+      take: 30,
+    }),
+    // All public communities
+    prisma.community.findMany({
+      where: { isPublic: true },
+      select: {
+        name: true, slug: true, description: true,
+        _count: { select: { members: true, stacks: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    }),
+    // Recent published articles
+    prisma.article.findMany({
+      where: { isPublished: true },
+      orderBy: { publishedAt: "desc" },
+      select: {
+        title: true, slug: true, summary: true,
+        author: { select: { name: true, username: true } },
+      },
+      take: 15,
+    }),
+    // Most starred/viewed stacks (trending)
+    prisma.stack.findMany({
+      where: { isPublic: true },
+      orderBy: { views: "desc" },
+      select: {
+        title: true, slug: true, courseCode: true, views: true,
+        owner: { select: { username: true } },
+        _count: { select: { stars: true } },
+      },
+      take: 10,
     }),
   ]);
 
   const platformContext = [
-    stacks.length ? `Stacks (${stacks.length}): ${stacks.map(s => `"${s.title}"${s.courseCode ? ` (${s.courseCode})` : ""}`).join(", ")}` : "",
-    flows.length ? `Stack Flows (${flows.length}): ${flows.map(f => `${f.emoji} "${f.name}" (${f._count.items} stacks)`).join(", ")}` : "",
-    articles.length ? `Articles (${articles.length}): ${articles.map(a => `"${a.title}"`).join(", ")}` : "",
-    communities.length ? `Communities: ${communities.map(c => c.community.name).join(", ")}` : "",
-  ].filter(Boolean).join("\n");
+    publicStacks.length > 0
+      ? `PUBLIC STACKS ON MENTRA (${publicStacks.length} total shown):\n${publicStacks.map(s =>
+          `• "${s.title}"${s.courseCode ? ` (${s.courseCode})` : ""}${s.university ? ` — ${s.university}` : ""}${s.department ? `, ${s.department}` : ""} by ${s.owner.name} [@${s.owner.username}] | tags: ${s.tags.map(t => t.tag.name).join(", ") || "none"} | ⭐${s._count.stars} 👁${s._count.views}`
+        ).join("\n")}`
+      : "",
+    topStacks.length > 0
+      ? `TRENDING STACKS (most viewed):\n${topStacks.map(s => `• "${s.title}"${s.courseCode ? ` (${s.courseCode})` : ""} by @${s.owner.username} — ⭐${s._count.stars} 👁${s.views}`).join("\n")}`
+      : "",
+    allCommunities.length > 0
+      ? `COMMUNITIES (${allCommunities.length}):\n${allCommunities.map(c => `• "${c.name}" (${c.slug}) — ${c._count.members} members, ${c._count.stacks} stacks${c.description ? `: ${c.description.slice(0, 60)}` : ""}`).join("\n")}`
+      : "",
+    trendingArticles.length > 0
+      ? `RECENT ARTICLES:\n${trendingArticles.map(a => `• "${a.title}" by ${a.author.name}${a.summary ? ` — ${a.summary.slice(0, 80)}` : ""}`).join("\n")}`
+      : "",
+  ].filter(Boolean).join("\n\n");
 
+  // ── Optional: assemble specific stack context ─────────────────────────────
   let stackContext: string | undefined;
   if (stackSlug) {
     const targetStack = await prisma.stack.findUnique({
       where: { slug: stackSlug },
       select: { id: true, isPublic: true, ownerId: true },
     });
-    if (targetStack) {
-      const isOwner = session.user.id === targetStack.ownerId;
-      if (targetStack.isPublic || isOwner) {
-        const assembled = await assembleStackContent(targetStack.id);
-        if (assembled) stackContext = assembled.richContext;
-      }
+    if (targetStack && (targetStack.isPublic || targetStack.ownerId === session.user.id)) {
+      const assembled = await assembleStackContent(targetStack.id);
+      if (assembled) stackContext = assembled.richContext;
     }
   }
 
@@ -115,6 +190,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     .filter(Boolean)
     .join("\n\n---\n\n");
 
+  // ── Conversation persistence ──────────────────────────────────────────────
   let conv;
   if (conversationId) {
     conv = await prisma.customAgentConversation.findFirst({
@@ -138,7 +214,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   });
 
   const messages = [
-    { role: "system", content: buildSystemPrompt(agent, knowledge, platformContext, stackContext) },
+    { role: "system", content: buildSystemPrompt(agent, knowledge, userContext, platformContext, stackContext) },
     ...history.map(m => ({ role: m.role as "user" | "assistant", content: m.content })),
     { role: "user", content: message },
   ];
@@ -147,7 +223,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   const completion = await groq.chat.completions.create({
     model: "llama-3.3-70b-versatile",
     messages,
-    max_tokens: 1024,
+    max_tokens: 1536,
     temperature: 0.7,
   });
 

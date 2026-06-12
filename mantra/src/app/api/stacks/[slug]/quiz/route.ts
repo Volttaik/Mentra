@@ -87,7 +87,11 @@ export async function POST(req: NextRequest, { params }: { params: { slug: strin
   const content = await assembleStackContent(stack.id);
   if (!content) return NextResponse.json({ error: "Stack not found" }, { status: 404 });
 
-  const hasContent = content.mtContents.length > 0 || (content.readme && content.readme.length > 50);
+  const hasContent =
+    content.mtContents.length > 0 ||
+    (content.readme && content.readme.length > 50) ||
+    content.files.length > 0 ||
+    content.richContext.length > 100;
   if (!hasContent) {
     return NextResponse.json(
       { error: "No study materials found in this stack. Upload PDFs, notes, or other content before generating a quiz." },

@@ -29,7 +29,14 @@ export default function MobileNav() {
         if (parsed.navStyle) setNavStyle(parsed.navStyle);
       }
     } catch { /* ignore */ }
+    const savedHidden = localStorage.getItem("mobile-nav-hidden");
+    if (savedHidden === "1") setHidden(true);
   }, []);
+
+  const toggleHidden = (val: boolean) => {
+    setHidden(val);
+    localStorage.setItem("mobile-nav-hidden", val ? "1" : "0");
+  };
 
   const [scrollHidden, setScrollHidden] = useState(false);
   const lastScrollY = useRef(0);
@@ -40,7 +47,6 @@ export default function MobileNav() {
       const current = window.scrollY;
       if (current > lastScrollY.current && current > 60) {
         setScrollHidden(true);
-        setHidden(false);
       } else if (current < lastScrollY.current) {
         setScrollHidden(false);
       }
@@ -69,42 +75,51 @@ export default function MobileNav() {
 
   return (
     <>
-      <div className={cn(
-        "fixed z-50 md:hidden flex flex-col items-center transition-all duration-300 ease-in-out",
-        hidden ? "bottom-3 left-1/2 -translate-x-1/2" : "bottom-[60px] left-1/2 -translate-x-1/2"
-      )}>
-        <AnimatePresence>
-          {showTip && !hidden && (
-            <motion.div
-              initial={{ opacity: 0, y: 4, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 4, scale: 0.95 }}
-              className="mb-2 bg-on-surface/90 text-surface text-[11px] px-3 py-1.5 rounded-full shadow-lg whitespace-nowrap"
-            >
-              Tap to hide navigation
-            </motion.div>
-          )}
-        </AnimatePresence>
+      {/* Restore button — shown only when nav is manually hidden */}
+      <AnimatePresence>
+        {hidden && (
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            onClick={() => toggleHidden(false)}
+            className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 md:hidden flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-surface-container-lowest/95 border border-outline-variant/25 shadow-lg text-on-surface-variant hover:text-primary transition-all backdrop-blur-sm text-[11px] font-medium"
+          >
+            <ChevronDown className="w-3.5 h-3.5 rotate-180" />
+            Show nav
+          </motion.button>
+        )}
+      </AnimatePresence>
 
-        <button
-          onClick={() => setHidden(h => !h)}
-          className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-lowest/95 border border-outline-variant/25 shadow-md text-on-surface-variant hover:text-primary transition-all backdrop-blur-sm"
-        >
-          <ChevronDown className={cn(
-            "w-3.5 h-3.5 transition-transform duration-300",
-            hidden && "rotate-180"
-          )} />
-          {hidden && (
-            <span className="text-[11px] font-medium pr-0.5">Show nav</span>
-          )}
-        </button>
-      </div>
+      {/* Tip toast */}
+      <AnimatePresence>
+        {showTip && !hidden && (
+          <motion.div
+            initial={{ opacity: 0, y: 4, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 4, scale: 0.95 }}
+            className="fixed z-50 md:hidden bottom-[72px] left-1/2 -translate-x-1/2 bg-on-surface/90 text-surface text-[11px] px-3 py-1.5 rounded-full shadow-lg whitespace-nowrap pointer-events-none"
+          >
+            Tap ↑ to hide navigation
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <motion.nav
         animate={{ y: hidden || scrollHidden ? "100%" : "0%" }}
         transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
         className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-surface-container-lowest/95 backdrop-blur-md border-t border-outline-variant/20 pb-safe"
       >
+        {/* Hide toggle — centered exactly above the nav items */}
+        <div className="absolute -top-6 left-0 right-0 flex justify-center pointer-events-none">
+          <button
+            onClick={() => toggleHidden(true)}
+            className="pointer-events-auto flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container-lowest/90 border border-outline-variant/20 shadow-sm text-on-surface-variant/50 hover:text-primary transition-all backdrop-blur-sm"
+          >
+            <ChevronDown className="w-3 h-3" />
+          </button>
+        </div>
+
         <div className="flex items-center justify-around px-2 py-2">
           {items.map(({ href, icon: Icon, label, special }) => {
             const isActive = pathname === href || (href !== "/dashboard" && pathname.startsWith(href) && href !== "/dashboard");

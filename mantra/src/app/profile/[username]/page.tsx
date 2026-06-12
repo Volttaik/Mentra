@@ -241,7 +241,8 @@ export default function ProfilePage({ params }: { params: { username: string } }
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 bg-surface-container rounded-2xl p-1 mb-8 w-fit overflow-x-auto no-scrollbar">
+        <div className="w-full overflow-x-auto no-scrollbar mb-8">
+        <div className="flex gap-1 bg-surface-container rounded-2xl p-1 w-fit min-w-full sm:min-w-0 sm:w-fit">
           {TABS.map(tab => (
             <button
               key={tab}
@@ -264,6 +265,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
               )}
             </button>
           ))}
+        </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-16">

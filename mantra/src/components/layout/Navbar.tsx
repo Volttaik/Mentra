@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/providers/ThemeProvider";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -28,9 +29,12 @@ export default function Navbar() {
   const [navStyle, setNavStyle] = useState("top");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [scrollHidden, setScrollHidden] = useState(false);
+  const [navHidden, setNavHidden] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const lastScrollY = useRef(0);
   const scrollTimer = useRef<ReturnType<typeof setTimeout>>();
+  const longPressTimer = useRef<ReturnType<typeof setTimeout>>();
+  const longPressActive = useRef(false);
 
   useEffect(() => {
     try {
@@ -40,7 +44,27 @@ export default function Navbar() {
         if (parsed.navStyle) setNavStyle(parsed.navStyle);
       }
     } catch { /* ignore */ }
+    if (localStorage.getItem("mentra-header-hidden") === "1") setNavHidden(true);
   }, []);
+
+  const hideNav = () => {
+    setNavHidden(true);
+    localStorage.setItem("mentra-header-hidden", "1");
+  };
+  const showNav = () => {
+    setNavHidden(false);
+    localStorage.setItem("mentra-header-hidden", "0");
+  };
+
+  const handlePressStart = () => {
+    longPressActive.current = false;
+    longPressTimer.current = setTimeout(() => {
+      longPressActive.current = true;
+      hideNav();
+    }, 600);
+  };
+  const handlePressEnd = () => { clearTimeout(longPressTimer.current); };
+  const handlePressMove = () => { clearTimeout(longPressTimer.current); };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -285,10 +309,40 @@ export default function Navbar() {
     </div>
   );
 
+  const RestorePill = () => (
+    <AnimatePresence>
+      {navHidden && (
+        <motion.button
+          initial={{ opacity: 0, y: -12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -12 }}
+          onClick={showNav}
+          className="fixed top-2 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-surface-container-lowest/95 border border-outline-variant/25 shadow-lg text-on-surface-variant hover:text-primary transition-all backdrop-blur-sm text-[11px] font-medium"
+        >
+          <ChevronDown className="w-3.5 h-3.5 rotate-180" />
+          Show header
+        </motion.button>
+      )}
+    </AnimatePresence>
+  );
+
+  const longPressProps = {
+    onMouseDown: handlePressStart,
+    onMouseUp: handlePressEnd,
+    onMouseMove: handlePressMove,
+    onTouchStart: handlePressStart,
+    onTouchEnd: handlePressEnd,
+    onTouchMove: handlePressMove,
+  };
+
   if (navStyle === "sidebar") {
     return (
       <>
-        <header className={cn("fixed top-0 left-0 right-0 w-full z-50 parchment-blur border-b border-outline-variant/20 transition-transform duration-300", scrollHidden && "-translate-y-full")}>
+        <RestorePill />
+        <header
+          {...longPressProps}
+          className={cn("fixed top-0 left-0 right-0 w-full z-50 parchment-blur border-b border-outline-variant/20 transition-transform duration-300", (navHidden || scrollHidden) && "-translate-y-full")}
+        >
           <nav className="max-w-[1200px] mx-auto px-4 md:px-6 h-16 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               {isAuth && (
@@ -400,7 +454,12 @@ export default function Navbar() {
 
   if (navStyle === "minimal") {
     return (
-      <header className={cn("fixed top-0 left-0 right-0 w-full z-50 parchment-blur border-b border-outline-variant/20 transition-transform duration-300", scrollHidden && "-translate-y-full")}>
+      <>
+        <RestorePill />
+        <header
+          {...longPressProps}
+          className={cn("fixed top-0 left-0 right-0 w-full z-50 parchment-blur border-b border-outline-variant/20 transition-transform duration-300", (navHidden || scrollHidden) && "-translate-y-full")}
+        >
         <nav className="max-w-[1200px] mx-auto px-4 md:px-6 h-16 flex items-center justify-between gap-4">
           <Link href="/" className="flex items-center gap-2 shrink-0">
             <img src="/icons/icon-192.png" alt="Mentra" className="w-8 h-8 rounded-lg object-cover" />
@@ -461,12 +520,18 @@ export default function Navbar() {
             )}
           </div>
         </nav>
-      </header>
+        </header>
+      </>
     );
   }
 
   return (
-    <header className={cn("fixed top-0 left-0 right-0 w-full z-50 parchment-blur border-b border-outline-variant/20 transition-transform duration-300", scrollHidden && "-translate-y-full")}>
+    <>
+      <RestorePill />
+      <header
+        {...longPressProps}
+        className={cn("fixed top-0 left-0 right-0 w-full z-50 parchment-blur border-b border-outline-variant/20 transition-transform duration-300", (navHidden || scrollHidden) && "-translate-y-full")}
+      >
       <nav className="max-w-[1200px] mx-auto px-4 md:px-6 h-16 flex items-center justify-between gap-4">
         <Link href="/" className="flex items-center gap-2 shrink-0">
           <img src="/icons/icon-192.png" alt="Mentra" className="w-8 h-8 rounded-lg object-cover" />
@@ -572,5 +637,6 @@ export default function Navbar() {
         </div>
       )}
     </header>
+    </>
   );
 }
