@@ -71,6 +71,9 @@ model User {
   communityStacksAdded CommunityStack[] @relation("CommunityStackContributor")
   communityInvitesReceived CommunityInvite[] @relation("CommunityInviteReceiver")
   communityInvitesSent     CommunityInvite[] @relation("CommunityInviteSender")
+  dmConversations1   DirectConversation[] @relation("DMUser1")
+  dmConversations2   DirectConversation[] @relation("DMUser2")
+  sentDMs            DirectMessage[]      @relation("DMSender")
 
   @@map("users")
 }
@@ -452,6 +455,7 @@ enum NotificationType {
   CREDIT
   COMMUNITY_INVITE
   COMMUNITY_JOIN
+  DM
 }
 
 enum CommunityRole {
@@ -945,4 +949,39 @@ model AgentMessage {
   conversation   AgentConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
   @@map("agent_messages")
+}
+
+// ─── Direct Messaging ──────────────────────────────────────────────────────────
+
+model DirectConversation {
+  id            String          @id @default(cuid())
+  user1Id       String
+  user2Id       String
+  lastMessageAt DateTime        @default(now())
+  createdAt     DateTime        @default(now())
+  user1         User            @relation("DMUser1", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2         User            @relation("DMUser2", fields: [user2Id], references: [id], onDelete: Cascade)
+  messages      DirectMessage[]
+
+  @@unique([user1Id, user2Id])
+  @@map("direct_conversations")
+}
+
+model DirectMessage {
+  id             String             @id @default(cuid())
+  conversationId String
+  senderId       String
+  content        String
+  isViewOnce     Boolean            @default(false)
+  viewedAt       DateTime?
+  editedAt       DateTime?
+  deletedAt      DateTime?
+  replyToId      String?
+  createdAt      DateTime           @default(now())
+  conversation   DirectConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User               @relation("DMSender", fields: [senderId], references: [id], onDelete: Cascade)
+  replyTo        DirectMessage?     @relation("DMReply", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies        DirectMessage[]    @relation("DMReply")
+
+  @@map("direct_messages")
 }

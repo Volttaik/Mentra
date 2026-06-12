@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, MessageCircle, Loader2, Send, Bot, X,
-  AlertCircle, BookOpen, ArrowUp, Users,
+  AlertCircle, BookOpen, ArrowUp, Users, UserPlus2, UserCheck2, ExternalLink,
 } from "lucide-react";
 import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
@@ -62,6 +62,12 @@ export default function CommunityChatPage() {
   const [aiCredits, setAiCredits] = useState(0);
   const aiBottomRef = useRef<HTMLDivElement>(null);
   const aiTextareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const [avatarCtx, setAvatarCtx] = useState<{
+    user: ChatMessage["user"]; x: number; y: number; isFollowing: boolean | null;
+  } | null>(null);
+  const avatarLpTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const avatarTouchCoords = useRef({ x: 0, y: 0 });
 
   const loadMessages = useCallback(() => {
     fetch(`/api/communities/${slug}/chat`)
@@ -149,6 +155,39 @@ export default function CommunityChatPage() {
     } finally {
       setAiThinking(false);
     }
+  };
+
+  const openAvatarCtxMenu = async (user: ChatMessage["user"], x: number, y: number) => {
+    const myId = (session?.user as { id?: string })?.id;
+    if (user.id === myId) return;
+    setAvatarCtx({ user, x, y, isFollowing: null });
+    try {
+      const res = await fetch(`/api/profile/${user.username}`);
+      const data = await res.json();
+      setAvatarCtx(prev => prev ? { ...prev, isFollowing: data.isFollowing ?? false } : null);
+    } catch { /* ignore */ }
+  };
+
+  const handleAvatarFollow = async () => {
+    if (!avatarCtx) return;
+    const was = avatarCtx.isFollowing;
+    setAvatarCtx(c => c ? { ...c, isFollowing: null } : null);
+    const res = await fetch(`/api/profile/${avatarCtx.user.username}/follow`, { method: "POST" });
+    const data = await res.json();
+    setAvatarCtx(c => c ? { ...c, isFollowing: data.following ?? !was } : null);
+  };
+
+  const handleAvatarMessage = async () => {
+    if (!avatarCtx) return;
+    const targetId = avatarCtx.user.id;
+    setAvatarCtx(null);
+    const res = await fetch("/api/dm/conversations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ targetUserId: targetId }),
+    });
+    const data = await res.json();
+    if (data.conversation?.id) router.push(`/messages/${data.conversation.id}`);
   };
 
   if (loading) {
@@ -244,14 +283,28 @@ export default function CommunityChatPage() {
               return (
                 <div key={msg.id} className={cn("flex items-end gap-2.5", isMe && "flex-row-reverse")}>
                   {showAvatar ? (
-                    <Link href={`/profile/${msg.user.username}`}>
-                      <div className="w-7 h-7 rounded-full bg-secondary-container flex items-center justify-center overflow-hidden text-[10px] font-bold font-manrope text-on-secondary-container shrink-0">
-                        {msg.user.image
-                          ? <img src={msg.user.image} alt="" className="w-full h-full object-cover" />
-                          : msg.user.name.slice(0, 2).toUpperCase()
-                        }
-                      </div>
-                    </Link>
+                    <div
+                      className="w-7 h-7 rounded-full bg-secondary-container flex items-center justify-center overflow-hidden text-[10px] font-bold font-manrope text-on-secondary-container shrink-0 cursor-pointer select-none"
+                      onClick={() => router.push(`/profile/${msg.user.username}`)}
+                      onContextMenu={(e) => {
+                        e.preventDefault();
+                        openAvatarCtxMenu(msg.user, e.clientX, e.clientY);
+                      }}
+                      onTouchStart={(e) => {
+                        const t = e.touches[0];
+                        avatarTouchCoords.current = { x: t.clientX, y: t.clientY };
+                        avatarLpTimer.current = setTimeout(() => {
+                          openAvatarCtxMenu(msg.user, avatarTouchCoords.current.x, avatarTouchCoords.current.y);
+                        }, 500);
+                      }}
+                      onTouchEnd={() => { if (avatarLpTimer.current) clearTimeout(avatarLpTimer.current); }}
+                      onTouchMove={() => { if (avatarLpTimer.current) clearTimeout(avatarLpTimer.current); }}
+                    >
+                      {msg.user.image
+                        ? <img src={msg.user.image} alt="" className="w-full h-full object-cover" />
+                        : msg.user.name.slice(0, 2).toUpperCase()
+                      }
+                    </div>
                   ) : (
                     <div className="w-7 shrink-0" />
                   )}
@@ -301,6 +354,73 @@ export default function CommunityChatPage() {
           </form>
         </div>
       </div>
+
+      {/* Avatar context menu */}
+      <AnimatePresence>
+        {avatarCtx && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50"
+              onClick={() => setAvatarCtx(null)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.88 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.88 }}
+              transition={{ duration: 0.12, ease: [0.16, 1, 0.3, 1] }}
+              className="fixed z-50 bg-surface-container-lowest border border-outline-variant/20 rounded-2xl shadow-2xl overflow-hidden w-52"
+              style={{
+                left: Math.min(avatarCtx.x, (typeof window !== "undefined" ? window.innerWidth : 400) - 224),
+                top: Math.min(avatarCtx.y, (typeof window !== "undefined" ? window.innerHeight : 600) - 180),
+              }}
+            >
+              <div className="flex items-center gap-2.5 px-3 py-2.5 border-b border-outline-variant/10 bg-surface-container/40">
+                <div className="w-8 h-8 rounded-full bg-secondary-container overflow-hidden shrink-0 flex items-center justify-center text-[10px] font-bold text-on-secondary-container">
+                  {avatarCtx.user.image
+                    ? <img src={avatarCtx.user.image} alt="" className="w-full h-full object-cover" />
+                    : avatarCtx.user.name.slice(0, 2).toUpperCase()}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-semibold text-on-surface truncate">{avatarCtx.user.name}</p>
+                  <p className="text-[10px] text-on-surface-variant truncate">@{avatarCtx.user.username}</p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => { router.push(`/profile/${avatarCtx.user.username}`); setAvatarCtx(null); }}
+                className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-surface-container text-sm text-on-surface transition-colors"
+              >
+                <ExternalLink className="w-3.5 h-3.5 text-on-surface-variant shrink-0" />
+                View profile
+              </button>
+
+              <button
+                onClick={handleAvatarFollow}
+                disabled={avatarCtx.isFollowing === null}
+                className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-surface-container text-sm text-on-surface transition-colors disabled:opacity-50"
+              >
+                {avatarCtx.isFollowing === null
+                  ? <div className="w-3.5 h-3.5 border border-primary border-t-transparent rounded-full animate-spin shrink-0" />
+                  : avatarCtx.isFollowing
+                  ? <UserCheck2 className="w-3.5 h-3.5 text-primary shrink-0" />
+                  : <UserPlus2 className="w-3.5 h-3.5 text-on-surface-variant shrink-0" />}
+                {avatarCtx.isFollowing === null ? "Loading…" : avatarCtx.isFollowing ? "Unfollow" : "Follow"}
+              </button>
+
+              <button
+                onClick={handleAvatarMessage}
+                className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-surface-container text-sm text-on-surface transition-colors"
+              >
+                <MessageCircle className="w-3.5 h-3.5 text-on-surface-variant shrink-0" />
+                Message
+              </button>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* AI overlay panel — fixed, floats above chat, does NOT push content */}
       <AnimatePresence>

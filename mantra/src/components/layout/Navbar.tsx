@@ -8,7 +8,7 @@ import {
   Bell, Search, Menu, X, ChevronDown,
   Upload, Settings, LogOut, User, LayoutDashboard, Moon, Sun,
   Sparkles, Users, BookMarked, Compass, Bot, Palette,
-  MessageSquarePlus, Coins, GitFork, Brain, BookOpen, PenLine,
+  MessageSquarePlus, Coins, GitFork, Brain, BookOpen, PenLine, MessagesSquare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/providers/ThemeProvider";
@@ -23,6 +23,7 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [notifCount, setNotifCount] = useState(0);
+  const [dmCount, setDmCount] = useState(0);
   const [aiCredits, setAiCredits] = useState<number | null>(null);
   const [navStyle, setNavStyle] = useState("top");
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -66,6 +67,10 @@ export default function Navbar() {
     fetch("/api/credits")
       .then(r => r.json())
       .then(d => typeof d.credits === "number" && setAiCredits(d.credits))
+      .catch(() => {});
+    fetch("/api/dm/conversations")
+      .then(r => r.json())
+      .then(d => setDmCount((d.conversations ?? []).length))
       .catch(() => {});
   }, [isAuth]);
 
@@ -138,7 +143,8 @@ export default function Navbar() {
       items: [
         { href: "/dashboard",                        label: "Dashboard",     icon: LayoutDashboard, desc: "Your home base" },
         { href: username ? `/profile/${username}` : "/dashboard", label: "Profile", icon: User, desc: "Your public page" },
-        { href: "/notifications",                    label: "Notifications", icon: Bell,      desc: "Activity & invites" },
+        { href: "/notifications",                    label: "Notifications", icon: Bell,            desc: "Activity & invites" },
+        { href: "/messages",                         label: "Messages",      icon: MessagesSquare,  desc: "Direct messages" },
         { href: "/forks",                            label: "My Forks",      icon: GitFork,   desc: "Manage forked stacks" },
         { href: "/settings",                         label: "Settings",      icon: Settings,  desc: "Account preferences" },
         { href: "/settings?tab=Mentra+Studio",       label: "Mentra Studio", icon: Palette,   desc: "Customise your theme" },
@@ -183,6 +189,13 @@ export default function Navbar() {
         <div className="w-8 h-8 bg-surface-container rounded-full animate-pulse" />
       ) : isAuth ? (
         <>
+          <Link href="/messages" className="relative p-2 text-on-surface-variant hover:text-primary transition-colors" title="Messages">
+            <MessagesSquare className="w-5 h-5" />
+            {dmCount > 0 && (
+              <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full" />
+            )}
+          </Link>
+
           <Link href="/notifications" className="relative p-2 text-on-surface-variant hover:text-primary transition-colors" title="Notifications">
             <Bell className="w-5 h-5" />
             {notifCount > 0 && (

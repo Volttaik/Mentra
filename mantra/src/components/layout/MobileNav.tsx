@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Home, Compass, Plus, Bell, User, ChevronDown } from "lucide-react";
+import { Home, Compass, Plus, MessagesSquare, User, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -55,14 +55,15 @@ export default function MobileNav() {
   if (status !== "authenticated") return null;
   if (navStyle === "sidebar") return null;
   if (pathname.endsWith("/chat") || pathname.includes("/chat/")) return null;
+  if (pathname.match(/^\/messages\/[^/]+/)) return null;
 
-  const username = (session?.user as any)?.username;
+  const username = (session?.user as { username?: string })?.username;
 
   const items = [
-    { href: "/dashboard", icon: Home,    label: "Home" },
-    { href: "/explore",   icon: Compass, label: "Explore" },
-    { href: "/upload",    icon: Plus,    label: "Create", special: true },
-    { href: "/dashboard", icon: Bell,    label: "Alerts" },
+    { href: "/dashboard",  icon: Home,            label: "Home" },
+    { href: "/explore",    icon: Compass,         label: "Explore" },
+    { href: "/upload",     icon: Plus,            label: "Create", special: true },
+    { href: "/messages",   icon: MessagesSquare,  label: "Messages" },
     { href: username ? `/profile/${username}` : "/dashboard", icon: User, label: "Profile" },
   ];
 
