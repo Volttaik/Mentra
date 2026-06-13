@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -160,7 +160,6 @@ function MentionCard({ type, slug, id, name, isMine }: {
   const href = type === "stack" ? `/stacks/${slug}` : type === "community" ? `/communities/${slug}` : `/quiz/${id}`;
   const Icon = type === "stack" ? Hash : type === "community" ? Users : BrainCircuit;
   const label = type === "stack" ? "Stack" : type === "community" ? "Community" : "Quiz";
-  const accentBase = type === "stack" ? "primary" : type === "community" ? "emerald-500" : "amber-500";
   const borderColor = isMine ? "border-on-secondary/20" : type === "stack" ? "border-primary/25" : type === "community" ? "border-emerald-500/25" : "border-amber-500/25";
   const bgColor = isMine ? "bg-on-secondary/10" : type === "stack" ? "bg-primary/6" : type === "community" ? "bg-emerald-500/6" : "bg-amber-500/6";
   const textColor = isMine ? "text-on-secondary" : type === "stack" ? "text-primary" : type === "community" ? "text-emerald-600" : "text-amber-600";

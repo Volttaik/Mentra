@@ -8,7 +8,7 @@ import {
   ArrowLeft, Loader2, Save, Image as ImageIcon, Palette,
   FileText, Tag, Globe, Lock, Trash2, Upload, Check, AlertTriangle,
   Eye, BookOpen, GraduationCap, Building, Calendar, Languages, Users,
-  PanelLeft, LayoutPanelTop, Columns2, Pipette, Mail, X,
+  PanelLeft, LayoutPanelTop, Columns2, Pipette, Mail,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
-import { Brain, Loader2, BookOpen, MessageSquare, Sparkles, X, Trash2, Upload } from "lucide-react";
+import { Brain, Loader2, BookOpen, MessageSquare, Sparkles, X, Upload } from "lucide-react";
 import UniversalChat, { UCMessage, UCConversation } from "@/components/chat/UniversalChat";
 import ChatPageWrapper from "@/components/chat/ChatPageWrapper";
 import { motion, AnimatePresence } from "framer-motion";

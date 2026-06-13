@@ -16,6 +16,9 @@ interface ChatMessage {
   id: string;
   content: string;
   createdAt: string;
+  mediaType?: string | null;
+  mediaUrl?: string | null;
+  voiceDuration?: number | null;
   user: { id: string; name: string; username: string; image: string | null };
 }
 
