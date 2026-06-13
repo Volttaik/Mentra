@@ -105,14 +105,21 @@ function CommunityChatInner() {
     fetch("/api/credits").then(r => r.json()).then(d => { if (!d.error) setAiCredits(d.credits ?? 0); }).catch(() => {});
   }, []);
 
-  const handleSend = async ({ content }: { content: string }) => {
-    if (!content.trim() || sending) return;
+  const handleSend = async ({ content, imageUrl, voiceUrl, voiceDuration }: {
+    content: string; imageUrl?: string | null; voiceUrl?: string | null; voiceDuration?: number;
+  }) => {
+    const hasMedia = imageUrl || voiceUrl;
+    if (!content.trim() && !hasMedia) return;
+    if (sending) return;
     setSending(true);
     try {
+      const body: Record<string, unknown> = { content: content.trim() };
+      if (imageUrl) { body.mediaType = "image"; body.mediaUrl = imageUrl; }
+      if (voiceUrl) { body.mediaType = "voice"; body.mediaUrl = voiceUrl; body.voiceDuration = voiceDuration ?? 0; }
       const res = await fetch(`/api/communities/${slug}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: content.trim() }),
+        body: JSON.stringify(body),
       });
       const d = await res.json();
       if (!d.error) setMessages(prev => [...prev, d.message]);
@@ -203,6 +210,10 @@ function CommunityChatInner() {
     isMe: m.user.id === myId,
     sender: { id: m.user.id, name: m.user.name, username: m.user.username, image: m.user.image },
     createdAt: m.createdAt,
+    mediaType: (m.mediaType as UCMessage["mediaType"]) ?? null,
+    mediaUrl: m.mediaUrl ?? null,
+    voiceDuration: m.voiceDuration ?? null,
+    imageUrl: m.mediaType === "image" ? (m.mediaUrl ?? null) : null,
   }));
 
   const aiToggle = (

@@ -40,11 +40,19 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
   });
   if (!member) return NextResponse.json({ error: "Not a member" }, { status: 403 });
 
-  const { content } = await req.json();
-  if (!content?.trim()) return NextResponse.json({ error: "Message cannot be empty" }, { status: 400 });
+  const { content, mediaType, mediaUrl, voiceDuration } = await req.json();
+  const hasMedia = mediaUrl && mediaType;
+  if (!content?.trim() && !hasMedia) return NextResponse.json({ error: "Message cannot be empty" }, { status: 400 });
 
   const message = await prisma.communityMessage.create({
-    data: { communityId: community.id, userId: session.user.id, content: content.trim() },
+    data: {
+      communityId: community.id,
+      userId: session.user.id,
+      content: content?.trim() ?? "",
+      mediaType: mediaType ?? null,
+      mediaUrl: mediaUrl ?? null,
+      voiceDuration: voiceDuration ?? null,
+    },
     include: { user: { select: { id: true, name: true, username: true, image: true } } },
   });
 

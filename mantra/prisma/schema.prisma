@@ -629,13 +629,16 @@ model BankAccount {
 }
 
 model CommunityMessage {
-  id          String    @id @default(cuid())
-  communityId String
-  userId      String
-  content     String
-  createdAt   DateTime  @default(now())
-  community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            String    @id @default(cuid())
+  communityId   String
+  userId        String
+  content       String
+  mediaType     String?
+  mediaUrl      String?
+  voiceDuration Int?
+  createdAt     DateTime  @default(now())
+  community     Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("community_messages")
 }

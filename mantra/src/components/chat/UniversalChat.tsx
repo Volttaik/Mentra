@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowUp, Plus, X, Loader2, Image as ImageIcon, Mic, Square, Play, Pause,
   Hash, Users, BrainCircuit, AtSign, Trash2, ExternalLink,
-  PanelLeft, PanelLeftClose, MessageCircle, ArrowLeft, Check,
+  PanelLeft, PanelLeftClose, MessageCircle, ArrowLeft, Check, Paperclip, Download,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -23,10 +24,12 @@ export interface UCMessage {
   createdAt?: string;
   sender?: { id: string; name: string; username?: string; image?: string | null };
   isMe?: boolean;
-  mediaType?: "image" | "voice" | null;
+  mediaType?: "image" | "voice" | "file" | null;
   mediaUrl?: string | null;
   voiceDuration?: number | null;
   imageUrl?: string | null;
+  fileUrl?: string | null;
+  fileName?: string | null;
   deletedAt?: string | null;
   editedAt?: string | null;
   isViewOnce?: boolean;
@@ -64,6 +67,8 @@ interface UCProps {
     voiceUrl?: string | null;
     voiceDuration?: number;
     replyToId?: string | null;
+    fileUrl?: string | null;
+    fileName?: string | null;
   }) => Promise<void>;
   sending?: boolean;
   inputPlaceholder?: string;
@@ -89,6 +94,7 @@ interface UCProps {
   enableImages?: boolean;
   enableVoice?: boolean;
   enableMentions?: boolean;
+  enableFiles?: boolean;
   onImageUpload?: (file: File) => Promise<string | null>;
   onMessageCtx?: (msg: UCMessage, x: number, y: number) => void;
   extraOverlays?: React.ReactNode;
@@ -137,30 +143,55 @@ function AudioPlayer({ url, duration }: { url: string; duration: number | null }
 function MentionCard({ type, slug, id, name, isMine }: {
   type: "stack" | "community" | "quiz"; slug?: string; id?: string; name: string; isMine?: boolean;
 }) {
+  const [cover, setCover] = useState<string | null>(null);
+  const [desc, setDesc] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!slug) return;
+    const ep = type === "stack" ? `/api/stacks/${slug}` : type === "community" ? `/api/communities/${slug}` : null;
+    if (!ep) return;
+    fetch(ep).then(r => r.ok ? r.json() : null).then(d => {
+      if (!d) return;
+      setCover(d.banner ?? d.profile ?? null);
+      setDesc(d.description ?? null);
+    }).catch(() => {});
+  }, [type, slug]);
+
   const href = type === "stack" ? `/stacks/${slug}` : type === "community" ? `/communities/${slug}` : `/quiz/${id}`;
   const Icon = type === "stack" ? Hash : type === "community" ? Users : BrainCircuit;
   const label = type === "stack" ? "Stack" : type === "community" ? "Community" : "Quiz";
-  const colors = {
-    stack:     isMine ? "bg-on-secondary/12 border-on-secondary/20 text-on-secondary" : "bg-primary/8 border-primary/20 text-primary",
-    community: isMine ? "bg-on-secondary/12 border-on-secondary/20 text-on-secondary" : "bg-emerald-500/8 border-emerald-500/20 text-emerald-600",
-    quiz:      isMine ? "bg-on-secondary/12 border-on-secondary/20 text-on-secondary" : "bg-amber-500/8 border-amber-500/20 text-amber-600",
-  };
-  const iconColors = {
-    stack:     isMine ? "bg-on-secondary/20" : "bg-primary/12",
-    community: isMine ? "bg-on-secondary/20" : "bg-emerald-500/12",
-    quiz:      isMine ? "bg-on-secondary/20" : "bg-amber-500/12",
-  };
+  const accentBase = type === "stack" ? "primary" : type === "community" ? "emerald-500" : "amber-500";
+  const borderColor = isMine ? "border-on-secondary/20" : type === "stack" ? "border-primary/25" : type === "community" ? "border-emerald-500/25" : "border-amber-500/25";
+  const bgColor = isMine ? "bg-on-secondary/10" : type === "stack" ? "bg-primary/6" : type === "community" ? "bg-emerald-500/6" : "bg-amber-500/6";
+  const textColor = isMine ? "text-on-secondary" : type === "stack" ? "text-primary" : type === "community" ? "text-emerald-600" : "text-amber-600";
+  const iconBg = isMine ? "bg-on-secondary/20" : type === "stack" ? "bg-primary/12" : type === "community" ? "bg-emerald-500/12" : "bg-amber-500/12";
+
   return (
     <Link href={href} onClick={e => e.stopPropagation()}
-      className={cn("flex items-center gap-3 p-3 rounded-xl border no-underline hover:opacity-80 transition-opacity mt-1.5 max-w-[260px]", colors[type])}>
-      <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center shrink-0", iconColors[type])}>
-        <Icon className="w-4 h-4" />
+      className={cn("flex flex-col rounded-2xl border no-underline hover:opacity-90 transition-opacity mt-1.5 max-w-[280px] overflow-hidden", borderColor, bgColor)}>
+      {cover && (
+        <div className="w-full h-24 overflow-hidden">
+          <img src={cover} alt={name} className="w-full h-full object-cover" />
+        </div>
+      )}
+      <div className="flex items-center gap-2.5 p-3">
+        {!cover && (
+          <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center shrink-0", iconBg)}>
+            <Icon className={cn("w-4 h-4", textColor)} />
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <p className={cn("text-[13px] font-semibold truncate font-manrope", textColor)}>{name}</p>
+          </div>
+          {desc ? (
+            <p className="text-[11px] opacity-60 truncate mt-0.5">{desc}</p>
+          ) : (
+            <p className="text-[11px] opacity-50">{label}</p>
+          )}
+        </div>
+        <ExternalLink className="w-3 h-3 opacity-40 shrink-0" />
       </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-[13px] font-semibold truncate font-manrope">{name}</p>
-        <p className="text-[11px] opacity-60">{label}</p>
-      </div>
-      <ExternalLink className="w-3 h-3 opacity-40 shrink-0" />
     </Link>
   );
 }
@@ -241,7 +272,7 @@ export default function UniversalChat({
   conversations, activeConvId, onNewConversation, onSelectConversation, onDeleteConversation, conversationsLoading,
   replyTo, onCancelReply,
   editingId, editContent, onEditChange, onSaveEdit, onCancelEdit,
-  enableImages = true, enableVoice = true, enableMentions = true,
+  enableImages = true, enableVoice = true, enableMentions = true, enableFiles = true,
   onImageUpload,
   onMessageCtx,
   extraOverlays,
@@ -268,8 +299,11 @@ export default function UniversalChat({
   // Input state
   const [input, setInput] = useState(editingId ? editContent ?? "" : "");
   const [showPlusMenu, setShowPlusMenu] = useState(false);
+  const [plusMenuRect, setPlusMenuRect] = useState<DOMRect | null>(null);
   const [pendingImage, setPendingImage] = useState<{ file: File; preview: string } | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [pendingFile, setPendingFile] = useState<{ file: File; name: string } | null>(null);
+  const [uploadingFile, setUploadingFile] = useState(false);
 
   // Voice state
   const [recording, setRecording] = useState(false);
@@ -293,6 +327,9 @@ export default function UniversalChat({
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const genericFileRef = useRef<HTMLInputElement>(null);
+  const plusBtnRef = useRef<HTMLButtonElement>(null);
+  const plusPortalRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -330,17 +367,19 @@ export default function UniversalChat({
     }).catch(() => {});
   }, [showMentionMenu, mentionMenuTab, mentionMenuQuery, enableMentions]);
 
-  // Close Plus menu on outside click (mousedown avoids React 17+ stopPropagation race)
-  const plusMenuRef = useRef<HTMLDivElement>(null);
+  // Close Plus menu on outside click
   useEffect(() => {
+    if (!showPlusMenu) return;
     const handler = (e: MouseEvent) => {
-      if (plusMenuRef.current && !plusMenuRef.current.contains(e.target as Node)) {
-        setShowPlusMenu(false);
-      }
+      if (
+        plusBtnRef.current?.contains(e.target as Node) ||
+        plusPortalRef.current?.contains(e.target as Node)
+      ) return;
+      setShowPlusMenu(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, []);
+  }, [showPlusMenu]);
 
   const handleInputChange = (val: string) => {
     setInput(val);
@@ -440,7 +479,7 @@ export default function UniversalChat({
 
   const handleSend = async () => {
     if (editingId) { onSaveEdit?.(); return; }
-    if ((!input.trim() && !pendingImage) || sending || uploadingImage) return;
+    if ((!input.trim() && !pendingImage && !pendingFile) || sending || uploadingImage || uploadingFile) return;
     const text = input.trim();
     setInput("");
     if (inputRef.current) inputRef.current.style.height = "auto";
@@ -463,10 +502,25 @@ export default function UniversalChat({
       setUploadingImage(false);
     }
 
-    await onSend({ content: text, imageUrl, replyToId: replyTo?.id ?? null });
+    let fileUrl: string | null = null;
+    let fileName: string | null = null;
+    if (pendingFile && !pendingImage) {
+      setUploadingFile(true);
+      try {
+        const form = new FormData();
+        form.append("file", pendingFile.file);
+        const res = await fetch("/api/upload", { method: "POST", body: form }).then(r => r.json());
+        fileUrl = res.url ?? null;
+        fileName = pendingFile.name;
+      } catch { /* ignore */ }
+      setPendingFile(null);
+      setUploadingFile(false);
+    }
+
+    await onSend({ content: text, imageUrl, replyToId: replyTo?.id ?? null, fileUrl, fileName });
   };
 
-  const canSend = (!!input.trim() || !!pendingImage) && !sending && !uploadingImage;
+  const canSend = (!!input.trim() || !!pendingImage || !!pendingFile) && !sending && !uploadingImage && !uploadingFile;
 
   const isAiMode = mode === "agent" || mode === "custom-agent";
 
@@ -567,7 +621,7 @@ export default function UniversalChat({
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-1 relative z-10">
+          <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-1 relative z-10">
             {messagesLoading ? (
               <div className="flex items-center justify-center h-full">
                 <Loader2 className="w-6 h-6 text-secondary animate-spin" />
@@ -656,6 +710,21 @@ export default function UniversalChat({
                           <div className={cn("px-3.5 py-2.5 rounded-2xl", isMe ? "bg-secondary text-on-secondary rounded-br-sm" : "bg-surface-container border border-outline-variant/15 rounded-bl-sm")}>
                             <AudioPlayer url={msg.mediaUrl} duration={msg.voiceDuration ?? null} />
                           </div>
+                        )}
+
+                        {/* File attachment */}
+                        {msg.fileUrl && (
+                          <a href={msg.fileUrl} target="_blank" rel="noopener noreferrer"
+                            className={cn("flex items-center gap-3 px-3.5 py-2.5 rounded-2xl no-underline hover:opacity-80 transition-opacity", isMe ? "bg-secondary text-on-secondary rounded-br-sm" : "bg-surface-container border border-outline-variant/15 text-on-surface rounded-bl-sm")}>
+                            <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center shrink-0", isMe ? "bg-on-secondary/20" : "bg-primary/10")}>
+                              <Paperclip className={cn("w-4 h-4", isMe ? "text-on-secondary" : "text-primary")} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[12px] font-medium truncate">{msg.fileName ?? "File"}</p>
+                              <p className="text-[10px] opacity-60">Tap to download</p>
+                            </div>
+                            <Download className="w-3.5 h-3.5 opacity-50 shrink-0" />
+                          </a>
                         )}
 
                         {/* Text content */}
@@ -835,6 +904,20 @@ export default function UniversalChat({
               )}
             </AnimatePresence>
 
+            {/* File attachment preview */}
+            <AnimatePresence>
+              {pendingFile && (
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
+                  className="flex items-center gap-2 mb-2 px-3 py-2 bg-surface-container rounded-xl border border-outline-variant/15">
+                  <Paperclip className="w-4 h-4 text-primary shrink-0" />
+                  <span className="text-[12px] text-on-surface flex-1 min-w-0 truncate font-medium">{pendingFile.name}</span>
+                  <button onClick={() => setPendingFile(null)} className="p-1 rounded-lg hover:bg-surface-container-high text-on-surface-variant/50 shrink-0">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* Edit mode indicator */}
             {editingId && (
               <div className="flex items-center gap-2 mb-2 text-[11px] text-primary font-medium">
@@ -865,45 +948,19 @@ export default function UniversalChat({
                 style={{ minHeight: "44px" }}
               />
               <div className="flex items-center justify-between px-3 pb-3 pt-1">
-                {/* Left: Plus menu */}
-                <div ref={plusMenuRef} className="relative">
-                  <button
-                    onClick={() => setShowPlusMenu(m => !m)}
-                    className={cn("p-1.5 rounded-xl transition-colors", showPlusMenu ? "bg-primary text-on-primary" : "text-on-surface-variant hover:bg-surface-container-high hover:text-primary")}
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                  </button>
-                  <AnimatePresence>
-                    {showPlusMenu && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.85, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.85, y: 8 }}
-                        transition={{ duration: 0.15 }}
-                        className="absolute bottom-full left-0 mb-2 bg-surface-container-lowest border border-outline-variant/20 rounded-2xl shadow-xl overflow-hidden min-w-[160px] z-50">
-                        {enableImages && (
-                          <button onClick={() => { setShowPlusMenu(false); fileInputRef.current?.click(); }}
-                            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-on-surface hover:bg-surface-container transition-colors text-left">
-                            <div className="w-8 h-8 rounded-xl bg-blue-500/10 flex items-center justify-center"><ImageIcon className="w-4 h-4 text-blue-500" /></div>
-                            <span className="font-medium">Photo</span>
-                          </button>
-                        )}
-                        {enableVoice && (
-                          <button onClick={startRecording}
-                            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-on-surface hover:bg-surface-container transition-colors text-left">
-                            <div className="w-8 h-8 rounded-xl bg-error/10 flex items-center justify-center"><Mic className="w-4 h-4 text-error" /></div>
-                            <span className="font-medium">Voice note</span>
-                          </button>
-                        )}
-                        {enableMentions && (
-                          <button onClick={() => { setShowPlusMenu(false); setShowMentionMenu(true); setMentionMenuTab("stacks"); setMentionMenuQuery(""); }}
-                            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-on-surface hover:bg-surface-container transition-colors text-left">
-                            <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center"><AtSign className="w-4 h-4 text-primary" /></div>
-                            <span className="font-medium">Mention</span>
-                          </button>
-                        )}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
+                {/* Left: Plus button (menu rendered via portal to escape overflow-hidden) */}
+                <button
+                  ref={plusBtnRef}
+                  onClick={() => {
+                    if (!showPlusMenu) {
+                      setPlusMenuRect(plusBtnRef.current?.getBoundingClientRect() ?? null);
+                    }
+                    setShowPlusMenu(m => !m);
+                  }}
+                  className={cn("p-1.5 rounded-xl transition-colors", showPlusMenu ? "bg-primary text-on-primary" : "text-on-surface-variant hover:bg-surface-container-high hover:text-primary")}
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                </button>
 
                 {/* Right: Send / Save */}
                 <AnimatePresence mode="wait">
@@ -917,7 +974,7 @@ export default function UniversalChat({
                       "w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200",
                       (canSend || editingId) ? "bg-primary text-on-primary hover:opacity-90 shadow-sm" : "bg-surface-container text-on-surface-variant/30"
                     )}>
-                    {uploadingImage || sending
+                    {uploadingImage || uploadingFile || sending
                       ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
                       : editingId ? <Check className="w-3.5 h-3.5" />
                       : <ArrowUp className="w-3.5 h-3.5" />}
@@ -925,14 +982,66 @@ export default function UniversalChat({
                 </AnimatePresence>
               </div>
             </div>
-            <p className="text-center text-[11px] text-on-surface-variant/30 mt-1.5">Enter to send · Shift+Enter for new line</p>
           </div>
         </div>
       </div>
 
-      {/* Hidden file input */}
+      {/* ── Plus Menu Portal (breaks out of overflow-hidden to show all options) ── */}
+      {showPlusMenu && plusMenuRect && typeof document !== "undefined" && createPortal(
+        <AnimatePresence>
+          <motion.div
+            ref={plusPortalRef}
+            initial={{ opacity: 0, scale: 0.88, y: 6 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.88, y: 6 }}
+            transition={{ duration: 0.15 }}
+            style={{
+              position: "fixed",
+              bottom: window.innerHeight - plusMenuRect.top + 8,
+              left: plusMenuRect.left,
+              zIndex: 9999,
+            }}
+            className="bg-surface-container-lowest border border-outline-variant/20 rounded-2xl shadow-2xl overflow-hidden min-w-[180px]">
+            {enableImages && (
+              <button onClick={() => { setShowPlusMenu(false); fileInputRef.current?.click(); }}
+                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-on-surface hover:bg-surface-container transition-colors text-left">
+                <div className="w-8 h-8 rounded-xl bg-blue-500/10 flex items-center justify-center"><ImageIcon className="w-4 h-4 text-blue-500" /></div>
+                <span className="font-medium">Photo</span>
+              </button>
+            )}
+            {enableVoice && (
+              <button onClick={startRecording}
+                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-on-surface hover:bg-surface-container transition-colors text-left">
+                <div className="w-8 h-8 rounded-xl bg-error/10 flex items-center justify-center"><Mic className="w-4 h-4 text-error" /></div>
+                <span className="font-medium">Voice note</span>
+              </button>
+            )}
+            {enableMentions && (
+              <button onClick={() => { setShowPlusMenu(false); setShowMentionMenu(true); setMentionMenuTab("stacks"); setMentionMenuQuery(""); }}
+                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-on-surface hover:bg-surface-container transition-colors text-left">
+                <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center"><AtSign className="w-4 h-4 text-primary" /></div>
+                <span className="font-medium">Mention</span>
+              </button>
+            )}
+            {enableFiles && (
+              <button onClick={() => { setShowPlusMenu(false); genericFileRef.current?.click(); }}
+                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-on-surface hover:bg-surface-container transition-colors text-left">
+                <div className="w-8 h-8 rounded-xl bg-purple-500/10 flex items-center justify-center"><Paperclip className="w-4 h-4 text-purple-500" /></div>
+                <span className="font-medium">File</span>
+              </button>
+            )}
+          </motion.div>
+        </AnimatePresence>,
+        document.body
+      )}
+
+      {/* Hidden image input */}
       <input ref={fileInputRef} type="file" accept="image/*" className="hidden"
         onChange={e => { const f = e.target.files?.[0]; if (f) handleImageFile(f); e.target.value = ""; }} />
+
+      {/* Hidden generic file input */}
+      <input ref={genericFileRef} type="file" className="hidden"
+        onChange={e => { const f = e.target.files?.[0]; if (f) setPendingFile({ file: f, name: f.name }); e.target.value = ""; }} />
 
       {/* Lightbox */}
       <AnimatePresence>
