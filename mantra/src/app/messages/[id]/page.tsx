@@ -10,6 +10,7 @@ import {
 import Link from "next/link";
 import { CHAT_BG_OPTIONS, type ChatBgId } from "@/components/chat/ChatBackground";
 import UniversalChat, { UCMessage, UCReplyTo } from "@/components/chat/UniversalChat";
+import ChatPageWrapper from "@/components/chat/ChatPageWrapper";
 import { Palette } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -409,6 +410,7 @@ export default function DMChatPage() {
   );
 
   return (
+    <ChatPageWrapper>
     <UniversalChat
       mode="dm"
       title={otherUser.name}
@@ -438,5 +440,6 @@ export default function DMChatPage() {
       customBgUrl={customBgUrl}
       extraOverlays={extraOverlays}
     />
+    </ChatPageWrapper>
   );
 }

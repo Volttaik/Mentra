@@ -4,8 +4,8 @@ import { useState, useRef, useEffect, useCallback, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Sparkles, Loader2, BarChart2, Zap, MessageSquare } from "lucide-react";
-import Navbar from "@/components/layout/Navbar";
 import UniversalChat, { UCMessage, UCConversation } from "@/components/chat/UniversalChat";
+import ChatPageWrapper from "@/components/chat/ChatPageWrapper";
 
 interface RawMessage {
   id?: string;
@@ -182,8 +182,7 @@ function AgentPageInner() {
   );
 
   return (
-    <>
-      <Navbar />
+    <ChatPageWrapper>
       <UniversalChat
         mode="agent"
         title={agentName}
@@ -214,7 +213,7 @@ function AgentPageInner() {
         emptyActions={quickActionNodes}
         inputPlaceholder={`Message ${agentName}…`}
       />
-    </>
+    </ChatPageWrapper>
   );
 }
 

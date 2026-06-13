@@ -4,8 +4,8 @@ import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import { Brain, Loader2, BookOpen, MessageSquare, Sparkles, X, Trash2, Upload } from "lucide-react";
-import Navbar from "@/components/layout/Navbar";
 import UniversalChat, { UCMessage, UCConversation } from "@/components/chat/UniversalChat";
+import ChatPageWrapper from "@/components/chat/ChatPageWrapper";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -193,10 +193,11 @@ function AgentChatInner() {
   };
 
   if (!agent) return (
-    <div className="min-h-screen app-ambient-bg flex items-center justify-center">
-      <Navbar />
-      <Loader2 className="h-8 w-8 animate-spin text-secondary" />
-    </div>
+    <ChatPageWrapper>
+      <div className="flex-1 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-secondary" />
+      </div>
+    </ChatPageWrapper>
   );
 
   const ucMessages: UCMessage[] = messages.map(m => ({
@@ -239,9 +240,8 @@ function AgentChatInner() {
   );
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <Navbar />
-      <div className="relative flex-1">
+    <ChatPageWrapper>
+      <div className="relative flex-1 flex flex-col overflow-hidden">
         <UniversalChat
           mode="custom-agent"
           title={agent.name}
@@ -279,7 +279,7 @@ function AgentChatInner() {
           )}
         </AnimatePresence>
       </div>
-    </div>
+    </ChatPageWrapper>
   );
 }
 

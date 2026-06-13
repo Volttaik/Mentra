@@ -477,7 +477,7 @@ export default function UniversalChat({
   };
 
   return (
-    <div className="flex flex-col bg-background" style={{ height: "calc(100dvh - 4rem)" }}>
+    <div className="h-full flex flex-col bg-background">
       <div className="relative flex flex-1 overflow-hidden">
 
         {/* ── Sidebar ── */}
@@ -801,7 +801,7 @@ export default function UniversalChat({
           </AnimatePresence>
 
           {/* ── Input Area ── */}
-          <div className="px-4 pb-4 pt-2 shrink-0 relative z-10">
+          <div className="px-4 pt-2 shrink-0 relative z-10" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
             {/* Reply preview */}
             <AnimatePresence>
               {replyTo && (

@@ -8,9 +8,9 @@ import {
   Bot, X, BookOpen, ArrowUp, MessageCircle, Loader2,
   ExternalLink, UserPlus2, UserCheck2,
 } from "lucide-react";
-import Navbar from "@/components/layout/Navbar";
 import { cn } from "@/lib/utils";
 import UniversalChat, { UCMessage } from "@/components/chat/UniversalChat";
+import ChatPageWrapper from "@/components/chat/ChatPageWrapper";
 
 interface ChatMessage {
   id: string;
@@ -176,15 +176,16 @@ function CommunityChatInner() {
   };
 
   if (loading) return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
-      <Loader2 className="w-8 h-8 text-secondary animate-spin" />
-    </div>
+    <ChatPageWrapper>
+      <div className="flex-1 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-secondary animate-spin" />
+      </div>
+    </ChatPageWrapper>
   );
 
   if (isMember === false) return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 p-6 text-center">
+    <ChatPageWrapper>
+      <div className="flex-1 flex flex-col items-center justify-center gap-4 p-6 text-center">
         <MessageCircle className="w-12 h-12 text-secondary/40" />
         <p className="text-on-surface-variant text-sm">You need to be a member to chat here.</p>
         <button onClick={() => router.push(`/communities/${slug}`)}
@@ -192,7 +193,7 @@ function CommunityChatInner() {
           View community
         </button>
       </div>
-    </div>
+    </ChatPageWrapper>
   );
 
   const ucMessages: UCMessage[] = messages.map(m => ({
@@ -365,8 +366,7 @@ function CommunityChatInner() {
   ) : null;
 
   return (
-    <div className="min-h-screen flex flex-col bg-background" onClick={() => setAvatarCtx(null)}>
-      <Navbar />
+    <ChatPageWrapper onClick={() => setAvatarCtx(null)}>
       <UniversalChat
         mode="community"
         title={communityName}
@@ -378,8 +378,8 @@ function CommunityChatInner() {
         myUserId={myId}
         onSend={handleSend}
         sending={sending}
-        enableImages={false}
-        enableVoice={false}
+        enableImages={true}
+        enableVoice={true}
         enableMentions={true}
         onMessageCtx={openAvatarCtx}
         emptyIcon={<MessageCircle className="w-7 h-7 text-secondary/50" />}
@@ -393,7 +393,7 @@ function CommunityChatInner() {
           </>
         }
       />
-    </div>
+    </ChatPageWrapper>
   );
 }
 
