@@ -438,28 +438,31 @@ export default function StackPage({ params }: { params: { slug: string } }) {
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !currentUploadModuleId) return;
+    const files = Array.from(e.target.files ?? []);
+    if (!files.length || !currentUploadModuleId) return;
     setUploadingFor(currentUploadModuleId);
+    const moduleId = currentUploadModuleId;
     try {
-      const fd = new FormData();
-      fd.append("file", file);
-      fd.append("moduleId", currentUploadModuleId);
-      const res = await fetch(`/api/stacks/${slug}/files`, { method: "POST", body: fd });
-      const data = await res.json();
-      if (res.ok && data.file) {
-        setModuleFiles(prev => ({
-          ...prev,
-          [currentUploadModuleId]: [...(prev[currentUploadModuleId] ?? []), data.file],
-        }));
-        setStack(prev => prev ? {
-          ...prev,
-          modules: prev.modules.map(m =>
-            m.id === currentUploadModuleId ? { ...m, files: m.files + 1 } : m
-          ),
-        } : prev);
-      } else {
-        showMessage(data.error ?? "Upload failed.", "error");
+      for (const file of files) {
+        const fd = new FormData();
+        fd.append("file", file);
+        fd.append("moduleId", moduleId);
+        const res = await fetch(`/api/stacks/${slug}/files`, { method: "POST", body: fd });
+        const data = await res.json();
+        if (res.ok && data.file) {
+          setModuleFiles(prev => ({
+            ...prev,
+            [moduleId]: [...(prev[moduleId] ?? []), data.file],
+          }));
+          setStack(prev => prev ? {
+            ...prev,
+            modules: prev.modules.map(m =>
+              m.id === moduleId ? { ...m, files: m.files + 1 } : m
+            ),
+          } : prev);
+        } else {
+          showMessage(data.error ?? `Upload failed for ${file.name}.`, "error");
+        }
       }
     } finally {
       setUploadingFor(null);
@@ -498,7 +501,7 @@ export default function StackPage({ params }: { params: { slug: string } }) {
       <Navbar />
 
       {/* Hidden file input */}
-      <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileChange} />
+      <input ref={fileInputRef} type="file" multiple className="hidden" onChange={handleFileChange} />
 
       {/* Inline action feedback banner */}
       {actionMessage && (

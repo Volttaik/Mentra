@@ -83,7 +83,7 @@ export default function MobileNav() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
             onClick={() => toggleHidden(false)}
-            className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 md:hidden flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-surface-container-lowest/95 border border-outline-variant/25 shadow-lg text-on-surface-variant hover:text-primary transition-all backdrop-blur-sm text-[11px] font-medium"
+            className="fixed bottom-4 left-0 right-0 mx-auto w-fit z-50 md:hidden flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-surface-container-lowest/95 border border-outline-variant/25 shadow-lg text-on-surface-variant hover:text-primary transition-all backdrop-blur-sm text-[11px] font-medium"
           >
             <ChevronDown className="w-3.5 h-3.5 rotate-180" />
             Show nav

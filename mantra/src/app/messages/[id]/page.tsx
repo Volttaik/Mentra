@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ArrowLeft, Send, Pencil, Trash2, Reply, Copy, Eye, EyeOff,
+  ArrowLeft, ArrowUp, Send, Pencil, Trash2, Reply, Copy, Eye, EyeOff,
   Check, CheckCheck, Palette, X, Hash, Users, BrainCircuit,
   BadgeCheck, Upload, AtSign, Plus, Image as ImageIcon,
   Mic, MicOff, Play, Pause, Square, AlertCircle, Loader2,

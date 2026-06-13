@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Sparkles, ArrowUp, ArrowLeft, Loader2, Image as ImageIcon,
-  BarChart2, Zap, MessageSquare, X, Paperclip,
+  BarChart2, Zap, MessageSquare, X, AtSign,
   Plus, Trash2, MessageCircle, PanelLeftClose, PanelLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -81,6 +81,7 @@ export default function AgentPage() {
   const [sending, setSending] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [showPlusMenu, setShowPlusMenu] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);

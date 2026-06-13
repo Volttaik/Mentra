@@ -135,7 +135,7 @@ Return ONLY valid JSON (no markdown fences, no commentary):
     const completion = await getGroq().chat.completions.create({
       model: "llama-3.3-70b-versatile",
       messages: [{ role: "user", content: prompt }],
-      max_tokens: 14000,
+      max_tokens: 32000,
       temperature: 0.35,
     });
 
