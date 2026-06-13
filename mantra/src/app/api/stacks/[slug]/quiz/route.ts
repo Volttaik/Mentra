@@ -69,7 +69,7 @@ export async function POST(req: NextRequest, { params }: { params: { slug: strin
   }
 
   const body = await req.json().catch(() => ({}));
-  const questionCount = Math.min(Math.max(Number(body.questionCount) || 10, 5), 20);
+  const questionCount = Math.min(Math.max(Number(body.questionCount) || 10, 5), 50);
   const durationMinutes = Math.max(Number(body.durationMinutes) || 0, 0);
   const instructions: string = (body.instructions ?? "").toString().slice(0, 1000);
   const isPaid: boolean = !!body.isPaid;
@@ -135,7 +135,7 @@ Return ONLY valid JSON (no markdown fences, no commentary):
     const completion = await getGroq().chat.completions.create({
       model: "llama-3.3-70b-versatile",
       messages: [{ role: "user", content: prompt }],
-      max_tokens: 6000,
+      max_tokens: 14000,
       temperature: 0.35,
     });
 

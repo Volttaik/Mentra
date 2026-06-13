@@ -232,7 +232,7 @@ export default function AgentPage() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
-      <div className="relative flex flex-1 overflow-hidden" style={{ height: "calc(100vh - 64px)" }}>
+      <div className="relative flex flex-1 overflow-hidden" style={{ height: "calc(100dvh - 64px)" }}>
 
         {/* Sidebar */}
         <AnimatePresence initial={false}>

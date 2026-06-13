@@ -209,7 +209,7 @@ export default function QuizSection({ slug, isOwner, credits, onBuyCredits, onCr
     setShowProgress(false);
     setGenerating(false);
     if (pendingQuiz.current) {
-      setQuizzes(prev => [pendingQuiz.current.quiz, ...prev]);
+      setQuizzes(prev => [{ ...pendingQuiz.current.quiz, _count: { attempts: 0 }, myAttempts: [] }, ...prev]);
       onCreditsUpdate(pendingQuiz.current.credits ?? credits - creditCost);
       setShowGenForm(false);
       setInstructions("");
@@ -469,14 +469,24 @@ export default function QuizSection({ slug, isOwner, credits, onBuyCredits, onCr
               <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">
                 Questions <span className="normal-case font-normal">({CREDIT_PER_QUESTION} credits each)</span>
               </label>
-              <div className="flex gap-2">
-                {[5, 10, 15, 20].map(n => (
+              <div className="flex flex-wrap gap-2 items-center">
+                {[5, 10, 20, 30].map(n => (
                   <button key={n} onClick={() => setQuestionCount(n)} className={cn(
                     "px-3 py-1.5 rounded-xl text-sm font-medium border transition-all",
                     questionCount === n ? "border-secondary/50 bg-secondary-container/30 text-primary" : "border-outline-variant/20 text-on-surface-variant hover:bg-surface-container"
                   )}>{n}</button>
                 ))}
+                <input
+                  type="number"
+                  min={5}
+                  max={50}
+                  value={questionCount}
+                  onChange={e => setQuestionCount(Math.min(50, Math.max(5, Number(e.target.value) || 5)))}
+                  className="w-20 bg-surface-container border border-outline-variant/20 rounded-xl px-3 py-1.5 text-sm text-on-surface text-center focus:outline-none focus:ring-1 focus:ring-secondary/40"
+                  placeholder="Custom"
+                />
               </div>
+              <p className="text-[11px] text-on-surface-variant mt-1.5">Enter any number from 5–50. More questions = more credits.</p>
             </div>
 
             {/* Duration */}

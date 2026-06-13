@@ -188,7 +188,7 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: { slug: string } }
 ) {
   const session = await auth();
@@ -202,6 +202,36 @@ export async function DELETE(
   const isAdmin = (session.user as any).role === "ADMIN";
   if (stack.ownerId !== session.user.id && !isAdmin) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const body = await req.json().catch(() => ({}));
+  const { verificationCode } = body as { verificationCode?: string };
+
+  if (!isAdmin) {
+    if (!verificationCode) {
+      return NextResponse.json({ error: "Verification code required." }, { status: 400 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { email: true },
+    });
+
+    const otp = await prisma.emailVerification.findFirst({
+      where: {
+        email: user?.email ?? "",
+        code: verificationCode,
+        purpose: "delete_stack",
+        used: false,
+        expiresAt: { gt: new Date() },
+      },
+    });
+
+    if (!otp) {
+      return NextResponse.json({ error: "Invalid or expired code. Please try again." }, { status: 400 });
+    }
+
+    await prisma.emailVerification.update({ where: { id: otp.id }, data: { used: true } });
   }
 
   if (stack.forkedFromId) {

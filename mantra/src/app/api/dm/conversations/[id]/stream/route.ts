@@ -7,11 +7,12 @@ export const dynamic = "force-dynamic";
 const msgSelect = {
   id: true, conversationId: true, senderId: true, content: true,
   isViewOnce: true, viewedAt: true, editedAt: true, deletedAt: true,
-  replyToId: true, createdAt: true,
+  replyToId: true, createdAt: true, mediaType: true, mediaUrl: true, voiceDuration: true,
   sender: { select: { id: true, name: true, username: true, image: true } },
   replyTo: {
     select: {
       id: true, content: true, deletedAt: true, isViewOnce: true,
+      mediaType: true, mediaUrl: true,
       sender: { select: { id: true, name: true } },
     },
   },

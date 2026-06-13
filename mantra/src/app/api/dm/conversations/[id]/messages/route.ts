@@ -13,11 +13,12 @@ async function verifyAccess(convId: string, userId: string) {
 const msgSelect = {
   id: true, conversationId: true, senderId: true, content: true,
   isViewOnce: true, viewedAt: true, editedAt: true, deletedAt: true,
-  replyToId: true, createdAt: true,
+  replyToId: true, createdAt: true, mediaType: true, mediaUrl: true, voiceDuration: true,
   sender: { select: { id: true, name: true, username: true, image: true } },
   replyTo: {
     select: {
       id: true, content: true, deletedAt: true, isViewOnce: true,
+      mediaType: true, mediaUrl: true,
       sender: { select: { id: true, name: true } },
     },
   },
@@ -51,17 +52,25 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const convo = await verifyAccess(params.id, session.user.id);
   if (!convo) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const { content, replyToId, isViewOnce } = await req.json();
-  if (!content?.trim()) return NextResponse.json({ error: "content required" }, { status: 400 });
+  const { content, replyToId, isViewOnce, mediaType, mediaUrl, voiceDuration } = await req.json();
+
+  const hasText = content?.trim();
+  const hasMedia = mediaUrl && mediaType;
+  if (!hasText && !hasMedia) {
+    return NextResponse.json({ error: "content or media required" }, { status: 400 });
+  }
 
   const [message] = await prisma.$transaction([
     prisma.directMessage.create({
       data: {
         conversationId: params.id,
         senderId: session.user.id,
-        content: content.trim(),
+        content: content?.trim() ?? "",
         replyToId: replyToId ?? null,
         isViewOnce: isViewOnce ?? false,
+        mediaType: mediaType ?? null,
+        mediaUrl: mediaUrl ?? null,
+        voiceDuration: voiceDuration ?? null,
       },
       select: msgSelect,
     }),
@@ -73,12 +82,18 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   const otherId = convo.user1Id === session.user.id ? convo.user2Id : convo.user1Id;
   const me = await prisma.user.findUnique({ where: { id: session.user.id }, select: { name: true } });
+
+  let notifBody = content?.trim()?.slice(0, 80) ?? "";
+  if (isViewOnce) notifBody = "📷 View once message";
+  else if (mediaType === "image") notifBody = "📷 Sent a photo";
+  else if (mediaType === "voice") notifBody = "🎙 Sent a voice note";
+
   await prisma.notification.create({
     data: {
       userId: otherId,
       type: "DM",
       title: `${me?.name ?? "Someone"} sent you a message`,
-      body: isViewOnce ? "📷 View once message" : content.trim().slice(0, 80),
+      body: notifBody,
       link: `/messages/${params.id}`,
     },
   }).catch(() => {});

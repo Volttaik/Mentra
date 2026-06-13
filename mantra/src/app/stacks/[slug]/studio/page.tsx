@@ -8,7 +8,7 @@ import {
   ArrowLeft, Loader2, Save, Image as ImageIcon, Palette,
   FileText, Tag, Globe, Lock, Trash2, Upload, Check, AlertTriangle,
   Eye, BookOpen, GraduationCap, Building, Calendar, Languages, Users,
-  PanelLeft, LayoutPanelTop, Columns2, Pipette,
+  PanelLeft, LayoutPanelTop, Columns2, Pipette, Mail, X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -74,6 +74,11 @@ export default function StackStudioPage() {
   const [tagResults, setTagResults] = useState<UserSearchResult[]>([]);
   const [tagSearching, setTagSearching] = useState(false);
   const [tagMsg, setTagMsg] = useState("");
+
+  const [deleteStep, setDeleteStep] = useState<"idle" | "confirm" | "code_sent" | "deleting">("idle");
+  const [deleteCode, setDeleteCode] = useState("");
+  const [deleteError, setDeleteError] = useState("");
+  const [deleteSending, setDeleteSending] = useState(false);
 
   useEffect(() => {
     const savedLayout = localStorage.getItem("mentra-studio-layout") as "sidebar" | "top" | "wide" | null;
@@ -285,6 +290,44 @@ export default function StackStudioPage() {
   };
 
   const set = (key: string, value: any) => setForm(f => ({ ...f, [key]: value }));
+
+  const handleSendDeleteCode = async () => {
+    setDeleteError("");
+    setDeleteSending(true);
+    try {
+      const res = await fetch("/api/auth/send-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ purpose: "delete_stack" }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setDeleteError(data.error ?? "Failed to send code."); setDeleteSending(false); return; }
+      setDeleteStep("code_sent");
+      setDeleteCode("");
+    } catch {
+      setDeleteError("Something went wrong. Please try again.");
+    }
+    setDeleteSending(false);
+  };
+
+  const handleDeleteStack = async () => {
+    if (!deleteCode.trim()) { setDeleteError("Please enter the verification code."); return; }
+    setDeleteError("");
+    setDeleteStep("deleting");
+    try {
+      const res = await fetch(`/api/stacks/${slug}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ verificationCode: deleteCode.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setDeleteError(data.error ?? "Deletion failed."); setDeleteStep("code_sent"); return; }
+      router.push("/dashboard");
+    } catch {
+      setDeleteError("Something went wrong. Please try again.");
+      setDeleteStep("code_sent");
+    }
+  };
 
   const loadCommunities = () => {
     if (myCommunities.length > 0) return;
@@ -963,13 +1006,89 @@ export default function StackStudioPage() {
                   <p className="text-sm text-on-surface-variant">
                     These actions are irreversible. Deleting a stack removes all files, modules, and discussions.
                   </p>
-                  <Link
-                    href={`/stacks/${slug}`}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border border-error/30 text-error hover:bg-error-container/20 transition-all"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    Delete stack (from stack page)
-                  </Link>
+
+                  {deleteError && (
+                    <div className="flex items-start gap-2 p-3 bg-error-container/20 border border-error/20 rounded-xl text-sm text-error">
+                      <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                      {deleteError}
+                    </div>
+                  )}
+
+                  {deleteStep === "idle" && (
+                    <button
+                      onClick={() => { setDeleteStep("confirm"); setDeleteError(""); }}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border border-error/30 text-error hover:bg-error-container/20 transition-all"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      Delete this stack
+                    </button>
+                  )}
+
+                  {deleteStep === "confirm" && (
+                    <div className="space-y-3">
+                      <div className="p-3 bg-error-container/10 border border-error/20 rounded-xl text-sm text-on-surface">
+                        <p className="font-semibold text-error mb-1">Are you absolutely sure?</p>
+                        <p className="text-on-surface-variant text-xs">This will permanently delete <strong>{form.title || stack?.title}</strong> and all its content. This cannot be undone.</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={handleSendDeleteCode}
+                          disabled={deleteSending}
+                          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-error text-on-error hover:opacity-90 disabled:opacity-60 transition-all"
+                        >
+                          {deleteSending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Mail className="w-3.5 h-3.5" />}
+                          Send verification code
+                        </button>
+                        <button
+                          onClick={() => { setDeleteStep("idle"); setDeleteError(""); }}
+                          className="px-4 py-2 rounded-xl text-sm font-medium border border-outline-variant/30 text-on-surface-variant hover:bg-surface-container transition-all"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {(deleteStep === "code_sent" || deleteStep === "deleting") && (
+                    <div className="space-y-3">
+                      <p className="text-sm text-on-surface-variant">
+                        A 6-digit code was sent to your email. Enter it below to confirm deletion.
+                      </p>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={6}
+                        value={deleteCode}
+                        onChange={e => setDeleteCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                        placeholder="000000"
+                        className="input-field text-center text-lg font-bold tracking-widest max-w-[160px]"
+                      />
+                      <div className="flex gap-2 flex-wrap">
+                        <button
+                          onClick={handleDeleteStack}
+                          disabled={deleteStep === "deleting" || deleteCode.length !== 6}
+                          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-error text-on-error hover:opacity-90 disabled:opacity-60 transition-all"
+                        >
+                          {deleteStep === "deleting" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                          {deleteStep === "deleting" ? "Deleting…" : "Confirm delete"}
+                        </button>
+                        <button
+                          onClick={handleSendDeleteCode}
+                          disabled={deleteSending}
+                          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm text-on-surface-variant border border-outline-variant/30 hover:bg-surface-container transition-all disabled:opacity-50"
+                        >
+                          {deleteSending ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
+                          Resend code
+                        </button>
+                        <button
+                          onClick={() => { setDeleteStep("idle"); setDeleteCode(""); setDeleteError(""); }}
+                          className="px-4 py-2 rounded-xl text-sm text-on-surface-variant hover:bg-surface-container transition-all"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

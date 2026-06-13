@@ -60,7 +60,7 @@ export default function MobileNav() {
 
   if (status !== "authenticated") return null;
   if (navStyle === "sidebar") return null;
-  if (pathname.endsWith("/chat") || pathname.includes("/chat/")) return null;
+  if (pathname === "/agent" || pathname.endsWith("/chat") || pathname.includes("/chat/")) return null;
   if (pathname.match(/^\/messages\/[^/]+/)) return null;
 
   const username = (session?.user as { username?: string })?.username;
@@ -111,10 +111,10 @@ export default function MobileNav() {
         className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-surface-container-lowest/95 backdrop-blur-md border-t border-outline-variant/20 pb-safe"
       >
         {/* Hide toggle — centered exactly above the nav items */}
-        <div className="absolute -top-6 left-0 right-0 flex justify-center pointer-events-none">
+        <div className="absolute -top-6 inset-x-0 flex items-center justify-center pointer-events-none">
           <button
             onClick={() => toggleHidden(true)}
-            className="pointer-events-auto flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container-lowest/90 border border-outline-variant/20 shadow-sm text-on-surface-variant/50 hover:text-primary transition-all backdrop-blur-sm"
+            className="pointer-events-auto flex items-center justify-center w-7 h-5 rounded-full bg-surface-container-lowest/90 border border-outline-variant/20 shadow-sm text-on-surface-variant/50 hover:text-primary transition-all backdrop-blur-sm"
           >
             <ChevronDown className="w-3 h-3" />
           </button>

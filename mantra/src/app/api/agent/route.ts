@@ -213,7 +213,7 @@ Context: ${context ? JSON.stringify(context) : "none"}${stackContextBlock}`;
         { role: "user", content: message },
       ],
       temperature: 0.4,
-      max_tokens: 512,
+      max_tokens: 2048,
     });
 
     const raw = completion.choices[0]?.message?.content ?? "";

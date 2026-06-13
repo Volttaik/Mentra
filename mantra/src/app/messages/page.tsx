@@ -88,10 +88,11 @@ export default function MessagesPage() {
     else setStarting(null);
   };
 
-  if (status === "unauthenticated") {
-    router.push("/login");
-    return null;
-  }
+  useEffect(() => {
+    if (status === "unauthenticated") router.push("/login");
+  }, [status, router]);
+
+  if (status === "unauthenticated") return null;
 
   return (
     <div className="min-h-screen bg-background">

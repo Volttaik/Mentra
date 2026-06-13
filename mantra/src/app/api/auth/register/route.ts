@@ -94,6 +94,7 @@ export async function POST(req: Request) {
         department: resolvedDept,
         level: level || experience || platform || null,
         aiCredits: 50,
+        isVerified: true,
       },
     });
 

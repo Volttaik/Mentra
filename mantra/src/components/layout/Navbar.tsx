@@ -209,6 +209,21 @@ export default function Navbar() {
         {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
       </button>
 
+      {isAuth && (
+        <Link
+          href="/notifications"
+          className="relative p-2 rounded-xl text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all"
+          title="Notifications"
+        >
+          <Bell className="w-4 h-4" />
+          {notifCount > 0 && (
+            <span className="absolute top-0.5 right-0.5 min-w-[16px] h-4 px-0.5 bg-error text-on-error text-[9px] font-bold rounded-full flex items-center justify-center leading-none">
+              {notifCount > 99 ? "99+" : notifCount}
+            </span>
+          )}
+        </Link>
+      )}
+
       {isLoading ? (
         <div className="w-8 h-8 bg-surface-container rounded-full animate-pulse" />
       ) : isAuth ? (
@@ -217,15 +232,6 @@ export default function Navbar() {
             <MessagesSquare className="w-5 h-5" />
             {dmCount > 0 && (
               <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full" />
-            )}
-          </Link>
-
-          <Link href="/notifications" className="relative p-2 text-on-surface-variant hover:text-primary transition-colors" title="Notifications">
-            <Bell className="w-5 h-5" />
-            {notifCount > 0 && (
-              <span className="absolute top-1 right-1 w-4 h-4 bg-secondary text-on-secondary text-[9px] font-bold rounded-full flex items-center justify-center">
-                {notifCount > 9 ? "9+" : notifCount}
-              </span>
             )}
           </Link>
 
@@ -568,6 +574,20 @@ export default function Navbar() {
           <button onClick={toggle} className="p-2 rounded-xl text-on-surface-variant hover:bg-surface-container transition-all">
             {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
+          {isAuth && (
+            <Link
+              href="/notifications"
+              className="relative p-2 rounded-xl text-on-surface-variant hover:bg-surface-container transition-all"
+              title="Notifications"
+            >
+              <Bell className="w-4 h-4" />
+              {notifCount > 0 && (
+                <span className="absolute top-0.5 right-0.5 min-w-[16px] h-4 px-0.5 bg-error text-on-error text-[9px] font-bold rounded-full flex items-center justify-center leading-none">
+                  {notifCount > 99 ? "99+" : notifCount}
+                </span>
+              )}
+            </Link>
+          )}
           <button className="p-2 text-on-surface-variant" onClick={() => setMobileOpen(!mobileOpen)}>
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>

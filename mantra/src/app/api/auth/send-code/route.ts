@@ -4,7 +4,7 @@ import { sendVerificationCode } from "@/lib/email";
 import { randomInt } from "crypto";
 import { auth } from "@/auth";
 
-const VALID_PURPOSES = ["signup", "password_reset", "bank_account"] as const;
+const VALID_PURPOSES = ["signup", "password_reset", "bank_account", "verify_account", "delete_stack"] as const;
 type Purpose = typeof VALID_PURPOSES[number];
 
 export async function POST(req: NextRequest) {
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid purpose" }, { status: 400 });
     }
 
-    if (purpose === "bank_account") {
+    if (purpose === "bank_account" || purpose === "delete_stack") {
       const session = await auth();
       if (!session?.user?.id) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -44,6 +44,16 @@ export async function POST(req: NextRequest) {
       const existing = await prisma.user.findUnique({ where: { email } });
       if (!existing) {
         return NextResponse.json({ success: true });
+      }
+    }
+
+    if (purpose === "verify_account") {
+      const existing = await prisma.user.findUnique({ where: { email } });
+      if (!existing) {
+        return NextResponse.json({ error: "No account found with this email." }, { status: 404 });
+      }
+      if (existing.isVerified) {
+        return NextResponse.json({ error: "This account is already verified." }, { status: 409 });
       }
     }
 
