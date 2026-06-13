@@ -94,6 +94,8 @@ interface UCProps {
   extraOverlays?: React.ReactNode;
   showSidebar?: boolean;
   onToggleSidebar?: () => void;
+  bgId?: string;
+  customBgUrl?: string | null;
 }
 
 // ─── AudioPlayer ─────────────────────────────────────────────────────────────
@@ -139,14 +141,14 @@ function MentionCard({ type, slug, id, name, isMine }: {
   const Icon = type === "stack" ? Hash : type === "community" ? Users : BrainCircuit;
   const label = type === "stack" ? "Stack" : type === "community" ? "Community" : "Quiz";
   const colors = {
-    stack:     isMine ? "bg-white/15 border-white/20 text-white"        : "bg-primary/8 border-primary/20 text-primary",
-    community: isMine ? "bg-white/15 border-white/20 text-white"        : "bg-emerald-500/8 border-emerald-500/20 text-emerald-600",
-    quiz:      isMine ? "bg-white/15 border-white/20 text-white"        : "bg-amber-500/8 border-amber-500/20 text-amber-600",
+    stack:     isMine ? "bg-on-secondary/12 border-on-secondary/20 text-on-secondary" : "bg-primary/8 border-primary/20 text-primary",
+    community: isMine ? "bg-on-secondary/12 border-on-secondary/20 text-on-secondary" : "bg-emerald-500/8 border-emerald-500/20 text-emerald-600",
+    quiz:      isMine ? "bg-on-secondary/12 border-on-secondary/20 text-on-secondary" : "bg-amber-500/8 border-amber-500/20 text-amber-600",
   };
   const iconColors = {
-    stack:     isMine ? "bg-white/20" : "bg-primary/12",
-    community: isMine ? "bg-white/20" : "bg-emerald-500/12",
-    quiz:      isMine ? "bg-white/20" : "bg-amber-500/12",
+    stack:     isMine ? "bg-on-secondary/20" : "bg-primary/12",
+    community: isMine ? "bg-on-secondary/20" : "bg-emerald-500/12",
+    quiz:      isMine ? "bg-on-secondary/20" : "bg-amber-500/12",
   };
   return (
     <Link href={href} onClick={e => e.stopPropagation()}
@@ -174,25 +176,25 @@ export function renderMentions(text: string, isMine?: boolean): React.ReactNode 
     if (!p) return;
     if (/^@\w+$/.test(p)) {
       inlineNodes.push(
-        <span key={i} className={cn("inline-flex items-center px-1.5 py-0.5 mx-0.5 rounded-md text-[12px] font-semibold", isMine ? "bg-white/20 text-white" : "bg-primary/12 text-primary")}>{p}</span>
+        <span key={i} className={cn("inline-flex items-center px-1.5 py-0.5 mx-0.5 rounded-md text-[12px] font-semibold", isMine ? "bg-on-secondary/20 text-on-secondary" : "bg-primary/12 text-primary")}>{p}</span>
       );
       return;
     }
     const stackM = p.match(/^\[\[stack:([^|]+)\|([^\]]+)\]\]$/);
     if (stackM) {
-      inlineNodes.push(<span key={`t${i}`} className={cn("inline-flex items-center gap-0.5 px-1.5 py-0.5 mx-0.5 rounded-md text-[12px] font-semibold", isMine ? "bg-white/20 text-white" : "bg-primary/12 text-primary")}><Hash className="w-3 h-3" />{stackM[2]}</span>);
+      inlineNodes.push(<span key={`t${i}`} className={cn("inline-flex items-center gap-0.5 px-1.5 py-0.5 mx-0.5 rounded-md text-[12px] font-semibold", isMine ? "bg-on-secondary/20 text-on-secondary" : "bg-primary/12 text-primary")}><Hash className="w-3 h-3" />{stackM[2]}</span>);
       cards.push(<MentionCard key={`c${i}`} type="stack" slug={stackM[1]} name={stackM[2]} isMine={isMine} />);
       return;
     }
     const comM = p.match(/^\[\[community:([^|]+)\|([^\]]+)\]\]$/);
     if (comM) {
-      inlineNodes.push(<span key={`t${i}`} className={cn("inline-flex items-center gap-0.5 px-1.5 py-0.5 mx-0.5 rounded-md text-[12px] font-semibold", isMine ? "bg-white/20 text-white" : "bg-emerald-500/10 text-emerald-600")}><Users className="w-3 h-3" />{comM[2]}</span>);
+      inlineNodes.push(<span key={`t${i}`} className={cn("inline-flex items-center gap-0.5 px-1.5 py-0.5 mx-0.5 rounded-md text-[12px] font-semibold", isMine ? "bg-on-secondary/20 text-on-secondary" : "bg-emerald-500/10 text-emerald-600")}><Users className="w-3 h-3" />{comM[2]}</span>);
       cards.push(<MentionCard key={`c${i}`} type="community" slug={comM[1]} name={comM[2]} isMine={isMine} />);
       return;
     }
     const quizM = p.match(/^\[\[quiz:([^|]+)\|([^\]]+)\]\]$/);
     if (quizM) {
-      inlineNodes.push(<span key={`t${i}`} className={cn("inline-flex items-center gap-0.5 px-1.5 py-0.5 mx-0.5 rounded-md text-[12px] font-semibold", isMine ? "bg-white/20 text-white" : "bg-amber-500/10 text-amber-600")}><BrainCircuit className="w-3 h-3" />{quizM[2]}</span>);
+      inlineNodes.push(<span key={`t${i}`} className={cn("inline-flex items-center gap-0.5 px-1.5 py-0.5 mx-0.5 rounded-md text-[12px] font-semibold", isMine ? "bg-on-secondary/20 text-on-secondary" : "bg-amber-500/10 text-amber-600")}><BrainCircuit className="w-3 h-3" />{quizM[2]}</span>);
       cards.push(<MentionCard key={`c${i}`} type="quiz" id={quizM[1]} name={quizM[2]} isMine={isMine} />);
       return;
     }
@@ -245,6 +247,8 @@ export default function UniversalChat({
   extraOverlays,
   showSidebar: showSidebarProp,
   onToggleSidebar,
+  bgId,
+  customBgUrl,
 }: UCProps) {
   const hasSidebar = !!conversations;
   const [sidebarOpen, setSidebarOpen] = useState(
@@ -326,11 +330,16 @@ export default function UniversalChat({
     }).catch(() => {});
   }, [showMentionMenu, mentionMenuTab, mentionMenuQuery, enableMentions]);
 
-  // Close Plus menu on outside click
+  // Close Plus menu on outside click (mousedown avoids React 17+ stopPropagation race)
+  const plusMenuRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const handler = () => setShowPlusMenu(false);
-    document.addEventListener("click", handler);
-    return () => document.removeEventListener("click", handler);
+    const handler = (e: MouseEvent) => {
+      if (plusMenuRef.current && !plusMenuRef.current.contains(e.target as Node)) {
+        setShowPlusMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, []);
 
   const handleInputChange = (val: string) => {
@@ -522,7 +531,10 @@ export default function UniversalChat({
 
         {/* ── Main Area ── */}
         <div className="flex-1 flex flex-col overflow-hidden relative" ref={containerRef}>
-          <ChatBackground />
+          {customBgUrl
+            ? <div className="absolute inset-0 z-0 pointer-events-none" style={{ backgroundImage: `url(${customBgUrl})`, backgroundSize: "cover", backgroundPosition: "center" }} />
+            : <ChatBackground bgId={bgId as import("./ChatBackground").ChatBgId | undefined} />
+          }
 
           {/* Header */}
           <div className="flex items-center gap-3 px-4 py-3 border-b border-outline-variant/10 shrink-0 relative z-10">
@@ -854,7 +866,7 @@ export default function UniversalChat({
               />
               <div className="flex items-center justify-between px-3 pb-3 pt-1">
                 {/* Left: Plus menu */}
-                <div className="relative" onClick={e => e.stopPropagation()}>
+                <div ref={plusMenuRef} className="relative">
                   <button
                     onClick={() => setShowPlusMenu(m => !m)}
                     className={cn("p-1.5 rounded-xl transition-colors", showPlusMenu ? "bg-primary text-on-primary" : "text-on-surface-variant hover:bg-surface-container-high hover:text-primary")}
