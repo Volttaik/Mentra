@@ -131,11 +131,22 @@ Return ONLY valid JSON (no markdown fences, no commentary):
   ]
 }`;
 
+  // Cap context to avoid exceeding model token limits
+  const MAX_CONTEXT_CHARS = 18000;
+  const trimmedContext = content.richContext.length > MAX_CONTEXT_CHARS
+    ? content.richContext.slice(0, MAX_CONTEXT_CHARS) + "\n\n[Content truncated for length]"
+    : content.richContext;
+
+  const trimmedPrompt = prompt.replace(content.richContext, trimmedContext);
+
+  // Dynamic output token budget: ~220 tokens per question, capped at 8000 for Groq free tier
+  const maxOutputTokens = Math.min(Math.max(questionCount * 220 + 500, 2000), 8000);
+
   try {
     const completion = await getGroq().chat.completions.create({
       model: "llama-3.3-70b-versatile",
-      messages: [{ role: "user", content: prompt }],
-      max_tokens: 32000,
+      messages: [{ role: "user", content: trimmedPrompt }],
+      max_tokens: maxOutputTokens,
       temperature: 0.35,
     });
 

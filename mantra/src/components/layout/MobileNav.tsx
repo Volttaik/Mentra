@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Home, Compass, Plus, MessagesSquare, User, ChevronDown } from "lucide-react";
+import { Home, Compass, Plus, MessagesSquare, User, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -75,17 +75,18 @@ export default function MobileNav() {
 
   return (
     <>
-      {/* Restore button — shown only when nav is manually hidden */}
+      {/* Restore pill — centered at bottom when nav is hidden */}
       <AnimatePresence>
         {hidden && (
           <motion.button
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
+            exit={{ opacity: 0, y: 16 }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
             onClick={() => toggleHidden(false)}
-            className="fixed bottom-4 left-0 right-0 mx-auto w-fit z-50 md:hidden flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-surface-container-lowest/95 border border-outline-variant/25 shadow-lg text-on-surface-variant hover:text-primary transition-all backdrop-blur-sm text-[11px] font-medium"
+            className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 md:hidden flex items-center gap-1.5 px-4 py-2 rounded-full bg-surface-container-lowest/95 border border-outline-variant/25 shadow-lg text-on-surface-variant hover:text-primary transition-colors backdrop-blur-sm text-[11px] font-medium whitespace-nowrap"
           >
-            <ChevronDown className="w-3.5 h-3.5 rotate-180" />
+            <ChevronUp className="w-3.5 h-3.5" />
             Show nav
           </motion.button>
         )}
@@ -98,7 +99,7 @@ export default function MobileNav() {
             initial={{ opacity: 0, y: 4, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 4, scale: 0.95 }}
-            className="fixed z-50 md:hidden bottom-[72px] left-1/2 -translate-x-1/2 bg-on-surface/90 text-surface text-[11px] px-3 py-1.5 rounded-full shadow-lg whitespace-nowrap pointer-events-none"
+            className="fixed z-50 md:hidden bottom-[76px] left-1/2 -translate-x-1/2 bg-on-surface/90 text-surface text-[11px] px-3 py-1.5 rounded-full shadow-lg whitespace-nowrap pointer-events-none"
           >
             Tap ↑ to hide navigation
           </motion.div>
@@ -110,11 +111,12 @@ export default function MobileNav() {
         transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
         className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-surface-container-lowest/95 backdrop-blur-md border-t border-outline-variant/20 pb-safe"
       >
-        {/* Hide toggle — centered exactly above the nav items */}
-        <div className="absolute -top-6 inset-x-0 flex items-center justify-center pointer-events-none">
+        {/* Hide toggle — pill centered directly above the nav bar */}
+        <div className="absolute left-0 right-0 flex justify-center" style={{ top: "-22px" }}>
           <button
             onClick={() => toggleHidden(true)}
-            className="pointer-events-auto flex items-center justify-center w-7 h-5 rounded-full bg-surface-container-lowest/90 border border-outline-variant/20 shadow-sm text-on-surface-variant/50 hover:text-primary transition-all backdrop-blur-sm"
+            className="flex items-center justify-center h-5 px-3 rounded-full bg-surface-container-lowest/90 border border-outline-variant/20 shadow-sm text-on-surface-variant/60 hover:text-primary transition-colors backdrop-blur-sm"
+            aria-label="Hide navigation"
           >
             <ChevronDown className="w-3 h-3" />
           </button>

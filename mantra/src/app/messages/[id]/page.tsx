@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import ChatBackground, { CHAT_BG_OPTIONS, type ChatBgId } from "@/components/chat/ChatBackground";
+import { renderMentions } from "@/components/chat/UniversalChat";
 import { cn } from "@/lib/utils";
 import { timeAgo } from "@/lib/utils";
 
@@ -186,33 +187,6 @@ function ViewOnceMessage({ msg, isMine, onView }: { msg: DM; isMine: boolean; on
   );
 }
 
-function renderMentions(text: string, isMine: boolean): React.ReactNode {
-  const parts = text.split(/(@\w+|\[\[stack:[^\]]+\]\]|\[\[community:[^\]]+\]\]|\[\[quiz:[^\]]+\]\])/g);
-  return parts.map((p, i) => {
-    if (p.startsWith("@")) {
-      return <span key={i} className={cn("font-semibold", isMine ? "text-on-primary underline" : "text-primary")}>{p}</span>;
-    }
-    const stackM = p.match(/^\[\[stack:([^|]+)\|([^\]]+)\]\]$/);
-    if (stackM) return (
-      <Link key={i} href={`/stacks/${stackM[1]}`} className={cn("inline-flex items-center gap-0.5 font-semibold underline underline-offset-2", isMine ? "text-on-primary" : "text-primary")}>
-        <Hash className="w-3 h-3" />{stackM[2]}
-      </Link>
-    );
-    const comM = p.match(/^\[\[community:([^|]+)\|([^\]]+)\]\]$/);
-    if (comM) return (
-      <Link key={i} href={`/communities/${comM[1]}`} className={cn("inline-flex items-center gap-0.5 font-semibold underline underline-offset-2", isMine ? "text-on-primary" : "text-emerald-400")}>
-        <Users className="w-3 h-3" />{comM[2]}
-      </Link>
-    );
-    const quizM = p.match(/^\[\[quiz:([^|]+)\|([^\]]+)\]\]$/);
-    if (quizM) return (
-      <Link key={i} href={`/quiz/${quizM[1]}`} className={cn("inline-flex items-center gap-0.5 font-semibold underline underline-offset-2", isMine ? "text-on-primary/90" : "text-amber-500")}>
-        <BrainCircuit className="w-3 h-3" />{quizM[2]}
-      </Link>
-    );
-    return <span key={i}>{p}</span>;
-  });
-}
 
 export default function DMChatPage() {
   const { id } = useParams<{ id: string }>();
