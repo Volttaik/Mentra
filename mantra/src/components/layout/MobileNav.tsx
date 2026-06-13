@@ -84,7 +84,7 @@ export default function MobileNav() {
             exit={{ opacity: 0, y: 16 }}
             transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
             onClick={() => toggleHidden(false)}
-            className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 md:hidden flex items-center gap-1.5 px-4 py-2 rounded-full bg-surface-container-lowest/95 border border-outline-variant/25 shadow-lg text-on-surface-variant hover:text-primary transition-colors backdrop-blur-sm text-[11px] font-medium whitespace-nowrap"
+            className="fixed bottom-5 inset-x-0 mx-auto w-fit z-50 md:hidden flex items-center gap-1.5 px-4 py-2 rounded-full bg-surface-container-lowest/95 border border-outline-variant/25 shadow-lg text-on-surface-variant hover:text-primary transition-colors backdrop-blur-sm text-[11px] font-medium whitespace-nowrap"
           >
             <ChevronUp className="w-3.5 h-3.5" />
             Show nav

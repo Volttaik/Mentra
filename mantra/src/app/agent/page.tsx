@@ -182,7 +182,7 @@ function AgentPageInner() {
   );
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <>
       <Navbar />
       <UniversalChat
         mode="agent"
@@ -206,15 +206,15 @@ function AgentPageInner() {
         isThinking={sending}
         thinkingIcon={<Sparkles className="w-3.5 h-3.5 text-on-secondary-container" />}
         enableImages={true}
-        enableVoice={false}
-        enableMentions={false}
+        enableVoice={true}
+        enableMentions={true}
         emptyIcon={<Sparkles className="w-7 h-7 text-on-secondary-container" />}
         emptyTitle={`Hi, I'm ${agentName}`}
         emptySubtitle="Ask me about your stacks, communities, stats — or anything."
         emptyActions={quickActionNodes}
         inputPlaceholder={`Message ${agentName}…`}
       />
-    </div>
+    </>
   );
 }
 

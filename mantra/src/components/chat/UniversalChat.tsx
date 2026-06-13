@@ -477,8 +477,8 @@ export default function UniversalChat({
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <div className="relative flex flex-1 overflow-hidden" style={{ height: "calc(100dvh - 64px)" }}>
+    <div className="flex flex-col bg-background" style={{ height: "calc(100dvh - 4rem)" }}>
+      <div className="relative flex flex-1 overflow-hidden">
 
         {/* ── Sidebar ── */}
         {hasSidebar && (
