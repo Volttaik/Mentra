@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, MessageCircle, Loader2, Send, Bot, X,
   AlertCircle, BookOpen, ArrowUp, Users, UserPlus2, UserCheck2, ExternalLink,
+  AtSign, Hash, BrainCircuit, Plus, Image as ImageIcon,
 } from "lucide-react";
 import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
@@ -27,6 +28,12 @@ interface AiMessage {
   content: string;
 }
 
+type MentionMenuType = "users" | "stacks" | "communities" | "quizzes";
+interface MentionResult { id: string; name: string; username: string; image: string | null; }
+interface StackResult { id: string; title: string; slug: string; }
+interface CommunityResult { id: string; name: string; slug: string; }
+interface QuizResult { id: string; title: string; stack: { title: string; slug: string }; }
+
 function PulseDot({ delay }: { delay: number }) {
   return (
     <motion.span
@@ -35,6 +42,34 @@ function PulseDot({ delay }: { delay: number }) {
       transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut", delay }}
     />
   );
+}
+
+function renderMentions(text: string): React.ReactNode {
+  const parts = text.split(/(@\w+|\[\[stack:[^\]]+\]\]|\[\[community:[^\]]+\]\]|\[\[quiz:[^\]]+\]\])/g);
+  return parts.map((p, i) => {
+    if (p.startsWith("@")) {
+      return <span key={i} className="font-semibold text-primary">{p}</span>;
+    }
+    const stackM = p.match(/^\[\[stack:([^|]+)\|([^\]]+)\]\]$/);
+    if (stackM) return (
+      <Link key={i} href={`/stacks/${stackM[1]}`} className="inline-flex items-center gap-0.5 font-semibold underline underline-offset-2 text-primary">
+        <Hash className="w-3 h-3" />{stackM[2]}
+      </Link>
+    );
+    const comM = p.match(/^\[\[community:([^|]+)\|([^\]]+)\]\]$/);
+    if (comM) return (
+      <Link key={i} href={`/communities/${comM[1]}`} className="inline-flex items-center gap-0.5 font-semibold underline underline-offset-2 text-emerald-400">
+        <Users className="w-3 h-3" />{comM[2]}
+      </Link>
+    );
+    const quizM = p.match(/^\[\[quiz:([^|]+)\|([^\]]+)\]\]$/);
+    if (quizM) return (
+      <Link key={i} href={`/quiz/${quizM[1]}`} className="inline-flex items-center gap-0.5 font-semibold underline underline-offset-2 text-amber-400">
+        <BrainCircuit className="w-3 h-3" />{quizM[2]}
+      </Link>
+    );
+    return <span key={i}>{p}</span>;
+  });
 }
 
 export default function CommunityChatPage() {
@@ -53,7 +88,16 @@ export default function CommunityChatPage() {
   const [sending, setSending] = useState(false);
   const chatBottomRef = useRef<HTMLDivElement>(null);
   const chatPollRef = useRef<NodeJS.Timeout | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Mention system
+  const [showPlusMenu, setShowPlusMenu] = useState(false);
+  const [showMentionMenu, setShowMentionMenu] = useState(false);
+  const [mentionMenuType, setMentionMenuType] = useState<MentionMenuType>("stacks");
+  const [mentionMenuResults, setMentionMenuResults] = useState<(MentionResult | StackResult | CommunityResult | QuizResult)[]>([]);
+  const [mentionMenuQuery, setMentionMenuQuery] = useState("");
+  const [mentionQuery, setMentionQuery] = useState<string | null>(null);
+  const [mentionResults, setMentionResults] = useState<MentionResult[]>([]);
 
   const [showAi, setShowAi] = useState(false);
   const [aiMessages, setAiMessages] = useState<AiMessage[]>([]);
@@ -115,11 +159,65 @@ export default function CommunityChatPage() {
     fetch("/api/credits").then(r => r.json()).then(d => { if (!d.error) setAiCredits(d.credits ?? 0); }).catch(() => {});
   }, []);
 
+  // Mention autocomplete (@ key)
+  useEffect(() => {
+    if (mentionQuery === null) { setMentionResults([]); return; }
+    const t = setTimeout(() => {
+      fetch(`/api/dm/search?q=${encodeURIComponent(mentionQuery)}`)
+        .then(r => r.json()).then(d => setMentionResults(d.users ?? [])).catch(() => {});
+    }, 250);
+    return () => clearTimeout(t);
+  }, [mentionQuery]);
+
+  // Mention picker search
+  useEffect(() => {
+    if (!showMentionMenu) return;
+    const endpoint = `/api/dm/search?type=${mentionMenuType}&q=${encodeURIComponent(mentionMenuQuery)}`;
+    fetch(endpoint).then(r => r.json()).then(d => {
+      if (mentionMenuType === "users") setMentionMenuResults(d.users ?? []);
+      else if (mentionMenuType === "stacks") setMentionMenuResults(d.stacks ?? []);
+      else if (mentionMenuType === "communities") setMentionMenuResults(d.communities ?? []);
+      else setMentionMenuResults(d.quizzes ?? []);
+    }).catch(() => {});
+  }, [showMentionMenu, mentionMenuType, mentionMenuQuery]);
+
+  const handleInputChange = (val: string) => {
+    setChatInput(val);
+    const atMatch = val.match(/@(\w*)$/);
+    if (atMatch) setMentionQuery(atMatch[1]);
+    else setMentionQuery(null);
+  };
+
+  const insertMention = (username: string) => {
+    const newInput = chatInput.replace(/@\w*$/, `@${username} `);
+    setChatInput(newInput);
+    setMentionQuery(null);
+    inputRef.current?.focus();
+  };
+
+  const insertMentionItem = (item: MentionResult | StackResult | CommunityResult | QuizResult) => {
+    let tag = "";
+    if ("username" in item) {
+      tag = `@${(item as MentionResult).username}`;
+    } else if ("slug" in item && "title" in item && !("name" in item)) {
+      tag = `[[stack:${(item as StackResult).slug}|${(item as StackResult).title}]]`;
+    } else if ("slug" in item && "name" in item) {
+      tag = `[[community:${(item as CommunityResult).slug}|${(item as CommunityResult).name}]]`;
+    } else {
+      const q = item as QuizResult;
+      tag = `[[quiz:${q.id}|${q.title}]]`;
+    }
+    setChatInput(prev => (prev.trim() ? prev + " " + tag + " " : tag + " "));
+    setShowMentionMenu(false);
+    inputRef.current?.focus();
+  };
+
   const sendMessage = async () => {
     if (!chatInput.trim() || sending) return;
     setSending(true);
     const content = chatInput.trim();
     setChatInput("");
+    setMentionQuery(null);
     try {
       const res = await fetch(`/api/communities/${slug}/chat`, {
         method: "POST",
@@ -228,13 +326,16 @@ export default function CommunityChatPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-background overflow-hidden">
+    <div
+      className="h-screen flex flex-col bg-background overflow-hidden"
+      onClick={() => { setShowPlusMenu(false); setShowMentionMenu(false); }}
+    >
       <Navbar />
 
       <div className="flex-1 flex flex-col max-w-3xl mx-auto w-full min-h-0 relative">
         <ChatBackground />
         {/* Header */}
-        <div className="px-4 py-3 border-b border-outline-variant/10 flex items-center gap-3 bg-surface-container-low shrink-0">
+        <div className="px-4 py-3 border-b border-outline-variant/10 flex items-center gap-3 bg-surface-container-low shrink-0 relative z-10">
           <button
             onClick={() => router.push(`/communities/${slug}`)}
             className="p-1.5 rounded-xl hover:bg-surface-container text-on-surface-variant transition-colors"
@@ -265,7 +366,7 @@ export default function CommunityChatPage() {
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto px-4 py-5 space-y-4 min-h-0">
+        <div className="flex-1 overflow-y-auto px-4 py-5 space-y-4 min-h-0 relative z-0">
           {chatLoading ? (
             <div className="flex justify-center py-12">
               <Loader2 className="w-6 h-6 text-secondary animate-spin" />
@@ -320,7 +421,7 @@ export default function CommunityChatPage() {
                         ? "bg-secondary text-on-secondary rounded-br-sm"
                         : "bg-surface-container text-on-surface rounded-bl-sm"
                     )}>
-                      {msg.content}
+                      {renderMentions(msg.content)}
                     </div>
                     <p className="text-[10px] text-on-surface-variant/50 mt-1 px-1">{timeAgo(msg.createdAt)}</p>
                   </div>
@@ -331,27 +432,136 @@ export default function CommunityChatPage() {
           <div ref={chatBottomRef} />
         </div>
 
+        {/* Mention autocomplete */}
+        <AnimatePresence>
+          {mentionQuery !== null && mentionResults.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
+              className="absolute left-3 right-3 z-20 bg-surface-container-lowest border border-outline-variant/20 rounded-2xl shadow-xl overflow-hidden"
+              style={{ bottom: "calc(64px + 4px)" }}
+            >
+              {mentionResults.slice(0, 5).map(u => (
+                <button key={u.id} onClick={() => insertMention(u.username)}
+                  className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-surface-container transition-colors text-left">
+                  <div className="w-7 h-7 rounded-full bg-secondary-container overflow-hidden shrink-0">
+                    {u.image ? <img src={u.image} alt={u.name} className="w-full h-full object-cover" /> : <span className="w-full h-full flex items-center justify-center text-[9px] font-bold text-on-secondary-container">{u.name[0]}</span>}
+                  </div>
+                  <span className="text-sm font-semibold text-on-surface">{u.name}</span>
+                  <span className="text-xs text-on-surface-variant ml-auto">@{u.username}</span>
+                </button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Mention picker */}
+        <AnimatePresence>
+          {showMentionMenu && (
+            <>
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowMentionMenu(false)} className="fixed inset-0 z-30" />
+              <motion.div
+                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
+                onClick={e => e.stopPropagation()}
+                className="absolute bottom-[68px] left-3 right-3 z-40 bg-surface-container-lowest border border-outline-variant/20 rounded-2xl shadow-2xl overflow-hidden"
+              >
+                <div className="flex border-b border-outline-variant/15">
+                  {(["users", "stacks", "communities", "quizzes"] as MentionMenuType[]).map(t => (
+                    <button key={t} onClick={() => { setMentionMenuType(t); setMentionMenuQuery(""); }}
+                      className={cn("flex-1 text-[11px] font-semibold py-2.5 capitalize transition-colors", mentionMenuType === t ? "text-primary border-b-2 border-primary" : "text-on-surface-variant hover:text-on-surface")}>
+                      {t === "users" ? <AtSign className="w-3.5 h-3.5 mx-auto" /> : t === "stacks" ? <Hash className="w-3.5 h-3.5 mx-auto" /> : t === "communities" ? <Users className="w-3.5 h-3.5 mx-auto" /> : <BrainCircuit className="w-3.5 h-3.5 mx-auto" />}
+                    </button>
+                  ))}
+                </div>
+                <div className="px-3 pt-2 pb-1">
+                  <input autoFocus value={mentionMenuQuery} onChange={e => setMentionMenuQuery(e.target.value)}
+                    placeholder={`Search ${mentionMenuType}...`}
+                    className="w-full bg-surface-container rounded-xl px-3 py-2 text-sm text-on-surface placeholder:text-on-surface-variant/40 outline-none border border-outline-variant/15" />
+                </div>
+                <div className="max-h-48 overflow-y-auto pb-2">
+                  {mentionMenuResults.length === 0 ? (
+                    <p className="text-center text-xs text-on-surface-variant/50 py-4">No results</p>
+                  ) : mentionMenuResults.map((item, i) => {
+                    if (mentionMenuType === "users") {
+                      const u = item as MentionResult;
+                      return (
+                        <button key={i} onClick={() => insertMentionItem(u)} className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-surface-container text-sm text-on-surface text-left">
+                          <div className="w-6 h-6 rounded-full bg-secondary-container overflow-hidden shrink-0">
+                            {u.image ? <img src={u.image} alt={u.name} className="w-full h-full object-cover" /> : <span className="w-full h-full flex items-center justify-center text-[9px] font-bold text-on-secondary-container">{u.name[0]}</span>}
+                          </div>
+                          <span className="flex-1 truncate">{u.name}</span>
+                          <span className="text-xs text-on-surface-variant">@{u.username}</span>
+                        </button>
+                      );
+                    } else if (mentionMenuType === "stacks") {
+                      const s = item as StackResult;
+                      return <button key={i} onClick={() => insertMentionItem(s)} className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-surface-container text-sm text-on-surface text-left"><Hash className="w-3.5 h-3.5 text-primary shrink-0" />{s.title}</button>;
+                    } else if (mentionMenuType === "communities") {
+                      const c = item as CommunityResult;
+                      return <button key={i} onClick={() => insertMentionItem(c)} className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-surface-container text-sm text-on-surface text-left"><Users className="w-3.5 h-3.5 text-emerald-500 shrink-0" />{c.name}</button>;
+                    } else {
+                      const q = item as QuizResult;
+                      return <button key={i} onClick={() => insertMentionItem(q)} className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-surface-container text-sm text-on-surface text-left"><BrainCircuit className="w-3.5 h-3.5 text-amber-500 shrink-0" />{q.title}<span className="text-xs text-on-surface-variant ml-1">· {q.stack?.title}</span></button>;
+                    }
+                  })}
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+
         {/* Input */}
-        <div className="px-4 py-3 border-t border-outline-variant/10 shrink-0 bg-surface-container-low">
-          <form
-            onSubmit={e => { e.preventDefault(); sendMessage(); }}
-            className="flex items-center gap-3"
-          >
-            <input
+        <div className="px-4 py-3 border-t border-outline-variant/10 shrink-0 bg-surface-container-low relative z-10">
+          <div className="flex items-end gap-2">
+            {/* + button */}
+            <div className="relative">
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowPlusMenu(m => !m); setShowMentionMenu(false); }}
+                className={cn("p-2 rounded-xl transition-colors shrink-0 mb-0.5", showPlusMenu ? "bg-primary text-on-primary" : "text-on-surface-variant hover:bg-surface-container hover:text-primary")}
+              >
+                <Plus className="w-5 h-5" />
+              </button>
+              <AnimatePresence>
+                {showPlusMenu && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.85, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.85, y: 8 }}
+                    transition={{ duration: 0.15 }}
+                    onClick={e => e.stopPropagation()}
+                    className="absolute bottom-full left-0 mb-2 bg-surface-container-lowest border border-outline-variant/20 rounded-2xl shadow-xl overflow-hidden min-w-[160px] z-50"
+                  >
+                    <button onClick={() => { setShowPlusMenu(false); setShowMentionMenu(true); setMentionMenuType("stacks"); setMentionMenuQuery(""); }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-on-surface hover:bg-surface-container transition-colors text-left">
+                      <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center"><AtSign className="w-4 h-4 text-primary" /></div>
+                      <span className="font-medium">Mention</span>
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Text input */}
+            <textarea
               ref={inputRef}
               value={chatInput}
-              onChange={e => setChatInput(e.target.value)}
+              onChange={e => {
+                handleInputChange(e.target.value);
+                const el = e.target;
+                el.style.height = "auto";
+                el.style.height = Math.min(el.scrollHeight, 100) + "px";
+              }}
+              onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
               placeholder="Say something…"
-              className="flex-1 bg-surface-container border border-outline-variant/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-secondary/30 placeholder:text-on-surface-variant/50"
+              rows={1}
+              style={{ resize: "none", minHeight: "40px", maxHeight: "100px" }}
+              className="flex-1 bg-surface-container border border-outline-variant/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-secondary/30 placeholder:text-on-surface-variant/50 text-on-surface"
             />
             <button
-              type="submit"
+              onClick={sendMessage}
               disabled={!chatInput.trim() || sending}
-              className="p-2.5 bg-secondary text-on-secondary rounded-xl hover:opacity-90 transition-all disabled:opacity-50 shrink-0"
+              className="p-2.5 bg-secondary text-on-secondary rounded-xl hover:opacity-90 transition-all disabled:opacity-50 shrink-0 mb-0.5"
             >
               {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
             </button>
-          </form>
+          </div>
         </div>
       </div>
 
@@ -422,7 +632,7 @@ export default function CommunityChatPage() {
         )}
       </AnimatePresence>
 
-      {/* AI overlay panel — fixed, floats above chat, does NOT push content */}
+      {/* AI overlay panel */}
       <AnimatePresence>
         {showAi && (
           <>

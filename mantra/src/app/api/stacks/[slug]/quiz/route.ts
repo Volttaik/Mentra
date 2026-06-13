@@ -69,7 +69,7 @@ export async function POST(req: NextRequest, { params }: { params: { slug: strin
   }
 
   const body = await req.json().catch(() => ({}));
-  const questionCount = Math.min(Math.max(Number(body.questionCount) || 10, 5), 50);
+  const questionCount = Math.max(Number(body.questionCount) || 10, 1);
   const durationMinutes = Math.max(Number(body.durationMinutes) || 0, 0);
   const instructions: string = (body.instructions ?? "").toString().slice(0, 1000);
   const isPaid: boolean = !!body.isPaid;

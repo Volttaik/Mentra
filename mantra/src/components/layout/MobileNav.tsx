@@ -120,7 +120,7 @@ export default function MobileNav() {
           </button>
         </div>
 
-        <div className="flex items-center justify-around px-2 py-2">
+        <div className="grid grid-cols-5 items-center px-2 py-2 justify-items-center">
           {items.map(({ href, icon: Icon, label, special }) => {
             const isActive = pathname === href || (href !== "/dashboard" && pathname.startsWith(href) && href !== "/dashboard");
             return (

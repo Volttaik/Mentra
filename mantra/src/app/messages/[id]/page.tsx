@@ -200,7 +200,7 @@ function renderMentions(text: string, isMine: boolean): React.ReactNode {
     );
     const comM = p.match(/^\[\[community:([^|]+)\|([^\]]+)\]\]$/);
     if (comM) return (
-      <Link key={i} href={`/communities/${comM[1]}`} className={cn("inline-flex items-center gap-0.5 font-semibold underline underline-offset-2", isMine ? "text-on-primary/90" : "text-emerald-500")}>
+      <Link key={i} href={`/communities/${comM[1]}`} className={cn("inline-flex items-center gap-0.5 font-semibold underline underline-offset-2", isMine ? "text-on-primary" : "text-emerald-400")}>
         <Users className="w-3 h-3" />{comM[2]}
       </Link>
     );

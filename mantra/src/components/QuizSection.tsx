@@ -478,15 +478,14 @@ export default function QuizSection({ slug, isOwner, credits, onBuyCredits, onCr
                 ))}
                 <input
                   type="number"
-                  min={5}
-                  max={50}
+                  min={1}
                   value={questionCount}
-                  onChange={e => setQuestionCount(Math.min(50, Math.max(5, Number(e.target.value) || 5)))}
+                  onChange={e => setQuestionCount(Math.max(1, Number(e.target.value) || 1))}
                   className="w-20 bg-surface-container border border-outline-variant/20 rounded-xl px-3 py-1.5 text-sm text-on-surface text-center focus:outline-none focus:ring-1 focus:ring-secondary/40"
                   placeholder="Custom"
                 />
               </div>
-              <p className="text-[11px] text-on-surface-variant mt-1.5">Enter any number from 5–50. More questions = more credits.</p>
+              <p className="text-[11px] text-on-surface-variant mt-1.5">Enter any number of questions. More questions = more credits and generation time.</p>
             </div>
 
             {/* Duration */}
