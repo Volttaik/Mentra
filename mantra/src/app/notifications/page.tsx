@@ -244,11 +244,11 @@ export default function NotificationsPage() {
 
                         {/* Community invite actions */}
                         {notif.type === "COMMUNITY_INVITE" && invite && !inviteResult && (
-                          <div className="flex items-center gap-2 mt-3">
+                          <div className="flex flex-wrap items-center gap-2 mt-3">
                             <button
                               onClick={() => respondInvite(notif.id, invite.slug, invite.inviteId, "accept")}
                               disabled={responding === notif.id}
-                              className="flex items-center gap-1.5 px-4 py-1.5 bg-secondary text-on-secondary rounded-xl text-xs font-semibold hover:opacity-90 disabled:opacity-60 transition-opacity"
+                              className="flex items-center gap-1.5 px-4 py-2 bg-secondary text-on-secondary rounded-xl text-xs font-semibold hover:opacity-90 disabled:opacity-60 transition-opacity shrink-0"
                             >
                               {responding === notif.id
                                 ? <Loader2 className="w-3 h-3 animate-spin" />
@@ -258,7 +258,7 @@ export default function NotificationsPage() {
                             <button
                               onClick={() => respondInvite(notif.id, invite.slug, invite.inviteId, "decline")}
                               disabled={responding === notif.id}
-                              className="flex items-center gap-1.5 px-4 py-1.5 border border-outline-variant/30 text-on-surface-variant rounded-xl text-xs hover:bg-surface-container transition-colors disabled:opacity-60"
+                              className="flex items-center gap-1.5 px-4 py-2 border border-outline-variant/30 text-on-surface-variant rounded-xl text-xs hover:bg-surface-container transition-colors disabled:opacity-60 shrink-0"
                             >
                               <X className="w-3 h-3" />
                               Decline
@@ -266,7 +266,7 @@ export default function NotificationsPage() {
                             {invite.slug && (
                               <Link
                                 href={`/communities/${invite.slug}`}
-                                className="flex items-center gap-1 text-xs text-secondary hover:underline ml-auto"
+                                className="flex items-center gap-1 text-xs text-secondary hover:underline"
                               >
                                 View community <ExternalLink className="w-3 h-3" />
                               </Link>

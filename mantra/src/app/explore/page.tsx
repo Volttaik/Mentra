@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   Search, TrendingUp, Star, Clock, BookOpen, Loader2,
-  Shield, GitFork, Eye, ChevronRight, Filter,
+  Shield, GitFork, Eye, Filter,
 } from "lucide-react";
 import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
@@ -49,7 +49,6 @@ function FeedCard({ stack, index }: { stack: Stack; index: number }) {
     >
       <Link href={`/stacks/${stack.slug}`} className="block group">
         <article className="bg-surface-container-lowest border border-outline-variant/15 rounded-2xl overflow-hidden hover:border-outline-variant/40 hover:-translate-y-0.5 transition-all duration-200 shadow-card">
-          {/* Banner */}
           {stack.banner ? (
             <div className="h-32 relative overflow-hidden">
               <img src={stack.banner} alt="" className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" />
@@ -62,9 +61,7 @@ function FeedCard({ stack, index }: { stack: Stack; index: number }) {
           ) : null}
 
           <div className="p-5">
-            {/* Header */}
             <div className="flex items-start gap-3 mb-3">
-              {/* Owner avatar */}
               <div className="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center text-xs font-bold font-manrope text-on-secondary-container shrink-0 overflow-hidden">
                 {stack.owner.image
                   ? <img src={stack.owner.image} alt="" className="w-full h-full object-cover" />
@@ -88,12 +85,10 @@ function FeedCard({ stack, index }: { stack: Stack; index: number }) {
               </div>
             </div>
 
-            {/* Description */}
             <p className="text-xs text-on-surface-variant leading-relaxed mb-3 line-clamp-2">
               {stack.description || "No description provided."}
             </p>
 
-            {/* Tags */}
             {stack.tags.length > 0 && (
               <div className="flex flex-wrap gap-1 mb-3">
                 {stack.tags.slice(0, 3).map(tag => (
@@ -107,7 +102,6 @@ function FeedCard({ stack, index }: { stack: Stack; index: number }) {
               </div>
             )}
 
-            {/* Footer stats */}
             <div className="flex items-center justify-between pt-3 border-t border-outline-variant/10">
               <div className="flex items-center gap-3 text-xs text-on-surface-variant">
                 <span className="flex items-center gap-1">
@@ -164,12 +158,19 @@ export default function ExplorePage() {
   const [stacks, setStacks] = useState<Stack[]>([]);
   const [_total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const loadingMoreRef = useRef(false);
 
   const fetchStacks = useCallback(async (resetPage = true, pageOverride?: number) => {
-    setLoading(true);
+    if (resetPage) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
     const currentPage = resetPage ? 1 : (pageOverride ?? page);
     const params = new URLSearchParams({
       ...(query && { q: query }),
@@ -190,7 +191,12 @@ export default function ExplorePage() {
       setTotal(data.total ?? 0);
       setHasMore((data.page ?? 1) < (data.pages ?? 1));
     } catch {}
-    setLoading(false);
+    if (resetPage) {
+      setLoading(false);
+    } else {
+      setLoadingMore(false);
+    }
+    loadingMoreRef.current = false;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query, selectedDept, sortBy]);
 
@@ -200,11 +206,34 @@ export default function ExplorePage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query, selectedDept, sortBy]);
 
+  // Infinite scroll via IntersectionObserver
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry.isIntersecting && hasMore && !loadingMoreRef.current && !loading) {
+          loadingMoreRef.current = true;
+          setPage(prev => {
+            const next = prev + 1;
+            fetchStacks(false, next);
+            return prev;
+          });
+        }
+      },
+      { rootMargin: "200px" }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMore, loading, fetchStacks]);
+
   return (
     <div className="min-h-screen flex flex-col bg-background pb-20 md:pb-0">
       <Navbar />
 
-      {/* Hero search bar */}
       <section className="border-b border-outline-variant/10 py-10">
         <div className="max-w-[1200px] mx-auto px-4 md:px-6">
           <div className="max-w-2xl mx-auto text-center mb-7">
@@ -232,12 +261,10 @@ export default function ExplorePage() {
       </section>
 
       <main className="flex-1 max-w-[1200px] mx-auto px-4 md:px-6 py-8 w-full">
-        {/* Sort + Filter row */}
         <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
           <div />
 
           <div className="flex items-center gap-2">
-            {/* Sort pills */}
             <div className="hidden sm:flex items-center gap-1 bg-surface-container rounded-xl p-1">
               {SORT_OPTIONS.map(opt => (
                 <button
@@ -256,7 +283,6 @@ export default function ExplorePage() {
               ))}
             </div>
 
-            {/* Filter toggle */}
             <button
               onClick={() => setShowFilters(s => !s)}
               className={cn(
@@ -272,7 +298,6 @@ export default function ExplorePage() {
           </div>
         </div>
 
-        {/* Department filter strip */}
         {showFilters && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
@@ -299,7 +324,6 @@ export default function ExplorePage() {
                 ))}
               </div>
 
-              {/* Mobile sort */}
               <div className="mt-3 pt-3 border-t border-outline-variant/10 flex gap-2 sm:hidden">
                 <p className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider self-center mr-1">Sort</p>
                 {SORT_OPTIONS.map(opt => (
@@ -321,7 +345,6 @@ export default function ExplorePage() {
           </motion.div>
         )}
 
-        {/* Feed grid */}
         {loading && stacks.length === 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {Array.from({ length: 9 }).map((_, i) => <SkeletonCard key={i} />)}
@@ -349,19 +372,19 @@ export default function ExplorePage() {
               {stacks.map((stack, i) => (
                 <FeedCard key={stack.id} stack={stack} index={i} />
               ))}
+              {loadingMore && Array.from({ length: 3 }).map((_, i) => (
+                <SkeletonCard key={`skel-${i}`} />
+              ))}
             </div>
 
-            {hasMore && (
-              <div className="mt-10 text-center">
-                <button
-                  onClick={() => fetchStacks(false, page + 1)}
-                  disabled={loading}
-                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-surface-container border border-outline-variant/30 rounded-lg text-xs font-medium text-on-surface-variant hover:bg-surface-container-high transition-all disabled:opacity-60"
-                >
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ChevronRight className="w-4 h-4" />}
-                  Load more
-                </button>
-              </div>
+            {/* Infinite scroll sentinel */}
+            <div ref={sentinelRef} className="h-10 mt-4" />
+
+            {/* End of results indicator */}
+            {!hasMore && stacks.length > 0 && (
+              <p className="text-center text-xs text-on-surface-variant/40 mt-2 pb-4">
+                You&apos;ve seen all stacks
+              </p>
             )}
           </>
         )}
