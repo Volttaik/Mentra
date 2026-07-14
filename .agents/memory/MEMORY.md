@@ -1,4 +1,5 @@
 - [Next.js 14 on Replit - SWC SIGBUS fix](nextjs-swc-replit.md) — SWC native binary crashes with SIGBUS; must disable it and use Babel with specific plugins + @babel/runtime
+- [Mentra Turso/libSQL Prisma setup](turso-prisma-setup.md) — schema uses file: URL for CLI; runtime uses @prisma/adapter-libsql; TURSO_DATABASE_URL/TURSO_AUTH_TOKEN secrets; strip quotes from env vars; pnpm-lock.yaml must be synced after npm installs
 - [Mentra email OTP pattern](mentra-email-otp.md) — EmailVerification model + /api/auth/send-code; signup requires OTP before account creation
 - [Mentra AI features pattern](mentra-ai-features.md) — Groq must use lazy init (getGroq() fn) to avoid SIGBUS at module load; credits system fully wired
 - [Mentra four-feature build](mentra-features.md) — Stack Flows, Communities, AI Agent (FloatingAgent), WhatsApp Gateway (/connector pw: liquid4*) all built and compiling
