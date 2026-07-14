@@ -19,7 +19,7 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
   })).map(m => m.userId);
 
   const followers = await prisma.follow.findMany({
-    where: { followingId: session.user.id, follower: { name: { contains: q, mode: "insensitive" } } },
+    where: { followingId: session.user.id, follower: { name: { contains: q } } },
     include: { follower: { select: { id: true, name: true, username: true, image: true } } },
     take: 10,
   });
@@ -31,8 +31,8 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
         where: {
           id: { notIn: [...existingMemberIds, ...followerIds, session.user.id] },
           OR: [
-            { name: { contains: q, mode: "insensitive" } },
-            { username: { contains: q, mode: "insensitive" } },
+            { name: { contains: q } },
+            { username: { contains: q } },
           ],
         },
         select: { id: true, name: true, username: true, image: true },

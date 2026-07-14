@@ -52,8 +52,8 @@ async function handleIntent(intent: string, args: any, user: any) {
         where: {
           isPublic: true,
           OR: [
-            { title: { contains: args.query, mode: "insensitive" } },
-            { description: { contains: args.query, mode: "insensitive" } },
+            { title: { contains: args.query } },
+            { description: { contains: args.query } },
           ],
         },
         select: { id: true, title: true, slug: true, description: true, banner: true },

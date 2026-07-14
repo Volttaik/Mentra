@@ -17,8 +17,8 @@ export async function GET(req: NextRequest) {
       where: {
         isPublic: true,
         ...(q ? { OR: [
-          { title: { contains: q, mode: "insensitive" } },
-          { slug: { contains: q, mode: "insensitive" } },
+          { title: { contains: q } },
+          { slug: { contains: q } },
         ]} : {}),
       },
       select: { id: true, title: true, slug: true, banner: true, description: true },
@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
   if (type === "quizzes") {
     const quizzes = await prisma.quiz.findMany({
       where: {
-        ...(q ? { title: { contains: q, mode: "insensitive" } } : {}),
+        ...(q ? { title: { contains: q } } : {}),
         stack: { isPublic: true },
       },
       select: { id: true, title: true, stack: { select: { title: true, slug: true } } },
@@ -71,8 +71,8 @@ export async function GET(req: NextRequest) {
     where: {
       id: { in: mutualIds },
       ...(q ? { OR: [
-        { name: { contains: q, mode: "insensitive" } },
-        { username: { contains: q, mode: "insensitive" } },
+        { name: { contains: q } },
+        { username: { contains: q } },
       ]} : {}),
     },
     select: { id: true, name: true, username: true, image: true, isVerified: true, university: true },

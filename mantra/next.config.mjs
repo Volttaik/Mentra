@@ -4,11 +4,22 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   experimental: {
-    serverComponentsExternalPackages: ["pdf-parse"],
+    serverComponentsExternalPackages: [
+      "pdf-parse",
+      "@libsql/client",
+      "@prisma/adapter-libsql",
+      "libsql",
+    ],
   },
   webpack: (config, { isServer }) => {
     if (isServer) {
-      config.externals = [...(config.externals || []), "pdf-parse"];
+      config.externals = [
+        ...(config.externals || []),
+        "pdf-parse",
+        "@libsql/client",
+        "@prisma/adapter-libsql",
+        "libsql",
+      ];
     }
     return config;
   },

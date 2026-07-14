@@ -114,8 +114,8 @@ export async function PATCH(
   const users = await prisma.user.findMany({
     where: {
       OR: [
-        { username: { contains: query, mode: "insensitive" } },
-        { name: { contains: query, mode: "insensitive" } },
+        { username: { contains: query } },
+        { name: { contains: query } },
       ],
     },
     select: { id: true, name: true, username: true, image: true },

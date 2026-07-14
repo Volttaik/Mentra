@@ -93,10 +93,10 @@ export async function GET(req: NextRequest) {
     const where: any = q
       ? {
           OR: [
-            { name: { contains: q, mode: "insensitive" } },
-            { username: { contains: q, mode: "insensitive" } },
-            { university: { contains: q, mode: "insensitive" } },
-            { department: { contains: q, mode: "insensitive" } },
+            { name: { contains: q } },
+            { username: { contains: q } },
+            { university: { contains: q } },
+            { department: { contains: q } },
           ],
         }
       : {};
@@ -121,7 +121,7 @@ export async function GET(req: NextRequest) {
   }
 
   if (type === "tags") {
-    const where: any = q ? { name: { contains: q, mode: "insensitive" } } : {};
+    const where: any = q ? { name: { contains: q } } : {};
     const tags = await prisma.tag.findMany({
       where,
       orderBy: { stacks: { _count: "desc" } },
@@ -145,12 +145,12 @@ export async function GET(req: NextRequest) {
     ...(q
       ? {
           OR: [
-            { title: { contains: q, mode: "insensitive" } },
-            { description: { contains: q, mode: "insensitive" } },
-            { courseCode: { contains: q, mode: "insensitive" } },
-            { university: { contains: q, mode: "insensitive" } },
-            { department: { contains: q, mode: "insensitive" } },
-            { tags: { some: { tag: { name: { contains: q, mode: "insensitive" } } } } },
+            { title: { contains: q } },
+            { description: { contains: q } },
+            { courseCode: { contains: q } },
+            { university: { contains: q } },
+            { department: { contains: q } },
+            { tags: { some: { tag: { name: { contains: q } } } } },
           ],
         }
       : {}),
@@ -160,15 +160,15 @@ export async function GET(req: NextRequest) {
     ? {
         bannedAt: null,
         OR: [
-          { name: { contains: q, mode: "insensitive" } },
-          { username: { contains: q, mode: "insensitive" } },
-          { university: { contains: q, mode: "insensitive" } },
-          { department: { contains: q, mode: "insensitive" } },
+          { name: { contains: q } },
+          { username: { contains: q } },
+          { university: { contains: q } },
+          { department: { contains: q } },
         ],
       }
     : { bannedAt: null };
 
-  const tagWhere: any = q ? { name: { contains: q, mode: "insensitive" } } : {};
+  const tagWhere: any = q ? { name: { contains: q } } : {};
 
   const [stacks, users, tags] = await Promise.all([
     q

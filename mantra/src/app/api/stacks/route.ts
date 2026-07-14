@@ -50,11 +50,11 @@ export async function GET(req: NextRequest) {
     ...(q
       ? {
           OR: [
-            { title: { contains: q, mode: "insensitive" } },
-            { description: { contains: q, mode: "insensitive" } },
-            { courseCode: { contains: q, mode: "insensitive" } },
-            { university: { contains: q, mode: "insensitive" } },
-            { tags: { some: { tag: { name: { contains: q, mode: "insensitive" } } } } },
+            { title: { contains: q } },
+            { description: { contains: q } },
+            { courseCode: { contains: q } },
+            { university: { contains: q } },
+            { tags: { some: { tag: { name: { contains: q } } } } },
           ],
         }
       : {}),
