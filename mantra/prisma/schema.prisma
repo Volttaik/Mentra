@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "cockroachdb"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./prisma/dev.db"
 }
 
 model User {
@@ -382,7 +382,7 @@ model Quiz {
   durationMinutes Int            @default(0)
   expiresAt       DateTime?
   isPaid          Boolean        @default(false)
-  price           Decimal?       @default(0) @db.Decimal(10, 2)
+  price           Float?         @default(0)
   createdAt       DateTime       @default(now())
   stack           Stack          @relation(fields: [stackId], references: [id], onDelete: Cascade)
   questions       QuizQuestion[]
@@ -864,7 +864,7 @@ model Article {
   coverImage  String?
   views       Int              @default(0)
   likes       Int              @default(0)
-  tags        String[]
+  tags        String   @default("[]")
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
   author      User             @relation("ArticleAuthor", fields: [authorId], references: [id], onDelete: Cascade)

@@ -33,7 +33,7 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
 
   await prisma.article.update({ where: { id: article.id }, data: { views: { increment: 1 } } });
 
-  return NextResponse.json({ ...article, hasPurchased, isOwner: session?.user?.id === article.authorId });
+  return NextResponse.json({ ...article, tags: JSON.parse(article.tags || "[]"), hasPurchased, isOwner: session?.user?.id === article.authorId });
 }
 
 export async function PATCH(req: Request, { params }: { params: { slug: string } }) {
@@ -49,7 +49,7 @@ export async function PATCH(req: Request, { params }: { params: { slug: string }
       ...(body.isPaid !== undefined && { isPaid: body.isPaid }),
       ...(body.price !== undefined && { price: body.price }),
       ...(body.isPublished !== undefined && { isPublished: body.isPublished }),
-      ...(body.tags && { tags: body.tags }),
+      ...(body.tags && { tags: JSON.stringify(body.tags) }),
     },
   });
   return NextResponse.json({ updated: result.count > 0 });

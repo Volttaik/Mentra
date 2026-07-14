@@ -27,7 +27,7 @@ export async function GET(req: Request) {
     orderBy: { updatedAt: "desc" },
     take: 50,
   });
-  return NextResponse.json(articles);
+  return NextResponse.json(articles.map(a => ({ ...a, tags: JSON.parse(a.tags || "[]") })));
 }
 
 export async function POST(req: Request) {
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
       price: body.price || 0,
       isPaid: !!body.isPaid,
       coverImage: body.coverImage || null,
-      tags: body.tags || [],
+      tags: JSON.stringify(body.tags || []),
     },
   });
   return NextResponse.json(article, { status: 201 });
